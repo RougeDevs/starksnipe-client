@@ -3,10 +3,17 @@ import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { SessionAccountInterface } from "@argent/tma-wallet";
 import { useRouter } from "next/router";
+import { Button } from "@/components/ui/button";
+import Navbar from "@/components/layouts/Navbar";
+import { useSetAtom } from "jotai";
+import { argentSetupAtom } from "@/store/address.atom";
+import SwapInterface from "@/components/layouts/SwapInterface";
+import { Box } from "@chakra-ui/react";
 
 export default function Home() {
   const [argentTMA, setArgentTMA] = useState<any>(null);
   const [debugLog, setDebugLog] = useState<string>("Initializing...");
+  const setArgentSetup=useSetAtom<any>(argentSetupAtom)
 
   useEffect(() => {
     // Dynamically import to ensure it runs only in the browser
@@ -15,7 +22,7 @@ export default function Home() {
         const tma = ArgentTMA.init({
           environment: "sepolia", // Replace with "mainnet" if needed
           appName: "StarkSnipe",
-          appTelegramUrl: "https://t.me/tatibot/starksnipe",
+          appTelegramUrl: "https://t.me/snipebot",
           sessionParams: {
             allowedMethods: [
               {
@@ -27,6 +34,7 @@ export default function Home() {
             validityDays: 90,
           },
         });
+        setArgentSetup(tma)
         setArgentTMA(tma);
       })
       .catch((err) => {
@@ -61,6 +69,7 @@ export default function Home() {
             // The account object is still available to get access to user's address
             // but transactions can't be executed
             const { account } = res;
+
   
             setAccount(account);
             setIsConnected(false);
@@ -90,25 +99,11 @@ export default function Home() {
       <Head>
         <title>Argent TMA Wallet</title>
       </Head>
-      <div className={styles.page}>
-        <button
-          onClick={() => {
-            if (argentTMA) {
-              handleConnectButton()
-            } else {
-              console.debug('err argent')
-              setDebugLog('not')
-              console.error("ArgentTMA is not initialized yet");
-            }
-          }}
-        >
-          Connect to Argent Wallet
-        </button>
-        <p>{argentTMA?debugLog:"nhi btayega"}</p>
-        <p>{isConnected?"chling":"ghnta"}</p>
+      <Box >
+        <Navbar account={account} argentTma={argentTMA}/>
+        <SwapInterface/>
         <p>{account?.address}</p>
-        <p>{router.query.token}</p>
-      </div>
+      </Box>
     </>
   );
 }
