@@ -15,7 +15,6 @@ import Image from "next/image";
 import React, { useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
-import { useAccount } from "@starknet-react/core";
 import { Contract } from "starknet";
 const SwapInterface = ({account,argentTMA}:any) => {
   const [tokenSelectorDropdown, settokenSelectorDropdown] = useState(false);
