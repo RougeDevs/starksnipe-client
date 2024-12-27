@@ -15,7 +15,9 @@ import Image from "next/image";
 import React, { useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
-const SwapInterface = () => {
+import { useAccount } from "@starknet-react/core";
+import { Contract } from "starknet";
+const SwapInterface = ({account,argentTMA}:any) => {
   const [tokenSelectorDropdown, settokenSelectorDropdown] = useState(false);
   const [buyDropdownSelected, setbuyDropdownSelected] = useState(false);
   const [sellDropdownSelected, setsellDropdownSelected] = useState(false);
@@ -92,9 +94,28 @@ const SwapInterface = () => {
       symbol: "ETH",
     },
   ]);
+  const handleTransaction=async()=>{
+    try {
+      if(argentTMA && account){
+        alert(account.address)
+        const res = await argentTMA.requestApprovals(
+            [
+                {
+                  tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+                  amount: BigInt(10000000000000000).toString(),
+                  spender: account.address,
+                }
+              ],
+            );
+      }
+    } catch (error) {
+      alert(error)
+      console.log(error,'err in call')
+    }
+  }
   return (
     <Box
-      mt="3rem"
+      mt="1rem"
       padding="1rem"
       width="100%"
       display="flex"
@@ -286,8 +307,9 @@ const SwapInterface = () => {
                 <Text>balance: 2</Text>
               </Box>
             </Box>
+
           </Box>
-          <Box display="flex" flexDirection="column">
+          {(currentSelectedBuyToken.symbol !== "Select a token" && currentSelectedSellToken.symbol !== "Select a token") &&<Box display="flex" flexDirection="column">
             <Box
               width="100%"
               display="flex"
@@ -295,7 +317,7 @@ const SwapInterface = () => {
               mt="1rem"
               padding="0px 8px"
             >
-              <Text>1 STRK =0.999 xSTRK ($0.50)</Text>
+              <Text>1 {currentSelectedSellToken.symbol} =0.999 {currentSelectedSellToken.symbol} ($0.50)</Text>
               <Box
                 display="flex"
                 alignItems="center"
@@ -366,7 +388,12 @@ const SwapInterface = () => {
                 </Box>
               </Box>
             )}
-          </Box>
+          </Box>}
+          <Button borderRadius="8px" mt="1rem" disabled={currentBuyAmount === 0 || currentSellAmount === 0 || currentSelectedBuyToken.symbol === "Select a token" || currentSelectedSellToken.symbol === "Select a token"} onClick={()=>{
+            handleTransaction()
+          }}>
+            {currentSelectedBuyToken.symbol === "Select a token" || currentSelectedSellToken.symbol === "Select a token"?"Select a token":"Swap"}
+          </Button>
         </Box>
         {sellDropdownSelected && (
           <Box

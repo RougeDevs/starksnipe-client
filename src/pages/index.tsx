@@ -14,35 +14,38 @@ export default function Home() {
   const [argentTMA, setArgentTMA] = useState<any>(null);
   const [debugLog, setDebugLog] = useState<string>("Initializing...");
   const setArgentSetup=useSetAtom<any>(argentSetupAtom)
-
-  // useEffect(() => {
-  //   // Dynamically import to ensure it runs only in the browser
-  //   import("@argent/tma-wallet")
-  //     .then(({ ArgentTMA }) => {
-  //       const tma = ArgentTMA.init({
-  //         environment: "sepolia", // Replace with "mainnet" if needed
-  //         appName: "StarkSnipe",
-  //         appTelegramUrl: "https://t.me/snipebot",
-  //         sessionParams: {
-  //           allowedMethods: [
-  //             {
-  //               contract:
-  //                 "0x036133c88c1954413150db74c26243e2af77170a4032934b275708d84ec5452f",
-  //               selector: "increment",
-  //             },
-  //           ],
-  //           validityDays: 90,
-  //         },
-  //       });
-  //       setArgentSetup(tma)
-  //       setArgentTMA(tma);
-  //     })
-  //     .catch((err) => {
-  //       console.debug('error',err)
-  //       setDebugLog(`Error: ${err.message}`);
-  //       console.error("Failed to initialize ArgentTMA:", err);
-  //     });
-  // }, []);
+  useEffect(() => {
+    // Dynamically import to ensure it runs only in the browser
+    import("@argent/tma-wallet")
+      .then(({ ArgentTMA }) => {
+        const tma = ArgentTMA.init({
+          environment: "sepolia", // Replace with "mainnet" if needed
+          appName: "starksnipe",
+          appTelegramUrl: "https://t.me/snipebot",
+          sessionParams: {
+            allowedMethods: [
+              {
+                contract:
+                  "0x036133c88c1954413150db74c26243e2af77170a4032934b275708d84ec5452f",
+                selector: "increment",
+              },
+              // {
+              //   contract:'0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+              //   selector:'approve'
+              // }
+            ],
+            validityDays: 90,
+          },
+        });
+        setArgentSetup(tma)
+        setArgentTMA(tma);
+      })
+      .catch((err) => {
+        console.debug('error',err)
+        setDebugLog(`Error: ${err.message}`);
+        console.error("Failed to initialize ArgentTMA:", err);
+      });
+  }, []);
 
   const handleConnectButton = async () => {
     await argentTMA.requestConnection("custom_callback_data");
@@ -93,6 +96,10 @@ export default function Home() {
 // "VALID" | "EXPIRED" | "INVALID_SCOPE"
 
   // const isConnected = argentTMA?.isConnected();
+  const handleClearSessionButton = async () => {
+    await argentTMA.clearSession();
+    setAccount(undefined);
+  };
 
   return (
     <>
@@ -101,8 +108,12 @@ export default function Home() {
       </Head>
       <Box >
         <Navbar account={account} argentTma={argentTMA}/>
-        <SwapInterface/>
-        <p>{account?.address}</p>
+        <SwapInterface account={account} argentTMA={argentTMA}/>
+        <Button onClick={()=>{
+          handleClearSessionButton()
+        }}>
+          Clear
+        </Button>
       </Box>
     </>
   );

@@ -9,9 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@argent/tma-wallet": "^1.19.2",
+    "@argent/tma-wallet": "1.21",
     "@chakra-ui/react": "^3.2.3",
     "@emotion/react": "^11.14.0",
+    "@starknet-react/chains": "0.1.7",
+    "@starknet-react/core": "2.6.1",
+    "bignumber.js": "^9.1.2",
+    "ethers": "5.5.1",
     "grammy": "^1.33.0",
     "jotai": "^2.10.4",
     "next": "15.1.0",
