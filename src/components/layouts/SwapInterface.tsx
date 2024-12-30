@@ -132,7 +132,8 @@ const SwapInterface = ({ account, argentTMA }: any) => {
             ],
           },
         ]);
-        alert(result);
+        alert('success')
+        // alert(result);
       }
     } catch (error) {
       alert(error);
@@ -171,6 +172,7 @@ const SwapInterface = ({ account, argentTMA }: any) => {
             display="flex"
             flexDir="column"
             gap="0.5rem"
+            border="1px solid #374151"
             bg="rgba(31, 41, 55, 0.5)"
             borderRadius="12px"
             padding="1rem"
@@ -279,6 +281,7 @@ const SwapInterface = ({ account, argentTMA }: any) => {
             display="flex"
             flexDir="column"
             gap="0.5rem"
+            border="1px solid #374151"
             bg="rgba(31, 41, 55, 0.5)"
             borderRadius="12px"
             padding="1rem"
@@ -498,6 +501,8 @@ const SwapInterface = ({ account, argentTMA }: any) => {
             borderRadius="8px"
             mt="1rem"
             padding="1rem"
+            color="white"
+            background="linear-gradient( to right,  #7E22CE, #2563EB)"
             disabled={
               currentBuyAmount === 0 ||
               currentSellAmount === 0 ||

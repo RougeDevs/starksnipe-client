@@ -25,7 +25,7 @@ const Navbar = ({ argentTma, account }: any) => {
     >
       <Box color="#34D399">Starksnipe</Box>
       {account ? (
-        <Box padding="8px" border="1px solid grey" borderRadius="6px" color="green">
+        <Box padding="8px" border="1px solid #374151" borderRadius="6px" color="#34D399">
           {`${account.address.substring(0, 5)}...${account?.address.substring(
             account.address.length - 7,
             account.address.length
