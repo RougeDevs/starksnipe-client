@@ -1,5 +1,5 @@
 import { ArgentTMA } from "@argent/tma-wallet";
-import { Box } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 import React from "react";
 
 const Navbar = ({ argentTma, account }: any) => {
@@ -23,7 +23,7 @@ const Navbar = ({ argentTma, account }: any) => {
       padding="1rem 2rem"
       alignItems="center"
     >
-      <Box>Starksnipe</Box>
+      <Box color="#34D399">Starksnipe</Box>
       {account ? (
         <Box padding="8px" border="1px solid grey" borderRadius="6px" color="green">
           {`${account.address.substring(0, 5)}...${account?.address.substring(
@@ -32,8 +32,12 @@ const Navbar = ({ argentTma, account }: any) => {
           )}`}
         </Box>
       ) : (
-        <Box
-          padding="8px"
+        <Button
+          padding="8px 16px"
+          bg="#4F46E5"
+          color="white"
+          borderRadius="8px"
+          disabled={!argentTma}
           onClick={() => {
             if (argentTma) {
               handleConnectButton();
@@ -41,7 +45,7 @@ const Navbar = ({ argentTma, account }: any) => {
           }}
         >
           Connect Argent
-        </Box>
+        </Button>
       )}
     </Box>
   );

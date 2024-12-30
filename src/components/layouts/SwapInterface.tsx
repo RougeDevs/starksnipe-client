@@ -15,22 +15,35 @@ import Image from "next/image";
 import React, { useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
-import { Contract } from "starknet";
-const SwapInterface = ({account,argentTMA}:any) => {
+import { CallData, Contract } from "starknet";
+import InfoIcon from "@/assets/InfoIcon";
+const SwapInterface = ({ account, argentTMA }: any) => {
   const [tokenSelectorDropdown, settokenSelectorDropdown] = useState(false);
   const [buyDropdownSelected, setbuyDropdownSelected] = useState(false);
   const [sellDropdownSelected, setsellDropdownSelected] = useState(false);
   const [showPriceDetails, setshowPriceDetails] = useState(false);
+  const [slippageDetailsCheck, setslippageDetailsCheck] = useState(false);
   const setSellToken = useSetAtom(sellToken);
   const setBuyToken = useSetAtom(buyToken);
-  const [currentBuyAmount, setcurrentBuyAmount] = useState<number>(0)
-  const [currentSellAmount, setcurrentSellAmount] = useState<number>(0)
+  const [currentBuyAmount, setcurrentBuyAmount] = useState<number>(0);
+  const [currentSellAmount, setcurrentSellAmount] = useState<number>(0);
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
     name: "ETH",
     address: "",
     logo: "https://token-icons.s3.amazonaws.com/eth.png",
     symbol: "ETH",
   });
+  const [selectedSlippage, setSelectedSlippage] = useState({
+    level: "Medium",
+    value: "32%",
+  });
+
+  const slippageOptions = [
+    { level: "Zero", value: "0%" },
+    { level: "Low", value: "10%" },
+    { level: "Medium", value: "32%" },
+    { level: "High", value: "50%" },
+  ];
   const [currentSelectedBuyToken, setcurrentSelectedBuyToken] = useState({
     name: "Select a token",
     address: "",
@@ -93,25 +106,43 @@ const SwapInterface = ({account,argentTMA}:any) => {
       symbol: "ETH",
     },
   ]);
-  const handleTransaction=async()=>{
+  const handleTransaction = async () => {
     try {
-      if(argentTMA && account){
-        alert(account.address)
-        const res = await argentTMA.requestApprovals(
-            [
-                {
-                  tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
-                  amount: BigInt(10000000000000000).toString(),
-                  spender: account.address,
-                }
-              ],
-            );
+      if (argentTMA && account) {
+        const result = await account.execute([
+          {
+            contractAddress:
+              "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            entrypoint: "approve",
+            calldata: [
+              "0x5e8506f1754a634f3cf9391cfef47ff25293848c7677f2f9eec4f395798f7c3",
+              BigInt(100000000000000).toString(),
+              "0",
+            ],
+          },
+          {
+            contractAddress:
+              "0x5e8506f1754a634f3cf9391cfef47ff25293848c7677f2f9eec4f395798f7c3",
+            entrypoint: "deposit",
+            calldata: [
+              "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+              BigInt(100000000000000).toString(),
+              0,
+              account.address,
+            ],
+          },
+        ]);
+        alert(result);
       }
     } catch (error) {
-      alert(error)
-      console.log(error,'err in call')
+      alert(error);
+      console.log(error, "err in call");
     }
-  }
+  };
+  const handleSelect = (option: any) => {
+    setSelectedSlippage(option);
+    setslippageDetailsCheck(false);
+  };
   return (
     <Box
       mt="1rem"
@@ -125,9 +156,9 @@ const SwapInterface = ({account,argentTMA}:any) => {
         flexDirection="column"
         padding="1rem"
         borderRadius="6px"
-        width={{ sm: "80%", md: "60%" }}
+        width={{ sm: "80%", md: "30%" }}
       >
-        <Text>Swap</Text>
+        <Text color="#D1D5DB">Swap</Text>
         <Box
           display="flex"
           flexDir="column"
@@ -140,7 +171,7 @@ const SwapInterface = ({account,argentTMA}:any) => {
             display="flex"
             flexDir="column"
             gap="0.5rem"
-            bg="grey"
+            bg="rgba(31, 41, 55, 0.5)"
             borderRadius="12px"
             padding="1rem"
           >
@@ -159,9 +190,14 @@ const SwapInterface = ({account,argentTMA}:any) => {
                   width="100%"
                   pl="0.4rem"
                   placeholder="0"
-                  value={currentSellAmount ?currentSellAmount:""}
-                  onChange={(e)=>{
-                    setcurrentSellAmount(Number(e.target.value))
+                  _focus={{
+                    outline: "0",
+                    border: "0px",
+                    boxShadow: "none",
+                  }}
+                  value={currentSellAmount ? currentSellAmount : ""}
+                  onChange={(e) => {
+                    setcurrentSellAmount(Number(e.target.value));
                   }}
                   type="number"
                   css={{
@@ -174,12 +210,12 @@ const SwapInterface = ({account,argentTMA}:any) => {
                 />
               </Box>
               <Box
-                bg="black"
+                bg="#374151"
                 cursor="pointer"
                 padding="8px"
                 display="flex"
                 borderRadius="8px"
-                width={currentSelectedSellToken.logo?"100px":"140px"}
+                width={currentSelectedSellToken.logo ? "100px" : "140px"}
                 gap="0.4rem"
                 alignItems="center"
                 onClick={() => {
@@ -187,12 +223,14 @@ const SwapInterface = ({account,argentTMA}:any) => {
                   setbuyDropdownSelected(false);
                 }}
               >
-                {currentSelectedSellToken.logo &&<Image
-                  src={currentSelectedSellToken.logo}
-                  alt="trial"
-                  height={20}
-                  width={20}
-                />}
+                {currentSelectedSellToken.logo && (
+                  <Image
+                    src={currentSelectedSellToken.logo}
+                    alt="trial"
+                    height={20}
+                    width={20}
+                  />
+                )}
                 <Text>{currentSelectedSellToken.symbol}</Text>
                 <Box>
                   <DropdownUp />
@@ -200,10 +238,10 @@ const SwapInterface = ({account,argentTMA}:any) => {
               </Box>
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
-              <Text>$0.00</Text>
+              <Text color="#9CA3AF">$0.00</Text>
               <Box display="flex" gap="0.4rem">
-                <Text>balance: 2</Text>
-                <Box cursor="pointer" color="navajowhite">
+                <Text color="#9CA3AF">balance: 2</Text>
+                <Box cursor="pointer" color="#4F46E5">
                   MAX
                 </Box>
               </Box>
@@ -211,21 +249,21 @@ const SwapInterface = ({account,argentTMA}:any) => {
           </Box>
           <Box
             alignItems="center"
-            width="100%"
             display="flex"
             justifyContent="center"
           >
             <Button
-              position="fixed"
               width="50px"
+              position="absolute"
+              bg="#374151"
               borderRadius="8px"
               _hover={{ bg: "white" }}
               onClick={() => {
                 // Swap buy and sell token states
                 setcurrentSelectedSellToken(currentSelectedBuyToken);
                 setcurrentSelectedBuyToken(currentSelectedSellToken);
-                setcurrentBuyAmount(currentSellAmount)
-                setcurrentSellAmount(currentBuyAmount)
+                setcurrentBuyAmount(currentSellAmount);
+                setcurrentSellAmount(currentBuyAmount);
               }}
             >
               <Image
@@ -233,7 +271,7 @@ const SwapInterface = ({account,argentTMA}:any) => {
                 alt=""
                 width={15}
                 height={15}
-                // style={{ filter: 'invert(1)' }}
+                style={{ filter: "invert(1)" }}
               />
             </Button>
           </Box>
@@ -241,7 +279,7 @@ const SwapInterface = ({account,argentTMA}:any) => {
             display="flex"
             flexDir="column"
             gap="0.5rem"
-            bg="grey"
+            bg="rgba(31, 41, 55, 0.5)"
             borderRadius="12px"
             padding="1rem"
           >
@@ -255,9 +293,14 @@ const SwapInterface = ({account,argentTMA}:any) => {
                   width="100%"
                   cursor="pointer"
                   pl="0.4rem"
-                  value={currentBuyAmount ?currentBuyAmount:""}
-                  onChange={(e)=>{
-                    setcurrentBuyAmount(Number(e.target.value))
+                  _focus={{
+                    outline: "0",
+                    border: "0px",
+                    boxShadow: "none",
+                  }}
+                  value={currentBuyAmount ? currentBuyAmount : ""}
+                  onChange={(e) => {
+                    setcurrentBuyAmount(Number(e.target.value));
                   }}
                   placeholder="0"
                   type="number"
@@ -271,7 +314,7 @@ const SwapInterface = ({account,argentTMA}:any) => {
                 />
               </Box>
               <Box
-                bg="black"
+                bg="#374151"
                 cursor="pointer"
                 padding="8px"
                 display="flex"
@@ -301,39 +344,15 @@ const SwapInterface = ({account,argentTMA}:any) => {
               </Box>
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
-              <Text>$0.00</Text>
+              <Text color="#9CA3AF">$0.00</Text>
               <Box display="flex" gap="0.4rem">
-                <Text>balance: 2</Text>
+                <Text color="#9CA3AF">balance: 2</Text>
               </Box>
             </Box>
-
           </Box>
-          {(currentSelectedBuyToken.symbol !== "Select a token" && currentSelectedSellToken.symbol !== "Select a token") &&<Box display="flex" flexDirection="column">
-            <Box
-              width="100%"
-              display="flex"
-              justifyContent="space-between"
-              mt="1rem"
-              padding="0px 8px"
-            >
-              <Text>1 {currentSelectedSellToken.symbol} =0.999 {currentSelectedSellToken.symbol} ($0.50)</Text>
-              <Box
-                display="flex"
-                alignItems="center"
-                gap="0.4rem"
-                cursor="pointer"
-                onClick={() => {
-                  setshowPriceDetails(!showPriceDetails);
-                }}
-              >
-                <Text display={{ smToMd: "none", base: "none", md: "block" }}>
-                  Price Details
-                </Text>
-                <DropdownUp />
-              </Box>
-            </Box>
-            {showPriceDetails && (
-              <Box display="flex" flexDirection="column" gap="0.5rem">
+          {currentSelectedBuyToken.symbol !== "Select a token" &&
+            currentSelectedSellToken.symbol !== "Select a token" && (
+              <Box display="flex" flexDirection="column">
                 <Box
                   width="100%"
                   display="flex"
@@ -341,57 +360,158 @@ const SwapInterface = ({account,argentTMA}:any) => {
                   mt="1rem"
                   padding="0px 8px"
                 >
-                  <Text>Max Paid</Text>
-                  <Box display="flex" alignItems="center" gap="0.4rem">
-                    <Text>3 STRK</Text>
-                  </Box>
-                </Box>
-                <Box
-                  width="100%"
-                  display="flex"
-                  justifyContent="space-between"
-                  padding="0px 8px"
-                >
-                  <Text>Fees</Text>
-                  <Box display="flex" alignItems="center" gap="0.4rem">
-                    <Text>0.1%</Text>
-                  </Box>
-                </Box>
-                <Box
-                  width="100%"
-                  display="flex"
-                  justifyContent="space-between"
-                  padding="0px 8px"
-                >
-                  <Text>Price Impact</Text>
-                  <Box display="flex" alignItems="center" gap="0.4rem">
-                    <Text>High</Text>
-                  </Box>
-                </Box>
-                <Box
-                  width="100%"
-                  display="flex"
-                  justifyContent="space-between"
-                  padding="0px 8px"
-                >
-                  <Text>Slippage tolerance</Text>
+                  <Text color="#9CA3AF">
+                    1 {currentSelectedSellToken.symbol} = 0.999{" "}
+                    {currentSelectedSellToken.symbol} ($0.50)
+                  </Text>
                   <Box
                     display="flex"
                     alignItems="center"
                     gap="0.4rem"
                     cursor="pointer"
+                    onClick={() => {
+                      setshowPriceDetails(!showPriceDetails);
+                    }}
                   >
-                    <Text>Medium</Text>
-                    <Text>32%</Text>
+                    <Text
+                      display={{ smToMd: "none", base: "none", md: "block" }}
+                      color="#9CA3AF"
+                    >
+                      Price Details
+                    </Text>
+                    <DropdownUp />
                   </Box>
                 </Box>
+                {showPriceDetails && (
+                  <Box display="flex" flexDirection="column" gap="0.5rem">
+                    <Box
+                      width="100%"
+                      display="flex"
+                      justifyContent="space-between"
+                      mt="1rem"
+                      padding="0px 8px"
+                    >
+                      <Box display="flex" gap="0.4rem" alignItems="center">
+                        <Text color="#9CA3AF">Min Received</Text>
+                        <InfoIcon/>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap="0.4rem">
+                        <Text color="#9CA3AF">
+                          3 {currentSelectedSellToken.symbol}
+                        </Text>
+                      </Box>
+                    </Box>
+                    <Box
+                      width="100%"
+                      display="flex"
+                      justifyContent="space-between"
+                      padding="0px 8px"
+                    >
+                      <Box display="flex" gap="0.4rem" alignItems="center">
+                        <Text color="#9CA3AF">Fees</Text>
+                        <InfoIcon/>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap="0.4rem">
+                        <Text color="#9CA3AF">0.1%</Text>
+                      </Box>
+                    </Box>
+                    <Box
+                      width="100%"
+                      display="flex"
+                      justifyContent="space-between"
+                      padding="0px 8px"
+                    >
+                      <Box display="flex" gap="0.4rem" alignItems="center">
+                        <Text color="#9CA3AF">Price Impact</Text>
+                        <InfoIcon/>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap="0.4rem">
+                        <Text color="#9CA3AF">High</Text>
+                      </Box>
+                    </Box>
+                    <Box
+                      width="100%"
+                      display="flex"
+                      justifyContent="space-between"
+                      padding="0px 0px 0px 8px"
+                      alignItems="center"
+                    >
+                      <Box display="flex" gap="0.4rem" alignItems="center">
+                        <Text color="#9CA3AF">Slippage tolerance</Text>
+                        <InfoIcon/>
+                      </Box>
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        gap="0.4rem"
+                        padding="8px"
+                        border="1px solid grey"
+                        borderRadius="8px"
+                        cursor="pointer"
+                        position="relative"
+                        onClick={() =>
+                          setslippageDetailsCheck(!slippageDetailsCheck)
+                        }
+                        color="#9CA3AF"
+                      >
+                        <Text>{selectedSlippage.level}</Text>
+                        <Text>{selectedSlippage.value}</Text>
+
+                        {slippageDetailsCheck && (
+                          <Box
+                            position="absolute"
+                            top="100%"
+                            left="0"
+                            bg="black"
+                            border="1px solid grey"
+                            borderRadius="8px"
+                            padding="4px"
+                            mt="0.5rem"
+                            boxShadow="md"
+                            zIndex="10"
+                            width="120px"
+                          >
+                            {slippageOptions.map((option, index) => (
+                              <Box
+                                key={index}
+                                padding="8px"
+                                cursor="pointer"
+                                display="flex"
+                                width="100%"
+                                justifyContent="space-between"
+                                _hover={{ backgroundColor: "gray.200" }}
+                                onClick={() => handleSelect(option)}
+                              >
+                                <Text>{option.level}</Text>
+                                <Text>{option.value}</Text>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
               </Box>
             )}
-          </Box>}
-          <Button borderRadius="8px" mt="1rem" disabled={currentBuyAmount === 0 || currentSellAmount === 0 || currentSelectedBuyToken.symbol === "Select a token" || currentSelectedSellToken.symbol === "Select a token"} onClick={()=>{
-            handleTransaction()
-          }}>
-            {currentSelectedBuyToken.symbol === "Select a token" || currentSelectedSellToken.symbol === "Select a token"?"Select a token":"Swap"}
+          <Button
+            borderRadius="8px"
+            mt="1rem"
+            padding="1rem"
+            disabled={
+              currentBuyAmount === 0 ||
+              currentSellAmount === 0 ||
+              currentSelectedBuyToken.symbol === "Select a token" ||
+              currentSelectedSellToken.symbol === "Select a token"
+            }
+            onClick={() => {
+              handleTransaction();
+            }}
+          >
+            {currentSelectedBuyToken.symbol === "Select a token" ||
+            currentSelectedSellToken.symbol === "Select a token"
+              ? "Select a token"
+              : "Swap"}
           </Button>
         </Box>
         {sellDropdownSelected && (
@@ -461,16 +581,26 @@ const SwapInterface = ({account,argentTMA}:any) => {
                     padding="0.5rem"
                     borderRadius="8px"
                     cursor="pointer"
+                    alignItems="center"
                     onClick={() => {
                       setsellDropdownSelected(false);
                       setSellToken(token);
                       setcurrentSelectedSellToken(token);
                     }}
                   >
-                    <Box>Logo</Box>
                     <Box>
-                      <Text>{token.name}</Text>
-                      <Text>{token.symbol}</Text>
+                      <Image
+                        src={token.logo}
+                        alt="trial"
+                        height={35}
+                        width={35}
+                      />
+                    </Box>
+                    <Box>
+                      <Text fontSize="18px">{token.name}</Text>
+                      <Text fontSize="14px" color="grey">
+                        {token.symbol}
+                      </Text>
                     </Box>
                   </Box>
                 </Box>
@@ -551,10 +681,19 @@ const SwapInterface = ({account,argentTMA}:any) => {
                       setcurrentSelectedBuyToken(token);
                     }}
                   >
-                    <Box>Logo</Box>
                     <Box>
-                      <Text>{token.name}</Text>
-                      <Text>{token.symbol}</Text>
+                      <Image
+                        src={token.logo}
+                        alt="trial"
+                        height={35}
+                        width={35}
+                      />
+                    </Box>
+                    <Box>
+                      <Text fontSize="18px">{token.name}</Text>
+                      <Text fontSize="14px" color="grey">
+                        {token.symbol}
+                      </Text>
                     </Box>
                   </Box>
                 </Box>
