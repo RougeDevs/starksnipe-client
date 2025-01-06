@@ -1,10 +1,10 @@
-import {Call, getChecksumAddress, hash, shortString, uint256 } from 'starknet'
+import { Call, getChecksumAddress, hash, shortString, uint256 } from 'starknet'
 
 import { provider } from './services/provider'
-import { TokenType, Memecoin } from './types'
-import { MEMECOIN_FACTORY_ADDRESS, Selector } from './constants'
+import { Memecoin } from './types'
+import { MEMECOIN_FACTORY_ADDRESS, Selector, EKUBO } from './constants'
 import { multiCallContract } from './calls'
-import { getJediswapLiquidityLockPosition, getEkuboLiquidityLockPosition } from './liquidity'
+import { getEkuboLiquidityLockPosition } from './liquidity'
 
 export async function getTokenData(tokenAddress: string) {
   const calls: Call[] = [];
@@ -28,19 +28,7 @@ export async function getTokenData(tokenAddress: string) {
 
   calls.push({
     contractAddress: tokenAddress,
-    entrypoint: hash.getSelector(Selector.IS_LAUNCHED),
-    calldata: [],
-  })
-
-  calls.push({
-    contractAddress: tokenAddress,
     entrypoint: hash.getSelector(Selector.TOTAL_SUPPLY),
-    calldata: [],
-  })
-
-  calls.push({
-    contractAddress: tokenAddress,
-    entrypoint: hash.getSelector(Selector.GET_TEAM_ALLOCATION),
     calldata: [],
   })
 
@@ -51,9 +39,9 @@ export async function getTokenData(tokenAddress: string) {
   })
 
   calls.push({
-    contractAddress: MEMECOIN_FACTORY_ADDRESS,
-    entrypoint: hash.getSelector(Selector.LOCKED_LIQUIDITY),
-    calldata: [tokenAddress],
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.IS_LAUNCHED),
+    calldata: [],
   })
 
   calls.push({
@@ -64,6 +52,25 @@ export async function getTokenData(tokenAddress: string) {
 
   calls.push({
     contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.GET_TEAM_ALLOCATION),
+    calldata: [],
+  })
+
+  calls.push({
+    contractAddress: MEMECOIN_FACTORY_ADDRESS,
+    entrypoint: hash.getSelector(Selector.EXCHANGE),
+    calldata: [EKUBO.EXCHANGE_ID],
+  })
+
+  calls.push({
+    contractAddress: MEMECOIN_FACTORY_ADDRESS,
+    entrypoint: hash.getSelector(Selector.LOCKED_LIQUIDITY),
+    calldata: [tokenAddress],
+  })
+
+
+  calls.push({
+    contractAddress: tokenAddress,
     entrypoint: hash.getSelector(Selector.LAUNCHED_WITH_LIQUIDITY_PARAMETERS),
     calldata: [],
   })
@@ -71,75 +78,51 @@ export async function getTokenData(tokenAddress: string) {
   return await multiCallContract(provider, calls);
 }
 
-export async function parseTokenData(tokenAddress: string, res: { result: string[] }): Promise<Memecoin | null> {
-  const isUnruggable = !!+res.result[3] // beautiful
-
-  if (!isUnruggable) return null
-
-  const hasLiquidity = !+res.result[19] // even more beautiful
-  const hasLaunchParams = !+res.result[26] // I'm delighted
-
-  const isLaunched = !!+res.result[9] && hasLiquidity && hasLaunchParams // meh...
+export async function parseTokenData(tokenAddress: string, res: string[][]): Promise<Memecoin | null> {
+  const isUnruggable = !!+res[0][0]
 
   const baseMemecoin = {
     address: tokenAddress,
-    name: shortString.decodeShortString(res.result[5]),
-    symbol: shortString.decodeShortString(res.result[7]),
-    totalSupply: uint256.uint256ToBN({ low: res.result[11], high: res.result[12] }).toString(),
-    owner: getChecksumAddress(res.result[17]),
+    name: shortString.decodeShortString(res[1][0]),
+    symbol: shortString.decodeShortString(res[2][0]),
+    totalSupply: uint256.uint256ToBN({ low: res[3][0], high: res[3][1] }).toString(),
+    owner: getChecksumAddress(res[4][0]),
   }
+
+  if (!isUnruggable) return null
+
+  const hasLiquidity = !+res[9][0]
+  const hasLaunchParams = !+res[10][0]
+
+  const isLaunched = !!+res[5][0] && hasLiquidity && hasLaunchParams
+
 
   if (isLaunched) {
     const launch = {
-      teamAllocation: uint256.uint256ToBN({ low: res.result[14], high: res.result[15] }).toString(),
-      blockNumber: +res.result[24],
+      teamAllocation: uint256.uint256ToBN({ low: res[7][0], high: res[7][1] }).toString(),
+      blockNumber: +res[6][0],
     }
 
-    const TokenTypeValue = Object.values(TokenType)[+res.result[21]] as TokenType
+    const TokenTypeValue = res[9][3].toString()
+    if (TokenTypeValue != EKUBO.EKUBO_NFT) {
+      console.error('Not Ekubo_NFT')
+      process.exit(1)
+    }
+    const liquidity = {
+      launchManager: getChecksumAddress(res[9][1]),
+      ekuboId: TokenTypeValue,
+      quoteToken: getChecksumAddress(res[10][7]),
+      startingTick: +res[10][4] * (+res[10][5] ? -1 : 1), // mag * sign
+    } as const
 
-    const lockManager = res.result[20] as string
-
-    switch (TokenTypeValue) {
-      case TokenType.STARKDEFI_ERC20:
-      case TokenType.JEDISWAP_ERC20: {
-        const liquidity = {
-          type: TokenTypeValue,
-          lockManager,
-          lockPosition: res.result[31],
-          quoteToken: getChecksumAddress(res.result[28]),
-          quoteAmount: uint256.uint256ToBN({ low: res.result[29], high: res.result[30] }).toString(),
-        } as const
-
-        return {
-          ...baseMemecoin,
-          isLaunched: true,
-          launch,
-          liquidity: {
-            ...liquidity,
-            ...(await getJediswapLiquidityLockPosition(liquidity)),
-          },
-        }
-      }
-
-      case TokenType.EKUBO_NFT: {
-        const liquidity = {
-          type: TokenType.EKUBO_NFT,
-          lockManager,
-          ekuboId: res.result[22],
-          quoteToken: getChecksumAddress(res.result[33]),
-          startingTick: +res.result[30] * (+res.result[31] ? -1 : 1), // mag * sign
-        } as const
-
-        return {
-          ...baseMemecoin,
-          isLaunched: true,
-          launch,
-          liquidity: {
-            ...liquidity,
-            ...(await getEkuboLiquidityLockPosition(liquidity)),
-          },
-        }
-      }
+    return {
+      ...baseMemecoin,
+      isLaunched: true,
+      launch,
+      liquidity: {
+        ...liquidity,
+        ...(await getEkuboLiquidityLockPosition(liquidity)),
+      },
     }
   } else {
     return { ...baseMemecoin, isLaunched: false }
