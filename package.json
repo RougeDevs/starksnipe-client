@@ -12,6 +12,7 @@
     "@argent/tma-wallet": "^1.19.2",
     "@chakra-ui/react": "^3.2.3",
     "@emotion/react": "^11.14.0",
+    "@uniswap/sdk-core": "^4.2.0",
     "grammy": "^1.33.0",
     "jotai": "^2.10.4",
     "next": "15.1.0",
