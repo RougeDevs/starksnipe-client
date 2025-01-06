@@ -16,13 +16,14 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
-import { AccountInterface, CallData, Contract } from "starknet";
+import { AccountInterface, Call, CallData, Contract } from "starknet";
 import InfoIcon from "@/assets/InfoIcon";
 import { getBalance } from "@/Blockchain/scripts/swapinteraction";
 import numberFormatter from "@/functions/numberFormatter";
 import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
 import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
+import { executeCalls, fetchGasTokenPrices } from "@avnu/gasless-sdk";
 const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentTMA:any}) => {
   const [tokenSelectorDropdown, settokenSelectorDropdown] = useState<boolean>(false);
   const [buyDropdownSelected, setbuyDropdownSelected] = useState<boolean>(false);
@@ -121,7 +122,11 @@ const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentT
   const handleTransaction = async () => {
     try {
       if (argentTMA && account) {
-        const result = await account.execute([
+        // Fetch gas token prices
+        const gastokenPrices = await fetchGasTokenPrices();
+  
+        // Prepare calls
+        const calls: Call[] = [
           {
             contractAddress:
               "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
@@ -143,17 +148,35 @@ const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentT
               account.address,
             ],
           },
-        ]);
-        settransactionStarted(false)
-        alert(result)
-        // alert(result);
+        ];
+  
+        // Estimate the gas fees
+        const fees = await account.estimateInvokeFee(calls, {
+          blockIdentifier: "latest",
+          skipValidate: true,
+        });
+        const estimatedGasFees = fees.overall_fee;
+  
+        // Select the gas token (choosing the first one for simplicity)
+        const gasTokenAddress = '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7';
+  
+        // Execute the calls with gas-related options
+        const result = await executeCalls(account, calls, {
+          gasTokenAddress,
+        });
+  
+        // Transaction completed
+        settransactionStarted(false);
+        alert(result);
       }
     } catch (error) {
+      // Handle errors
       alert(error);
-      settransactionStarted(false)
-      console.log(error, "err in call");
+      settransactionStarted(false);
+      console.error("Error in transaction execution:", error);
     }
   };
+  
   const handleSelect = (option: any) => {
     setSelectedSlippage(option);
     setslippageDetailsCheck(false);
