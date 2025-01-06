@@ -16,13 +16,14 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
-import { CallData, Contract } from "starknet";
+import { AccountInterface, CallData, Contract } from "starknet";
 import InfoIcon from "@/assets/InfoIcon";
 import { getBalance } from "@/Blockchain/scripts/swapinteraction";
 import numberFormatter from "@/functions/numberFormatter";
 import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
-const SwapInterface = ({ account, argentTMA }: any) => {
+import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
+const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentTMA:any}) => {
   const [tokenSelectorDropdown, settokenSelectorDropdown] = useState<boolean>(false);
   const [buyDropdownSelected, setbuyDropdownSelected] = useState<boolean>(false);
   const [sellDropdownSelected, setsellDropdownSelected] = useState<boolean>(false);
@@ -170,6 +171,22 @@ const SwapInterface = ({ account, argentTMA }: any) => {
           // ],
         });
   };
+
+  // useEffect(()=>{
+  //   try {
+  //     const fetchData=async()=>{
+  //       const res=await getTokenData('0x03b405a98c9e795d427fe82cdeeeed803f221b52471e3a757574a2b4180793ee')
+  //       if(res){
+  //         console.log(res,'res')
+  //         const res2=await parseTokenData('0x03b405a98c9e795d427fe82cdeeeed803f221b52471e3a757574a2b4180793ee',res as any)
+  //         console.log(res2,'value checks')
+  //       }
+  //     }
+  //     fetchData()
+  //   } catch (error) {
+  //     console.log(error,'err')
+  //   }
+  // },[])
 
   useEffect(() => {
     if (typeof window !== 'undefined' && router.query.token) {
