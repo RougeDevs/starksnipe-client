@@ -7,29 +7,40 @@ import {
   NumberInputLabel,
   NumberInputRoot,
   NumberInputRootProvider,
+  Spinner,
   Text,
   useMediaQuery,
 } from "@chakra-ui/react";
 import { useSetAtom } from "jotai";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
 import { CallData, Contract } from "starknet";
 import InfoIcon from "@/assets/InfoIcon";
+import { getBalance } from "@/Blockchain/scripts/swapinteraction";
+import numberFormatter from "@/functions/numberFormatter";
+import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
+import { useRouter } from "next/router";
 const SwapInterface = ({ account, argentTMA }: any) => {
-  const [tokenSelectorDropdown, settokenSelectorDropdown] = useState(false);
-  const [buyDropdownSelected, setbuyDropdownSelected] = useState(false);
-  const [sellDropdownSelected, setsellDropdownSelected] = useState(false);
-  const [showPriceDetails, setshowPriceDetails] = useState(false);
-  const [slippageDetailsCheck, setslippageDetailsCheck] = useState(false);
+  const [tokenSelectorDropdown, settokenSelectorDropdown] = useState<boolean>(false);
+  const [buyDropdownSelected, setbuyDropdownSelected] = useState<boolean>(false);
+  const [sellDropdownSelected, setsellDropdownSelected] = useState<boolean>(false);
+  const [showPriceDetails, setshowPriceDetails] = useState<boolean>(false);
+  const [slippageDetailsCheck, setslippageDetailsCheck] = useState<boolean>(false);
+  const [transactionStarted, settransactionStarted] = useState<boolean>(false)
   const setSellToken = useSetAtom(sellToken);
   const setBuyToken = useSetAtom(buyToken);
+  const [buyTokenBalance, setbuyTokenBalance] = useState<number>(0)
+  const [sellTokenBalance, setsellTokenBalance] = useState<number>(0)
   const [currentBuyAmount, setcurrentBuyAmount] = useState<number>(0);
   const [currentSellAmount, setcurrentSellAmount] = useState<number>(0);
+  const router=useRouter()
+  const [firstReceivedToken, setfirstReceivedToken] = useState("")
+
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
     name: "ETH",
-    address: "",
+    address: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
     logo: "https://token-icons.s3.amazonaws.com/eth.png",
     symbol: "ETH",
   });
@@ -132,11 +143,13 @@ const SwapInterface = ({ account, argentTMA }: any) => {
             ],
           },
         ]);
-        alert('success')
+        settransactionStarted(false)
+        alert(result)
         // alert(result);
       }
     } catch (error) {
       alert(error);
+      settransactionStarted(false)
       console.log(error, "err in call");
     }
   };
@@ -144,6 +157,73 @@ const SwapInterface = ({ account, argentTMA }: any) => {
     setSelectedSlippage(option);
     setslippageDetailsCheck(false);
   };
+
+  const handleConnectButton = async () => {
+    await argentTMA.requestConnection({
+          callbackData: 'custom_callback',
+          // approvalRequests: [
+          //   {
+          //     tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+          //     amount: BigInt(1000000000000000000).toString(),
+          //     spender: 'spender_address',
+          //   }
+          // ],
+        });
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && router.query.token) {
+        const token = router.query.token;
+        if (token) {
+            localStorage.setItem('token', token as string);
+        }
+    }
+}, [router.query]);
+
+useEffect(() => {
+  try {
+      if (typeof window !== 'undefined') {
+          const persistedToken = localStorage.getItem('token');
+          if (persistedToken) {
+              setfirstReceivedToken(persistedToken);
+              console.log('Persisted token retrieved:', persistedToken);
+          } else {
+              alert('No token found in localStorage.');
+          }
+      }
+  } catch (error) {
+      alert('Error accessing localStorage:');
+  }
+}, []); // Run once on mount
+
+  useEffect(()=>{
+    if(currentSelectedSellToken.symbol !== "Select a token"){
+      const fetchBalance=async()=>{
+        const res=await getBalance(account.address,currentSelectedSellToken.address)
+        if(res){
+          setsellTokenBalance(res)
+        }
+      }
+      if(account && currentSelectedSellToken.address){
+        fetchBalance()
+      }
+    }
+  },[currentSelectedSellToken,account])
+
+  useEffect(()=>{
+    if(currentSelectedBuyToken.symbol !== "Select a token"){
+      const fetchBalance=async()=>{
+        const res=await getBalance(account.address,currentSelectedBuyToken.address)
+        if(res){
+          setbuyTokenBalance(res)
+        }
+      }
+      if(account && currentSelectedBuyToken.address){
+        fetchBalance()
+      }
+    }
+  },[currentSelectedBuyToken,account])
+
   return (
     <Box
       mt="1rem"
@@ -242,8 +322,10 @@ const SwapInterface = ({ account, argentTMA }: any) => {
             <Box display="flex" width="100%" justifyContent="space-between">
               <Text color="#9CA3AF">$0.00</Text>
               <Box display="flex" gap="0.4rem">
-                <Text color="#9CA3AF">balance: 2</Text>
-                <Box cursor="pointer" color="#4F46E5">
+                <Text color="#9CA3AF">balance: {numberFormatter(sellTokenBalance)}</Text>
+                <Box cursor="pointer" color="#4F46E5" onClick={()=>{
+                  setcurrentSellAmount(sellTokenBalance)
+                }}>
                   MAX
                 </Box>
               </Box>
@@ -259,7 +341,7 @@ const SwapInterface = ({ account, argentTMA }: any) => {
               position="absolute"
               bg="#374151"
               borderRadius="8px"
-              _hover={{ bg: "white" }}
+              _hover={{ bg: "#374151" }}
               onClick={() => {
                 // Swap buy and sell token states
                 setcurrentSelectedSellToken(currentSelectedBuyToken);
@@ -349,7 +431,7 @@ const SwapInterface = ({ account, argentTMA }: any) => {
             <Box display="flex" width="100%" justifyContent="space-between">
               <Text color="#9CA3AF">$0.00</Text>
               <Box display="flex" gap="0.4rem">
-                <Text color="#9CA3AF">balance: 2</Text>
+                <Text color="#9CA3AF">balance: {numberFormatter(buyTokenBalance)}</Text>
               </Box>
             </Box>
           </Box>
@@ -507,16 +589,27 @@ const SwapInterface = ({ account, argentTMA }: any) => {
               currentBuyAmount === 0 ||
               currentSellAmount === 0 ||
               currentSelectedBuyToken.symbol === "Select a token" ||
-              currentSelectedSellToken.symbol === "Select a token"
+              currentSelectedSellToken.symbol === "Select a token" || transactionStarted
             }
             onClick={() => {
-              handleTransaction();
+              settransactionStarted(true)
+              if(!transactionStarted){
+                if(account){
+                  handleTransaction();
+                }else{
+                  handleConnectButton()
+                }
+              }
             }}
           >
+              {transactionStarted &&<Spinner
+    color="red.500"
+    css={{ "--spinner-track-color": "colors.gray.200" }}
+  />}
             {currentSelectedBuyToken.symbol === "Select a token" ||
             currentSelectedSellToken.symbol === "Select a token"
               ? "Select a token"
-              : "Swap"}
+              : transactionStarted?"Swapping": account? "Swap":"Connect Wallet"}
           </Button>
         </Box>
         {sellDropdownSelected && (
@@ -706,6 +799,7 @@ const SwapInterface = ({ account, argentTMA }: any) => {
             </Box>
           </Box>
         )}
+        <Text>{firstReceivedToken}</Text>
       </Box>
     </Box>
   );

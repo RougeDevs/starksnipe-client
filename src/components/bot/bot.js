@@ -84,8 +84,8 @@ function sendTokenInfo(ctx) {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: "🟢 Buy", web_app: { url: "https://e432-2401-4900-1c71-f312-4cfa-5408-ab13-9551.ngrok-free.app?token=".concat(sampleToken.address) } },
-                    { text: "🔴 Sell", web_app: { url: "https://e432-2401-4900-1c71-f312-4cfa-5408-ab13-9551.ngrok-free.app?token=".concat(sampleToken.address) } },
+                    { text: "🟢 Buy", web_app: { url: "https://8bac-2401-4900-1c71-bf8-fdc9-8edc-95e5-2a6c.ngrok-free.app?token=".concat(sampleToken.address) } },
+                    { text: "🔴 Sell", web_app: { url: "https://8bac-2401-4900-1c71-bf8-fdc9-8edc-95e5-2a6c.ngrok-free.app?token=".concat(sampleToken.address) } },
                 ],
             ],
         },
