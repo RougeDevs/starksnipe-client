@@ -1,74 +1,74 @@
-import { CallData, getChecksumAddress, hash, shortString, uint256 } from 'starknet'
+import {Call, getChecksumAddress, hash, shortString, uint256 } from 'starknet'
 
 import { provider } from './services/provider'
 import { TokenType, Memecoin } from './types'
 import { MEMECOIN_FACTORY_ADDRESS, Selector } from './constants'
-import { getMultiViewCall } from './calls'
+import { multiCallContract } from './calls'
 import { getJediswapLiquidityLockPosition, getEkuboLiquidityLockPosition } from './liquidity'
 
 export async function getTokenData(tokenAddress: string) {
-  const calls = [];
-  calls.push(CallData.compile({
-    to: MEMECOIN_FACTORY_ADDRESS,
-    selector: hash.getSelector(Selector.IS_MEMECOIN),
+  const calls: Call[] = [];
+  calls.push({
+    contractAddress: MEMECOIN_FACTORY_ADDRESS,
+    entrypoint: hash.getSelector(Selector.IS_MEMECOIN),
     calldata: [tokenAddress],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: tokenAddress,
-    selector: hash.getSelector(Selector.NAME),
+  calls.push({
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.NAME),
     calldata: [],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: tokenAddress,
-    selector: hash.getSelector(Selector.SYMBOL),
+  calls.push({
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.SYMBOL),
     calldata: [],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: tokenAddress,
-    selector: hash.getSelector(Selector.IS_LAUNCHED),
+  calls.push({
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.IS_LAUNCHED),
     calldata: [],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: tokenAddress,
-    selector: hash.getSelector(Selector.TOTAL_SUPPLY),
+  calls.push({
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.TOTAL_SUPPLY),
     calldata: [],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: tokenAddress,
-    selector: hash.getSelector(Selector.GET_TEAM_ALLOCATION),
+  calls.push({
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.GET_TEAM_ALLOCATION),
     calldata: [],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: tokenAddress,
-    selector: hash.getSelector(Selector.OWNER),
+  calls.push({
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.OWNER),
     calldata: [],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: MEMECOIN_FACTORY_ADDRESS,
-    selector: hash.getSelector(Selector.LOCKED_LIQUIDITY),
+  calls.push({
+    contractAddress: MEMECOIN_FACTORY_ADDRESS,
+    entrypoint: hash.getSelector(Selector.LOCKED_LIQUIDITY),
     calldata: [tokenAddress],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: tokenAddress,
-    selector: hash.getSelector(Selector.LAUNCHED_AT_BLOCK_NUMBER),
+  calls.push({
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.LAUNCHED_AT_BLOCK_NUMBER),
     calldata: [],
-  }))
+  })
 
-  calls.push(CallData.compile({
-    to: tokenAddress,
-    selector: hash.getSelector(Selector.LAUNCHED_WITH_LIQUIDITY_PARAMETERS),
+  calls.push({
+    contractAddress: tokenAddress,
+    entrypoint: hash.getSelector(Selector.LAUNCHED_WITH_LIQUIDITY_PARAMETERS),
     calldata: [],
-  }))
+  })
 
-  return provider.callContract(getMultiViewCall(calls))
+  return await multiCallContract(provider, calls);
 }
 
 export async function parseTokenData(tokenAddress: string, res: { result: string[] }): Promise<Memecoin | null> {

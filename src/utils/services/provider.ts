@@ -1,4 +1,7 @@
 import { RpcProvider } from 'starknet'
+import dotenv from 'dotenv';
+
+dotenv.config({ path: __dirname + '/../../../.env' })
 
 const nodeUrl = process.env.NODE_URL
 
