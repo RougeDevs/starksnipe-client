@@ -23,7 +23,7 @@ import numberFormatter from "@/functions/numberFormatter";
 import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
 import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
-import { executeCalls, fetchGasTokenPrices } from "@avnu/gasless-sdk";
+import { executeCalls, fetchAccountCompatibility, fetchBuildTypedData, fetchGasTokenPrices } from "@avnu/gasless-sdk";
 const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentTMA:any}) => {
   const [tokenSelectorDropdown, settokenSelectorDropdown] = useState<boolean>(false);
   const [buyDropdownSelected, setbuyDropdownSelected] = useState<boolean>(false);
@@ -119,6 +119,15 @@ const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentT
       symbol: "ETH",
     },
   ]);
+  useEffect(()=>{
+    if(account){
+      const fetchResult=async()=>{
+        const res=await fetchAccountCompatibility(account.address)
+        alert(res)
+      }
+      fetchResult()
+    }
+  },[account])
   const handleTransaction = async () => {
     try {
       if (argentTMA && account) {
@@ -163,6 +172,7 @@ const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentT
         // Execute the calls with gas-related options
         const result = await executeCalls(account, calls, {
           gasTokenAddress,
+          maxGasTokenAmount:estimatedGasFees,
         });
   
         // Transaction completed
