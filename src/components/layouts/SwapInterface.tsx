@@ -123,7 +123,7 @@ const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentT
       if (argentTMA && account) {
         const result = await account.execute([
           {
-            contractAddress:
+          contractAddress:
               "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
             entrypoint: "approve",
             calldata: [
@@ -631,7 +631,7 @@ useEffect(() => {
         </Box>
         {sellDropdownSelected && (
           <Box
-            width="50vw"
+            width={{base:'70vw',md:"50vw"}}
             // overflow="auto"
             height="500px"
             mt="10rem"
@@ -725,7 +725,7 @@ useEffect(() => {
         )}
         {buyDropdownSelected && (
           <Box
-            width="50vw"
+          width={{base:'70vw',md:"50vw"}}
             // overflow="auto"
             height="500px"
             mt="10rem"
@@ -816,7 +816,7 @@ useEffect(() => {
             </Box>
           </Box>
         )}
-        <Text>{firstReceivedToken}</Text>
+        {/* <Text>{firstReceivedToken}</Text> */}
       </Box>
     </Box>
   );
