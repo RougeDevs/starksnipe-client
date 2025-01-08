@@ -1,4 +1,5 @@
 import { TOKEN_SYMBOL } from './constants'
+import { RpcProvider, Contract } from 'starknet'
 
 export type USDCPair = {
     address: string
@@ -70,3 +71,38 @@ interface NotLaunchedMemecoin extends BaseMemecoin {
 }
 
 export type Memecoin = EkuboMemecoin | NotLaunchedMemecoin
+
+export type NetworkType = 'MAINNET' | 'SEPOLIA'
+
+export interface AccountConfig {
+    network: NetworkType
+    address: string,
+    provider: RpcProvider,
+    private_key: string
+}
+
+export interface EkuboQuoteApiSwap {
+    specifiedAmount: string;
+    amount: string;
+    route: {
+        pool_key: {
+            token0: string;
+            token1: string;
+            fee: string;
+            tick_spacing: number;
+            extension: string;
+        };
+        sqrt_ratio_limit: string;
+        skip_ahead: string;
+    }[];
+}
+export interface EkuboQuoteApiResponse {
+    total: string;
+    splits: EkuboQuoteApiSwap[];
+}
+
+export interface EkuboConfig {
+    network: NetworkType,
+    api: string,
+    router: Contract
+}

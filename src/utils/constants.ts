@@ -91,4 +91,8 @@ export enum Selector {
     BALANCE_OF = 'balance_of',
     TRANSFER = 'transfer',
     GET_TOKEN_INFOS = 'get_token_info',
+    CLEAR_MINIMUM = 'clear_minimum',
+    CLEAR = 'clear',
+    MULTIHOP_SWAP = 'multihop_swap',
+    MULTI_MULTIHOP_SWAP = 'multi_multihop_swap'
 }

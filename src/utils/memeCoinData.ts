@@ -1,6 +1,4 @@
 import { Call, getChecksumAddress, hash, shortString, uint256 } from 'starknet'
-
-import { provider } from './services/provider'
 import { Memecoin } from './types'
 import { MEMECOIN_FACTORY_ADDRESS, Selector, EKUBO } from './constants'
 import { multiCallContract } from './calls'
@@ -75,7 +73,7 @@ export async function getTokenData(tokenAddress: string) {
     calldata: [],
   })
 
-  return await multiCallContract(provider, calls);
+  return await multiCallContract(calls);
 }
 
 export async function parseTokenData(tokenAddress: string, res: string[][]): Promise<Memecoin | null> {
