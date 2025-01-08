@@ -23,7 +23,8 @@ import numberFormatter from "@/functions/numberFormatter";
 import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
 import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
-const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentTMA:any}) => {
+import { useAccount } from "@starknet-react/core";
+const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) => {
   const [tokenSelectorDropdown, settokenSelectorDropdown] = useState<boolean>(false);
   const [buyDropdownSelected, setbuyDropdownSelected] = useState<boolean>(false);
   const [sellDropdownSelected, setsellDropdownSelected] = useState<boolean>(false);
@@ -38,7 +39,7 @@ const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentT
   const [currentSellAmount, setcurrentSellAmount] = useState<number>(0);
   const router=useRouter()
   const [firstReceivedToken, setfirstReceivedToken] = useState("")
-
+  const { address, connector, account } = useAccount();
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
     name: "ETH",
     address: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
@@ -120,7 +121,7 @@ const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentT
   ]);
   const handleTransaction = async () => {
     try {
-      if (argentTMA && account) {
+      if (account) {
         const result = await account.execute([
           {
           contractAddress:
@@ -145,11 +146,9 @@ const SwapInterface = ({ account, argentTMA }: {account:AccountInterface,argentT
           },
         ]);
         settransactionStarted(false)
-        alert(result)
         // alert(result);
       }
     } catch (error) {
-      alert(error);
       settransactionStarted(false)
       console.log(error, "err in call");
     }
@@ -205,7 +204,7 @@ useEffect(() => {
               setfirstReceivedToken(persistedToken);
               console.log('Persisted token retrieved:', persistedToken);
           } else {
-              alert('No token found in localStorage.');
+              // alert('No token found in localStorage.');
           }
       }
   } catch (error) {
@@ -216,7 +215,7 @@ useEffect(() => {
   useEffect(()=>{
     if(currentSelectedSellToken.symbol !== "Select a token"){
       const fetchBalance=async()=>{
-        const res=await getBalance(account.address,currentSelectedSellToken.address)
+        const res=await getBalance(account?.address as any,currentSelectedSellToken.address)
         if(res){
           setsellTokenBalance(res)
         }
@@ -230,7 +229,7 @@ useEffect(() => {
   useEffect(()=>{
     if(currentSelectedBuyToken.symbol !== "Select a token"){
       const fetchBalance=async()=>{
-        const res=await getBalance(account.address,currentSelectedBuyToken.address)
+        const res=await getBalance(account?.address as any,currentSelectedBuyToken.address)
         if(res){
           setbuyTokenBalance(res)
         }
@@ -517,7 +516,7 @@ useEffect(() => {
                         <Text color="#9CA3AF">0.1%</Text>
                       </Box>
                     </Box>
-                    <Box
+                    {/* <Box
                       width="100%"
                       display="flex"
                       justifyContent="space-between"
@@ -530,8 +529,8 @@ useEffect(() => {
                       <Box display="flex" alignItems="center" gap="0.4rem">
                         <Text color="#9CA3AF">High</Text>
                       </Box>
-                    </Box>
-                    <Box
+                    </Box> */}
+                    {/* <Box
                       width="100%"
                       display="flex"
                       justifyContent="space-between"
@@ -591,7 +590,7 @@ useEffect(() => {
                           </Box>
                         )}
                       </Box>
-                    </Box>
+                    </Box> */}
                   </Box>
                 )}
               </Box>
@@ -725,7 +724,7 @@ useEffect(() => {
         )}
         {buyDropdownSelected && (
           <Box
-          width={{base:'70vw',md:"50vw"}}
+          width={{base:'70vw',md:"50vw",lg:"30vw"}}
             // overflow="auto"
             height="500px"
             mt="10rem"
