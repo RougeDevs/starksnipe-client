@@ -28,6 +28,8 @@ export const getInitialPrice = (startingTick: number) => EKUBO.EKUBO_TICK_SIZE *
 export const getStartingTick = (initialPrice: number) =>
   Math.floor(Math.log(initialPrice) / EKUBO.EKUBO_TICK_SIZE_LOG / EKUBO.EKUBO_TICK_SPACING) * EKUBO.EKUBO_TICK_SPACING
 
+export const getMinAmountOut = (expectedAmountOut: number, slippage: number) => Math.floor(expectedAmountOut - (expectedAmountOut * slippage) / 100)
+
 export const account = (network: NetworkType = 'SEPOLIA') => {
   switch (network) {
     case 'MAINNET': return (

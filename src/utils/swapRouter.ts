@@ -1,6 +1,6 @@
 import { Call, num } from "starknet";
 import 'dotenv/config';
-import { ekubo } from './helper'
+import { ekubo, getMinAmountOut } from './helper'
 import { Selector, TOKEN_SYMBOL } from './constants'
 import { EkuboConfig, NetworkType, EkuboQuoteApiResponse } from './types'
 
@@ -16,10 +16,10 @@ export async function fetchQuote(amount: bigint, token0: TOKEN_SYMBOL, token1: T
     return (await quote.json()) as EkuboQuoteApiResponse;
 }
 
-export function getSwapCalls(amount: bigint, token0: string, quote: EkuboQuoteApiResponse): Call[] {
+export function getSwapCalls(token0: string, token1: string, amount: bigint, slippage: number, quote: EkuboQuoteApiResponse): Call[] {
     const splits = quote.splits;
     if (splits.length === 0) {
-        throw new Error("unexpected single hop route");
+        throw new Error("no splits found");
     }
     const calls: Call[] = [];
     calls.push({
@@ -106,7 +106,7 @@ export function getSwapCalls(amount: bigint, token0: string, quote: EkuboQuoteAp
         )
     }
 
-    calls.push(ekuboConfig.router.populate(Selector.CLEAR_MINIMUM, [{ contract_address: token0 }, amount]))
+    calls.push(ekuboConfig.router.populate(Selector.CLEAR_MINIMUM, [{ contract_address: token1 }, getMinAmountOut(Number(amount), slippage)]))
     calls.push(ekuboConfig.router.populate(Selector.CLEAR, [{ contract_address: token0 }]))
 
     return calls;
