@@ -106,7 +106,7 @@ export function getSwapCalls(token0: string, token1: string, amount: bigint, sli
         )
     }
 
-    calls.push(ekuboConfig.router.populate(Selector.CLEAR_MINIMUM, [{ contract_address: token1 }, getMinAmountOut(Number(amount), slippage)]))
+    calls.push(ekuboConfig.router.populate(Selector.CLEAR_MINIMUM, [{ contract_address: token1 }, getMinAmountOut(Number(quote.total), slippage)]))
     calls.push(ekuboConfig.router.populate(Selector.CLEAR, [{ contract_address: token0 }]))
 
     return calls;
