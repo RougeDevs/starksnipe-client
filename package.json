@@ -17,6 +17,7 @@
     "@starknet-react/chains": "0.1.7",
     "@starknet-react/core": "2.9.0",
     "@uniswap/sdk-core": "^6.1.1",
+    "axios": "^1.7.9",
     "bignumber.js": "^9.1.2",
     "crypto-browserify": "^3.12.1",
     "dotenv": "^16.4.7",

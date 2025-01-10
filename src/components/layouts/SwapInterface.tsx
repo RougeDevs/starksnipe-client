@@ -34,6 +34,7 @@ import { useAccount } from "@starknet-react/core";
 import { fetchQuote, getSwapCalls } from "@/utils/swapRouter";
 import { TOKEN_SYMBOL } from "@/utils/constants";
 import { getMinAmountOut } from "@/utils/helper";
+import axios from 'axios'
 import {
   executeCalls,
   fetchAccountCompatibility,
@@ -42,7 +43,7 @@ import {
   fetchGasTokenPrices,
 } from "@avnu/gasless-sdk";
 import { provider } from "@/utils/services/provider";
-import { etherToWeiBN, parseAmount } from "@/Blockchain/utils/utils";
+import { etherToWeiBN, parseAmount, processAddress } from "@/Blockchain/utils/utils";
 const SwapInterface = ({
   argentTMA,
 }: {
@@ -71,6 +72,9 @@ const SwapInterface = ({
   const [firstReceivedToken, setfirstReceivedToken] = useState("");
   const { address, connector, account } = useAccount();
   const [calls, setcalls] = useState<any>();
+  const [prices, setprices] = useState<any>()
+  const [sellTokenPrice, setsellTokenPrice] = useState<number | null>(null)
+  const [buyTokenPrice, setbuyTokenPrice] = useState<number | null>(null)
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
     name: "ETH",
     address:
@@ -172,6 +176,36 @@ const SwapInterface = ({
       // ],
     });
   };
+  const findTokenPrice = (address:string) => {
+    const token = prices.find((token: { tokenAddress: string; }) => processAddress(token.tokenAddress) === address);
+    return token ? token.priceInUSD : null;
+};
+  useEffect(()=>{
+    try {
+      const fetchPrices=async()=>{
+        const res=await axios.get('https://starknet.api.avnu.fi/paymaster/v1/gas-token-prices')
+        if(res){
+          setprices(res.data)
+        }
+      }
+      fetchPrices()   
+    } catch (error) {
+      console.log(error,'err')
+    }
+  },[])
+
+  useEffect(()=>{
+    if(prices){
+      if(currentSelectedSellToken.symbol!=="Select a token"){
+        const tokenPrice=findTokenPrice(processAddress(currentSelectedSellToken.address))
+        setsellTokenPrice(tokenPrice)
+      }
+      if(currentSelectedBuyToken.symbol!=="Select a token"){
+        const tokenPrice=findTokenPrice(processAddress(currentSelectedBuyToken.address))
+        setbuyTokenPrice(tokenPrice)
+      }
+    }
+  },[prices,currentSelectedBuyToken,currentSelectedSellToken])
 
   // useEffect(()=>{
   //   try {
@@ -221,6 +255,7 @@ const SwapInterface = ({
           setcurrentBuyAmount(
             parseAmount(String(res?.total), currentSelectedBuyToken.decimals)
           );
+          console.log(res?.total,'value')
           const res2 = getMinAmountOut(Number(res?.total), 1);
           if (res2) {
             setminReceived(
@@ -417,7 +452,7 @@ const SwapInterface = ({
               </Box>
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
-              <Text color="#9CA3AF">$0.00</Text>
+              {<Text color="#9CA3AF">${sellTokenPrice? sellTokenPrice*currentSellAmount:0}</Text>}
               <Box display="flex" gap="0.4rem">
                 <Text color="#9CA3AF">
                   balance: {numberFormatter(sellTokenBalance)}
@@ -536,7 +571,7 @@ const SwapInterface = ({
               </Box>
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
-              <Text color="#9CA3AF">$0.00</Text>
+              <Text color="#9CA3AF">${buyTokenPrice? buyTokenPrice*currentBuyAmount:0}</Text>
               <Box display="flex" gap="0.4rem">
                 <Text color="#9CA3AF">
                   balance: {numberFormatter(buyTokenBalance)}
@@ -556,7 +591,7 @@ const SwapInterface = ({
                 >
                   <Text color="#9CA3AF">
                     1 {currentSelectedSellToken.symbol} = 0.999{" "}
-                    {currentSelectedSellToken.symbol} ($0.50)
+                    {currentSelectedBuyToken.symbol} ($0.50)
                   </Text>
                   <Box
                     display="flex"
@@ -740,7 +775,7 @@ R
         </Box>
         {sellDropdownSelected && (
           <Box
-            width={{ base: "70vw", md: "50vw" }}
+          width={{ base: "70vw", md: "50vw", lg: "30vw" }}
             // overflow="auto"
             height="500px"
             mt="10rem"
