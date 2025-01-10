@@ -94,11 +94,10 @@ export const borrowInterestAccrued = (asset: any) => {
   //   return new BigNumber(0).toFixed(6);
 };
 
-export const etherToWeiBN = (amount:any, tokenName:any) => {
+export const etherToWeiBN = (amount:any, decimals:any) => {
   if (!amount) {
     return 0;
   }
-  const decimals = 18;
   if (!decimals) {
     return 0;
   }

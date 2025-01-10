@@ -7,6 +7,7 @@ import {
   NumberInputLabel,
   NumberInputRoot,
   NumberInputRootProvider,
+  Skeleton,
   Spinner,
   Text,
   useMediaQuery,
@@ -16,7 +17,13 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
-import { AccountInterface, AccountInvocationItem, CallData, Contract, TransactionType } from "starknet";
+import {
+  AccountInterface,
+  AccountInvocationItem,
+  CallData,
+  Contract,
+  TransactionType,
+} from "starknet";
 import InfoIcon from "@/assets/InfoIcon";
 import { getBalance } from "@/Blockchain/scripts/swapinteraction";
 import numberFormatter from "@/functions/numberFormatter";
@@ -27,35 +34,59 @@ import { useAccount } from "@starknet-react/core";
 import { fetchQuote, getSwapCalls } from "@/utils/swapRouter";
 import { TOKEN_SYMBOL } from "@/utils/constants";
 import { getMinAmountOut } from "@/utils/helper";
-import { executeCalls, fetchAccountCompatibility, fetchAccountsRewards, fetchBuildTypedData, fetchGasTokenPrices } from "@avnu/gasless-sdk";
+import {
+  executeCalls,
+  fetchAccountCompatibility,
+  fetchAccountsRewards,
+  fetchBuildTypedData,
+  fetchGasTokenPrices,
+} from "@avnu/gasless-sdk";
 import { provider } from "@/utils/services/provider";
-const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) => {
-  const [tokenSelectorDropdown, settokenSelectorDropdown] = useState<boolean>(false);
-  const [buyDropdownSelected, setbuyDropdownSelected] = useState<boolean>(false);
-  const [sellDropdownSelected, setsellDropdownSelected] = useState<boolean>(false);
+import { etherToWeiBN, parseAmount } from "@/Blockchain/utils/utils";
+const SwapInterface = ({
+  argentTMA,
+}: {
+  account: AccountInterface;
+  argentTMA: any;
+}) => {
+  const [tokenSelectorDropdown, settokenSelectorDropdown] =
+    useState<boolean>(false);
+  const [buyDropdownSelected, setbuyDropdownSelected] =
+    useState<boolean>(false);
+  const [sellDropdownSelected, setsellDropdownSelected] =
+    useState<boolean>(false);
   const [showPriceDetails, setshowPriceDetails] = useState<boolean>(false);
-  const [slippageDetailsCheck, setslippageDetailsCheck] = useState<boolean>(false);
-  const [transactionStarted, settransactionStarted] = useState<boolean>(false)
+  const [slippageDetailsCheck, setslippageDetailsCheck] =
+    useState<boolean>(false);
+  const [transactionStarted, settransactionStarted] = useState<boolean>(false);
   const setSellToken = useSetAtom(sellToken);
   const setBuyToken = useSetAtom(buyToken);
-  const [buyTokenBalance, setbuyTokenBalance] = useState<number>(0)
-  const [sellTokenBalance, setsellTokenBalance] = useState<number>(0)
+  const [buyTokenBalance, setbuyTokenBalance] = useState<number>(0);
+  const [sellTokenBalance, setsellTokenBalance] = useState<number>(0);
   const [currentBuyAmount, setcurrentBuyAmount] = useState<number>(0);
+  const [buyvalueChanged, setbuyvalueChanged] = useState<boolean>(false)
+  const [sellvalueChanged, setsellvalueChanged] = useState<boolean>(false)
   const [currentSellAmount, setcurrentSellAmount] = useState<number>(0);
-  const router=useRouter()
-  const [firstReceivedToken, setfirstReceivedToken] = useState("")
+  const router = useRouter();
+  const [firstReceivedToken, setfirstReceivedToken] = useState("");
   const { address, connector, account } = useAccount();
-  const [calls, setcalls] = useState<any>()
+  const [calls, setcalls] = useState<any>();
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
     name: "ETH",
-    address: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+    address:
+      "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
     logo: "https://token-icons.s3.amazonaws.com/eth.png",
+    decimals: 18,
     symbol: "ETH",
   });
   const [selectedSlippage, setSelectedSlippage] = useState({
     level: "Medium",
     value: "32%",
   });
+  const [minReceived, setminReceived] = useState<any>(0);
+  const [refereshData, setrefereshData] = useState<boolean>(false);
+  const [refreshBuyData, setrefreshBuyData] = useState<boolean>(false)
+  const [refereshSellData, setrefereshSellData] = useState<boolean>(false)
 
   const slippageOptions = [
     { level: "Zero", value: "0%" },
@@ -67,73 +98,60 @@ const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) =
     name: "Select a token",
     address: "",
     logo: "",
+    decimals: 18,
     symbol: "Select a token",
   });
   const [allTokens, setallTokens] = useState([
     {
       name: "ETH",
-      address: "",
+      address:
+        "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+      decimals: 18,
       logo: "https://token-icons.s3.amazonaws.com/eth.png",
       symbol: "ETH",
     },
     {
-      name: "ETH",
-      address: "",
+      name: "USDT",
+      address:
+        "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8",
+      decimals: 6,
       logo: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
+      symbol: "USDT",
     },
     {
-      name: "ETH",
-      address: "",
+      name: "USDC",
+      address:
+        "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+      decimals: 6,
       logo: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
+      symbol: "USDC",
     },
     {
-      name: "ETH",
-      address: "",
+      name: "WBTC",
+      address:
+        "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
+      decimals: 8,
       logo: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
+      symbol: "WBTC",
     },
     {
-      name: "ETH",
-      address: "",
+      name: "STRK",
+      address:
+        "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      decimals: 18,
       logo: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
-    },
-    {
-      name: "ETH",
-      address: "",
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
-    },
-    {
-      name: "ETH",
-      address: "",
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
-    },
-    {
-      name: "ETH",
-      address: "https://token-icons.s3.amazonaws.com/eth.png",
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
-    },
-    {
-      name: "ETH",
-      address: "",
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
+      symbol: "STRK",
     },
   ]);
   const handleTransaction = async () => {
     try {
       if (account) {
         const result = await account.execute(calls);
-        settransactionStarted(false)
+        settransactionStarted(false);
         // alert(result);
       }
     } catch (error) {
-      settransactionStarted(false)
+      settransactionStarted(false);
       console.log(error, "err in call");
     }
   };
@@ -144,15 +162,15 @@ const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) =
 
   const handleConnectButton = async () => {
     await argentTMA.requestConnection({
-          callbackData: 'custom_callback',
-          // approvalRequests: [
-          //   {
-          //     tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
-          //     amount: BigInt(1000000000000000000).toString(),
-          //     spender: 'spender_address',
-          //   }
-          // ],
-        });
+      callbackData: "custom_callback",
+      // approvalRequests: [
+      //   {
+      //     tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+      //     amount: BigInt(1000000000000000000).toString(),
+      //     spender: 'spender_address',
+      //   }
+      // ],
+    });
   };
 
   // useEffect(()=>{
@@ -171,81 +189,132 @@ const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) =
   //   }
   // },[])
 
-  useEffect(()=>{
-    try {
-      const fetchValue=async()=>{
-        const res=await fetchQuote(BigInt(100000000000000),TOKEN_SYMBOL.ETH,TOKEN_SYMBOL.USDT)
-        if(res){
-          const res2=getMinAmountOut(Number(res?.total),1)
-          if(res2){
-            console.log(res,res2,'pre')
-            const res3= getSwapCalls('0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7','0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8',BigInt(100000000000000),1,res)
-            if(res3){
-              setcalls(res3)
-            }
-            console.log(res2,res,res3,'values')
-          }
-        }
-        console.log(res,'quote')
-      }
-      fetchValue() 
-    } catch (error) {
-      console.log(error,'err')
+  useEffect(() => {
+    // setrefereshData(true);
+    if(currentSelectedSellToken.symbol!=="Select a token" && currentSellAmount>0){
+      setrefereshSellData(true)
+      // setrefreshBuyData(true)
     }
-  },[])
+  }, [
+    currentSelectedBuyToken,currentSelectedSellToken,buyvalueChanged
+  ]);
+
+  useEffect(()=>{
+    if(currentSelectedBuyToken.symbol!=="Select a token" && currentSellAmount>0){
+      setrefreshBuyData(true)
+    }
+  },[currentSelectedBuyToken,currentSelectedSellToken,sellvalueChanged])
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && router.query.token) {
-        const token = router.query.token;
-        if (token) {
-            localStorage.setItem('token', token as string);
-        }
-    }
-}, [router.query]);
+    let intervalId: any;
 
-useEffect(() => {
-  try {
-      if (typeof window !== 'undefined') {
-          const persistedToken = localStorage.getItem('token');
-          if (persistedToken) {
-              setfirstReceivedToken(persistedToken);
-              console.log('Persisted token retrieved:', persistedToken);
-          } else {
-              // alert('No token found in localStorage.');
+    const fetchValue = async () => {
+      try {
+        const res = await fetchQuote(
+          BigInt(
+            etherToWeiBN(currentSellAmount, currentSelectedSellToken.decimals)
+          ),
+          currentSelectedSellToken.symbol as TOKEN_SYMBOL,
+          currentSelectedBuyToken.symbol as TOKEN_SYMBOL
+        );
+        if (res) {
+          setcurrentBuyAmount(
+            parseAmount(String(res?.total), currentSelectedBuyToken.decimals)
+          );
+          const res2 = getMinAmountOut(Number(res?.total), 1);
+          if (res2) {
+            setminReceived(
+              parseAmount(String(res2), currentSelectedBuyToken.decimals)
+            );
+            const res3 = getSwapCalls(
+              currentSelectedSellToken.address,
+              currentSelectedBuyToken.address,
+              BigInt(
+                etherToWeiBN(
+                  currentSellAmount,
+                  currentSelectedSellToken.decimals
+                )
+              ),
+              1,
+              res
+            );
+            if (res3) {
+              setcalls(res3);
+            }
+            console.log(res2, res, res3, "values 1");
           }
-      }
-  } catch (error) {
-      alert('Error accessing localStorage:');
-  }
-}, []); // Run once on mount
-
-  useEffect(()=>{
-    if(currentSelectedSellToken.symbol !== "Select a token"){
-      const fetchBalance=async()=>{
-        const res=await getBalance(account?.address as any,currentSelectedSellToken.address)
-        if(res){
-          setsellTokenBalance(res)
         }
+        setrefereshData(false);
+        setrefereshSellData(false)
+        setrefreshBuyData(false)
+      } catch (error) {
+        console.log(error, "err");
       }
-      if(account && currentSelectedSellToken.address){
-        fetchBalance()
+    };
+
+    if (
+      currentSelectedBuyToken.symbol !== "Select a token" &&
+      currentSelectedSellToken.symbol !== "Select a token" &&
+      currentSellAmount > 0
+    ) {
+      fetchValue(); // Initial fetch
+    }
+  }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && router.query.token) {
+      const token = router.query.token;
+      if (token) {
+        localStorage.setItem("token", token as string);
       }
     }
-  },[currentSelectedSellToken,account])
+  }, [router.query]);
 
-  useEffect(()=>{
-    if(currentSelectedBuyToken.symbol !== "Select a token"){
-      const fetchBalance=async()=>{
-        const res=await getBalance(account?.address as any,currentSelectedBuyToken.address)
-        if(res){
-          setbuyTokenBalance(res)
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const persistedToken = localStorage.getItem("token");
+        if (persistedToken) {
+          setfirstReceivedToken(persistedToken);
+          console.log("Persisted token retrieved:", persistedToken);
+        } else {
+          // alert('No token found in localStorage.');
         }
       }
-      if(account && currentSelectedBuyToken.address){
-        fetchBalance()
+    } catch (error) {
+      alert("Error accessing localStorage:");
+    }
+  }, []); // Run once on mount
+
+  useEffect(() => {
+    if (currentSelectedSellToken.symbol !== "Select a token") {
+      const fetchBalance = async () => {
+        const res = await getBalance(
+          account?.address as any,
+          currentSelectedSellToken.address
+        );
+        setsellTokenBalance(res as number);
+      };
+      if (account && currentSelectedSellToken.address) {
+        fetchBalance();
       }
     }
-  },[currentSelectedBuyToken,account])
+  }, [currentSelectedSellToken, account]);
+
+  useEffect(() => {
+    if (currentSelectedBuyToken.symbol !== "Select a token") {
+      const fetchBalance = async () => {
+        const res = await getBalance(
+          account?.address as any,
+          currentSelectedBuyToken.address
+        );
+          setbuyTokenBalance(res as number);
+      };
+      if (account && currentSelectedBuyToken.address) {
+        fetchBalance();
+      }
+    }
+  }, [currentSelectedBuyToken, account]);
 
   return (
     <Box
@@ -290,7 +359,11 @@ useEffect(() => {
               alignItems="center"
             >
               <Box>
-                <Input
+                {refereshSellData?<Skeleton
+                              width="10rem"
+                          height="2rem"
+                          borderRadius="6px"
+                        />:<Input
                   border="0px"
                   width="100%"
                   pl="0.4rem"
@@ -302,6 +375,7 @@ useEffect(() => {
                   }}
                   value={currentSellAmount ? currentSellAmount : ""}
                   onChange={(e) => {
+                    setsellvalueChanged(!sellvalueChanged)
                     setcurrentSellAmount(Number(e.target.value));
                   }}
                   type="number"
@@ -312,7 +386,7 @@ useEffect(() => {
                         margin: 0,
                       },
                   }}
-                />
+                />}
               </Box>
               <Box
                 bg="#374151"
@@ -345,20 +419,23 @@ useEffect(() => {
             <Box display="flex" width="100%" justifyContent="space-between">
               <Text color="#9CA3AF">$0.00</Text>
               <Box display="flex" gap="0.4rem">
-                <Text color="#9CA3AF">balance: {numberFormatter(sellTokenBalance)}</Text>
-                <Box cursor="pointer" color="#4F46E5" onClick={()=>{
-                  setcurrentSellAmount(sellTokenBalance)
-                }}>
+                <Text color="#9CA3AF">
+                  balance: {numberFormatter(sellTokenBalance)}
+                </Text>
+                <Box
+                  cursor="pointer"
+                  color="#4F46E5"
+                  onClick={() => {
+                    setsellvalueChanged(!sellvalueChanged)
+                    setcurrentSellAmount(sellTokenBalance);
+                  }}
+                >
                   MAX
                 </Box>
               </Box>
             </Box>
           </Box>
-          <Box
-            alignItems="center"
-            display="flex"
-            justifyContent="center"
-          >
+          <Box alignItems="center" display="flex" justifyContent="center">
             <Button
               width="50px"
               position="absolute"
@@ -371,6 +448,8 @@ useEffect(() => {
                 setcurrentSelectedBuyToken(currentSelectedSellToken);
                 setcurrentBuyAmount(currentSellAmount);
                 setcurrentSellAmount(currentBuyAmount);
+                setsellTokenBalance(buyTokenBalance)
+                setbuyTokenBalance(sellTokenBalance)
               }}
             >
               <Image
@@ -396,7 +475,11 @@ useEffect(() => {
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
               <Box>
-                <Input
+                {refreshBuyData?                        <Skeleton
+                              width="10rem"
+                          height="2rem"
+                          borderRadius="6px"
+                        />:<Input
                   border="0px"
                   width="100%"
                   cursor="pointer"
@@ -408,6 +491,7 @@ useEffect(() => {
                   }}
                   value={currentBuyAmount ? currentBuyAmount : ""}
                   onChange={(e) => {
+                    setbuyvalueChanged(!buyvalueChanged)
                     setcurrentBuyAmount(Number(e.target.value));
                   }}
                   placeholder="0"
@@ -419,7 +503,7 @@ useEffect(() => {
                         margin: 0,
                       },
                   }}
-                />
+                />}
               </Box>
               <Box
                 bg="#374151"
@@ -454,7 +538,9 @@ useEffect(() => {
             <Box display="flex" width="100%" justifyContent="space-between">
               <Text color="#9CA3AF">$0.00</Text>
               <Box display="flex" gap="0.4rem">
-                <Text color="#9CA3AF">balance: {numberFormatter(buyTokenBalance)}</Text>
+                <Text color="#9CA3AF">
+                  balance: {numberFormatter(buyTokenBalance)}
+                </Text>
               </Box>
             </Box>
           </Box>
@@ -501,12 +587,20 @@ useEffect(() => {
                     >
                       <Box display="flex" gap="0.4rem" alignItems="center">
                         <Text color="#9CA3AF">Min Received</Text>
-                        <InfoIcon/>
+                        <InfoIcon />
                       </Box>
                       <Box display="flex" alignItems="center" gap="0.4rem">
-                        <Text color="#9CA3AF">
-                          3 {currentSelectedSellToken.symbol}
-                        </Text>
+                        {(refereshSellData || refreshBuyData) ? (
+                          <Skeleton
+                            width="2.3rem"
+                            height=".85rem"
+                            borderRadius="6px"
+                          />
+                        ) : (
+                          <Text color="#9CA3AF">
+                            {minReceived} {currentSelectedBuyToken.symbol}
+                          </Text>
+                        )}
                       </Box>
                     </Box>
                     <Box
@@ -517,7 +611,7 @@ useEffect(() => {
                     >
                       <Box display="flex" gap="0.4rem" alignItems="center">
                         <Text color="#9CA3AF">Fees</Text>
-                        <InfoIcon/>
+                        <InfoIcon />
                       </Box>
                       <Box display="flex" alignItems="center" gap="0.4rem">
                         <Text color="#9CA3AF">0.1%</Text>
@@ -564,7 +658,7 @@ useEffect(() => {
                       >
                         <Text>{selectedSlippage.level}</Text>
                         <Text>{selectedSlippage.value}</Text>
-
+R
                         {slippageDetailsCheck && (
                           <Box
                             position="absolute"
@@ -612,32 +706,41 @@ useEffect(() => {
               currentBuyAmount === 0 ||
               currentSellAmount === 0 ||
               currentSelectedBuyToken.symbol === "Select a token" ||
-              currentSelectedSellToken.symbol === "Select a token" || transactionStarted
+              currentSelectedSellToken.symbol === "Select a token" ||
+              transactionStarted ||
+              refereshSellData || refreshBuyData || currentSellAmount>sellTokenBalance
             }
             onClick={() => {
-              settransactionStarted(true)
-              if(!transactionStarted){
-                if(account){
+              settransactionStarted(true);
+              if (!transactionStarted) {
+                if (account) {
                   handleTransaction();
-                }else{
-                  handleConnectButton()
+                } else {
+                  handleConnectButton();
                 }
               }
             }}
           >
-              {transactionStarted &&<Spinner
-    color="red.500"
-    css={{ "--spinner-track-color": "colors.gray.200" }}
-  />}
+            {(transactionStarted || refereshSellData || refreshBuyData) && (
+              <Spinner
+                color="red.500"
+                css={{ "--spinner-track-color": "colors.gray.200" }}
+              />
+            )}
             {currentSelectedBuyToken.symbol === "Select a token" ||
             currentSelectedSellToken.symbol === "Select a token"
               ? "Select a token"
-              : transactionStarted?"Swapping": account? "Swap":"Connect Wallet"}
+              : transactionStarted
+              ? "Swapping"
+              : account
+              ?               currentSellAmount>sellTokenBalance ?
+              `Insufficient ${currentSelectedSellToken.symbol} Balance`:"Swap"
+              : "Connect Wallet"}
           </Button>
         </Box>
         {sellDropdownSelected && (
           <Box
-            width={{base:'70vw',md:"50vw"}}
+            width={{ base: "70vw", md: "50vw" }}
             // overflow="auto"
             height="500px"
             mt="10rem"
@@ -731,7 +834,7 @@ useEffect(() => {
         )}
         {buyDropdownSelected && (
           <Box
-          width={{base:'70vw',md:"50vw",lg:"30vw"}}
+            width={{ base: "70vw", md: "50vw", lg: "30vw" }}
             // overflow="auto"
             height="500px"
             mt="10rem"
