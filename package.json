@@ -11,6 +11,7 @@
   "dependencies": {
     "@argent/tma-wallet": "1.21.2",
     "@avnu/avnu-sdk": "^3.0.0",
+    "@avnu/gasless-sdk": "^0.1.7",
     "@chakra-ui/react": "^3.2.3",
     "@emotion/react": "^11.14.0",
     "@starknet-react/chains": "0.1.7",
@@ -18,7 +19,8 @@
     "@uniswap/sdk-core": "^6.1.1",
     "bignumber.js": "^9.1.2",
     "crypto-browserify": "^3.12.1",
-    "ethers": "5.5.1",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
     "grammy": "^1.33.0",
     "https-browserify": "^1.0.0",
     "jotai": "^2.10.4",

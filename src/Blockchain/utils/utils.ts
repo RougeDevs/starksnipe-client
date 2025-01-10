@@ -1,7 +1,6 @@
 import { BigNumber } from "bignumber.js";
 import { AnyAaaaRecord } from "dns";
-import { ethers, utils,BigNumber as BigNumberEther } from "ethers";
-import { Logger } from "ethers/lib/utils";
+import { ethers, } from "ethers";
 import { num } from "starknet";
 export const fixedSpecial = (num: number, n: number) => {
   var str = num.toPrecision();
@@ -29,37 +28,13 @@ export const NumToBN = (value: number, decimal: number = 18) => {
   return val < 1 ? val.toPrecision() : fixedSpecial(val, 0);
 };
 
-export const GetErrorText = (err: any) => {
-  if (err.code === Logger.errors.CALL_EXCEPTION)
-    return `Transaction failed! \n ${err.transactionHash}`;
-  if (err.data) {
-    ////console.log(1);
-    return err.data.message;
-  } else if (err.message) {
-    ////console.log("Erro: ", err.message);
-    return err.message;
-  } else if (typeof err == "string") {
-    return err;
-  } else return "Oops! Something went wrong.";
-};
-
 export const toFixed = (num: number, digit: number) => {
   if (isNaN(num)) return 0;
   var fixed_num = Number(num).toFixed(digit);
   return Number(fixed_num.toString());
 };
 
-export const OnSuccessCallback = (
-  data: any,
-  eventName: any,
-  key: any,
-  message: any
-) => {};
-
 export const OnErrorCallback = (err: any) => {};
-export const bytesToString = (bytes: string) => {
-  return utils.parseBytes32String(bytes);
-};
 
 export const depositInterestAccrued = (asset: any, historicalData: any[]) => {
   const compare = (entryA: any, entryB: any) => {
@@ -161,15 +136,16 @@ export function processAddress(address: string) {
   }
 
 
-export const parseAmount = (amount: string, decimals = 18, precision = 18) => {
-  const factor = BigNumberEther.from("1000000");
-  const divisor = BigNumberEther.from(10).pow(decimals);
-  const amountBN = BigNumberEther.from(amount).mul(factor).div(divisor);
-
-  // Convert BigNumber to a Number for arithmetic
-  const preciseValue = Number(amountBN.toString()) / factor.toNumber();
-
-  // Truncate to the desired precision
-  const multiplier = Math.pow(10, precision);
-  return Math.floor(preciseValue * multiplier) / multiplier;
-};
+  export const parseAmount = (amount: string, decimals = 18, precision = 18) => {
+    // Use native BigInt for calculations
+    const factor = BigInt("1000000");
+    const divisor = BigInt(10) ** BigInt(decimals);
+    const amountBigInt = (BigInt(amount) * factor) / divisor;
+  
+    // Convert to string for decimal arithmetic since BigInt can't handle decimals
+    const preciseValue = Number(amountBigInt.toString()) / Number(factor);
+  
+    // Truncate to the desired precision
+    const multiplier = Math.pow(10, precision);
+    return Math.floor(preciseValue * multiplier) / multiplier;
+  };

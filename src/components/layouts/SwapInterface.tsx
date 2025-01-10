@@ -16,7 +16,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
-import { AccountInterface, CallData, Contract } from "starknet";
+import { AccountInterface, AccountInvocationItem, CallData, Contract, TransactionType } from "starknet";
 import InfoIcon from "@/assets/InfoIcon";
 import { getBalance } from "@/Blockchain/scripts/swapinteraction";
 import numberFormatter from "@/functions/numberFormatter";
@@ -24,6 +24,11 @@ import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
 import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
 import { useAccount } from "@starknet-react/core";
+import { fetchQuote, getSwapCalls } from "@/utils/swapRouter";
+import { TOKEN_SYMBOL } from "@/utils/constants";
+import { getMinAmountOut } from "@/utils/helper";
+import { executeCalls, fetchAccountCompatibility, fetchAccountsRewards, fetchBuildTypedData, fetchGasTokenPrices } from "@avnu/gasless-sdk";
+import { provider } from "@/utils/services/provider";
 const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) => {
   const [tokenSelectorDropdown, settokenSelectorDropdown] = useState<boolean>(false);
   const [buyDropdownSelected, setbuyDropdownSelected] = useState<boolean>(false);
@@ -40,6 +45,7 @@ const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) =
   const router=useRouter()
   const [firstReceivedToken, setfirstReceivedToken] = useState("")
   const { address, connector, account } = useAccount();
+  const [calls, setcalls] = useState<any>()
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
     name: "ETH",
     address: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
@@ -122,29 +128,7 @@ const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) =
   const handleTransaction = async () => {
     try {
       if (account) {
-        const result = await account.execute([
-          {
-          contractAddress:
-              "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-            entrypoint: "approve",
-            calldata: [
-              "0x5e8506f1754a634f3cf9391cfef47ff25293848c7677f2f9eec4f395798f7c3",
-              BigInt(100000000000000).toString(),
-              "0",
-            ],
-          },
-          {
-            contractAddress:
-              "0x5e8506f1754a634f3cf9391cfef47ff25293848c7677f2f9eec4f395798f7c3",
-            entrypoint: "deposit",
-            calldata: [
-              "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-              BigInt(100000000000000).toString(),
-              0,
-              account.address,
-            ],
-          },
-        ]);
+        const result = await account.execute(calls);
         settransactionStarted(false)
         // alert(result);
       }
@@ -186,6 +170,29 @@ const SwapInterface = ({argentTMA }: {account:AccountInterface,argentTMA:any}) =
   //     console.log(error,'err')
   //   }
   // },[])
+
+  useEffect(()=>{
+    try {
+      const fetchValue=async()=>{
+        const res=await fetchQuote(BigInt(100000000000000),TOKEN_SYMBOL.ETH,TOKEN_SYMBOL.USDT)
+        if(res){
+          const res2=getMinAmountOut(Number(res?.total),1)
+          if(res2){
+            console.log(res,res2,'pre')
+            const res3= getSwapCalls('0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7','0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8',BigInt(100000000000000),1,res)
+            if(res3){
+              setcalls(res3)
+            }
+            console.log(res2,res,res3,'values')
+          }
+        }
+        console.log(res,'quote')
+      }
+      fetchValue() 
+    } catch (error) {
+      console.log(error,'err')
+    }
+  },[])
 
   useEffect(() => {
     if (typeof window !== 'undefined' && router.query.token) {
