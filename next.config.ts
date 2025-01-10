@@ -6,16 +6,12 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
-    // Add fallbacks for node: protocol modules
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      url: require.resolve('url/'),
-      stream: require.resolve('stream-browserify'),
-      http: require.resolve('stream-http'),
-      https: require.resolve('https-browserify'),
-      crypto: require.resolve('crypto-browserify'),
-    };
-
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        url: false  // Use browser's native URL API instead
+      };
+    }
     return config;
   },
 };

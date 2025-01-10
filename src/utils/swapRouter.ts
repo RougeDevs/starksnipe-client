@@ -2,13 +2,13 @@ import { Call, num } from "starknet";
 import 'dotenv/config';
 import { ekubo, getMinAmountOut } from './helper'
 import { Selector, TOKEN_SYMBOL } from './constants'
-import { EkuboConfig, NetworkType, EkuboQuoteApiResponse } from './types'
+import { EkuboConfig, NetworkType, EkuboQuoteApiResponse, EkuboTokenData } from './types'
 
-let ekuboConfig: EkuboConfig=ekubo('MAINNET');
+let ekuboConfig: EkuboConfig = ekubo('MAINNET');
 
 export async function fetchQuote(amount: bigint, token0: TOKEN_SYMBOL, token1: TOKEN_SYMBOL): Promise<EkuboQuoteApiResponse | null> {
     const quote = await fetch(
-        `${ekuboConfig.api}/${amount}/${token0}/${token1}`
+        `${ekuboConfig.api}/quote/${amount}/${token0}/${token1}`
     );
     if (!quote.ok) {
         return null;
@@ -16,7 +16,7 @@ export async function fetchQuote(amount: bigint, token0: TOKEN_SYMBOL, token1: T
     return (await quote.json()) as EkuboQuoteApiResponse;
 }
 
-export function getSwapCalls(token0: string, token1: string, amount: bigint, slippage: number, quote: EkuboQuoteApiResponse): Call[] {
+export function getSwapCalls(token0: string, token1: string, amount: bigint, slippage: bigint, quote: EkuboQuoteApiResponse): Call[] {
     const splits = quote.splits;
     if (splits.length === 0) {
         throw new Error("no splits found");
@@ -106,7 +106,7 @@ export function getSwapCalls(token0: string, token1: string, amount: bigint, sli
         )
     }
 
-    calls.push(ekuboConfig.router.populate(Selector.CLEAR_MINIMUM, [{ contract_address: token1 }, getMinAmountOut(Number(quote.total), slippage)]))
+    calls.push(ekuboConfig.router.populate(Selector.CLEAR_MINIMUM, [{ contract_address: token1 }, getMinAmountOut(BigInt(quote.total), slippage)]))
     calls.push(ekuboConfig.router.populate(Selector.CLEAR, [{ contract_address: token0 }]))
 
     return calls;
@@ -116,4 +116,14 @@ export function getSwapCalls(token0: string, token1: string, amount: bigint, sli
 if (require.main === module) {
     const network = process.argv.slice(2)[0] as NetworkType;
     ekuboConfig = ekubo(network);
+}
+
+export async function getAllTokens(): Promise<EkuboTokenData[] | null> {
+    const tokenData = await fetch(
+        `${ekuboConfig.api}/tokens`
+    );
+    if (!tokenData.ok) {
+        return null;
+    }
+    return (await tokenData.json()) as EkuboTokenData[];
 }

@@ -106,3 +106,27 @@ export interface EkuboConfig {
     api: string,
     router: Contract
 }
+
+export interface AvnuConfig {
+    network: NetworkType,
+    api: string
+}
+
+export interface EkuboTokenData {
+    name: string,
+    symbol: string,
+    decimals: number,
+    l2_token_address: string,
+    sort_order: number,
+    total_supply: number,
+    hidden: boolean,
+    disabled: boolean,
+    logo_url: string
+}
+
+export interface AvnuTokenBalance {
+    userAddress: string,
+    tokenAddress: string,
+    balance: number,
+    balanceInUsd: number
+}

@@ -31,7 +31,7 @@ import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
 import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
 import { useAccount } from "@starknet-react/core";
-import { fetchQuote, getSwapCalls } from "@/utils/swapRouter";
+import { fetchQuote, getAllTokens, getSwapCalls } from "@/utils/swapRouter";
 import { TOKEN_SYMBOL } from "@/utils/constants";
 import { getMinAmountOut } from "@/utils/helper";
 import axios from 'axios'
@@ -44,6 +44,7 @@ import {
 } from "@avnu/gasless-sdk";
 import { provider } from "@/utils/services/provider";
 import { etherToWeiBN, parseAmount, processAddress } from "@/Blockchain/utils/utils";
+import { fetchUserBalances } from "@/utils/avnu";
 const SwapInterface = ({
   argentTMA,
 }: {
@@ -207,6 +208,25 @@ const SwapInterface = ({
     }
   },[prices,currentSelectedBuyToken,currentSelectedSellToken])
 
+  useEffect(()=>{
+    if(account){
+      try {
+        const fetchData=async()=>{
+          const res=await getAllTokens()
+          if(res){
+            // const res2=await fetchUserBalances(account.address,res)
+            // console.log(res2,'value for res2')
+          }
+          console.log(res,'values for all')
+        }
+        fetchData()
+        
+      } catch (error) {
+        console.log(error,'err in fetching user balances')
+      }
+    }
+  },[account])
+
   // useEffect(()=>{
   //   try {
   //     const fetchData=async()=>{
@@ -256,7 +276,7 @@ const SwapInterface = ({
             parseAmount(String(res?.total), currentSelectedBuyToken.decimals)
           );
           console.log(res?.total,'value')
-          const res2 = getMinAmountOut(Number(res?.total), 1);
+          const res2 = getMinAmountOut(BigInt(res?.total), BigInt(1));
           if (res2) {
             setminReceived(
               parseAmount(String(res2), currentSelectedBuyToken.decimals)
@@ -270,7 +290,7 @@ const SwapInterface = ({
                   currentSelectedSellToken.decimals
                 )
               ),
-              1,
+              BigInt(1),
               res
             );
             if (res3) {
