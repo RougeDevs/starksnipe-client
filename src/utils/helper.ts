@@ -1,6 +1,6 @@
 import { Percent } from '@uniswap/sdk-core'
 import { PERCENTAGE_INPUT_PRECISION, EKUBO } from './constants'
-import { AccountConfig, NetworkType, EkuboConfig } from './types'
+import { AccountConfig, NetworkType, EkuboConfig, EkuboTokenData } from './types'
 import 'dotenv/config'
 import { provider } from './services/provider'
 import RouterABI from "./abi/Router.json";
@@ -28,7 +28,7 @@ export const getInitialPrice = (startingTick: number) => EKUBO.EKUBO_TICK_SIZE *
 export const getStartingTick = (initialPrice: number) =>
   Math.floor(Math.log(initialPrice) / EKUBO.EKUBO_TICK_SIZE_LOG / EKUBO.EKUBO_TICK_SPACING) * EKUBO.EKUBO_TICK_SPACING
 
-export const getMinAmountOut = (expectedAmountOut: number, slippage: number) => Math.floor(expectedAmountOut - (expectedAmountOut * slippage) / 100)
+export const getMinAmountOut = (expectedAmountOut: bigint, slippage: bigint) => Math.floor(Number(expectedAmountOut - (expectedAmountOut * slippage) / BigInt(100)))
 
 export const account = (network: NetworkType = 'SEPOLIA') => {
   switch (network) {
@@ -54,7 +54,7 @@ export const ekubo = (network: NetworkType = 'SEPOLIA') => {
   switch (network) {
     case 'MAINNET': return ({
       network: network,
-      api: process.env.NEXT_PUBLIC_MAINNET_EKUBO_QUOTE_API,
+      api: process.env.NEXT_PUBLIC_MAINNET_EKUBO_API,
       router: new Contract(RouterABI, process.env.NEXT_PUBLIC_MAINNET_EKUBO_ROUTER_ADDRESS as string, account(network).provider),
     }) as EkuboConfig
     case 'SEPOLIA': return ({
@@ -64,4 +64,53 @@ export const ekubo = (network: NetworkType = 'SEPOLIA') => {
     }) as EkuboConfig
     default: process.exit(1)
   }
+}
+
+export const avnu = (network: NetworkType = 'SEPOLIA') => {
+  switch (network) {
+    case 'MAINNET': return ({
+      network: network,
+      api: process.env.NEXT_PUBLIC_MAINNET_AVNU_API
+    }) as EkuboConfig
+    case 'SEPOLIA': return ({
+      network: network,
+      api: process.env.NEXT_PUBLIC_SEPOLIA_AVNU_API
+    }) as EkuboConfig
+    default: process.exit(1)
+  }
+}
+
+function isKeyOfEkuboTokenData(key: string): key is keyof EkuboTokenData {
+  const validKeys: Array<keyof EkuboTokenData> = [
+    'name',
+    'symbol',
+    'decimals',
+    'l2_token_address',
+    'sort_order',
+    'total_supply',
+    'hidden',
+    'disabled',
+    'logo_url'
+  ];
+  return validKeys.includes(key as keyof EkuboTokenData);
+}
+
+export function filterEkuboTokens(tokens: EkuboTokenData[], filters: Partial<EkuboTokenData>): EkuboTokenData[] {
+  return tokens.filter(token => {
+    return Object.entries(filters).every(([key, value]) => {
+      if (!isKeyOfEkuboTokenData(key)) {
+        return true;
+      }
+
+      if (value === undefined || value === null) {
+        return true;
+      }
+
+      if (typeof value === 'string' && typeof token[key] === 'string') {
+        return token[key].toLowerCase().includes(value.toLowerCase());
+      }
+
+      return token[key] === value;
+    });
+  });
 }

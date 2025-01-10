@@ -31,7 +31,7 @@ import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
 import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
 import { useAccount } from "@starknet-react/core";
-import { fetchQuote, getSwapCalls } from "@/utils/swapRouter";
+import { fetchQuote, getSwapCalls } from "@/utils/ekubo";
 import { TOKEN_SYMBOL } from "@/utils/constants";
 import { getMinAmountOut } from "@/utils/helper";
 import {
