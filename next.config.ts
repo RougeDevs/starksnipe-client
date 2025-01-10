@@ -5,15 +5,25 @@ const nextConfig: NextConfig = {
     domains: ['imagedelivery.net', 'token-icons.s3.amazonaws.com'],
   },
   reactStrictMode: true,
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        url: false  // Use browser's native URL API instead
-      };
-    }
+  webpack: (config, { webpack }) => {
+    config.experiments = { ...config.experiments, topLevelAwait: true };
+    config.externals["node:url"] = "commonjs node:url";
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+  };
+    config.plugins.push(
+
+      new webpack.NormalModuleReplacementPlugin(
+        /^node:/,
+        (resource:any) => {
+          resource.request = resource.request.replace(/^node:/, '');
+        },
+      ),
+    );
+
     return config;
-  },
+ }
 };
 
 export default nextConfig;
