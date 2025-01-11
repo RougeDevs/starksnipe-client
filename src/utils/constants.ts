@@ -2,6 +2,7 @@ import { getChecksumAddress } from 'starknet'
 
 export const MULTICALL_AGGREGATOR_ADDRESS = "0x01a33330996310a1e3fa1df5b16c1e07f0491fdd20c441126e02613b948f0225";
 export const MEMECOIN_FACTORY_ADDRESS = "0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc";
+export const USER_BALANCE_CONTRACT_ADDRESS = "0x031ce64a666fbf9a2b1b2ca51c2af60d9a76d3b85e5fbfb9d5a8dbd3fedc9716";
 export const PERCENTAGE_INPUT_PRECISION = 2;
 export const DECIMALS = 18
 export const LIQUIDITY_LOCK_FOREVER_TIMESTAMP = 9999999999 // 20/11/2286
@@ -94,5 +95,6 @@ export enum Selector {
     CLEAR_MINIMUM = 'clear_minimum',
     CLEAR = 'clear',
     MULTIHOP_SWAP = 'multihop_swap',
-    MULTI_MULTIHOP_SWAP = 'multi_multihop_swap'
+    MULTI_MULTIHOP_SWAP = 'multi_multihop_swap',
+    GET_BALANCES = 'get_balances',
 }

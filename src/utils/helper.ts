@@ -1,14 +1,18 @@
 import { Percent } from '@uniswap/sdk-core'
 import { PERCENTAGE_INPUT_PRECISION, EKUBO } from './constants'
-import { AccountConfig, NetworkType, EkuboConfig, EkuboTokenData } from './types'
+import { AccountConfig, NetworkType, EkuboConfig, EkuboTokenData, UserTokenData } from './types'
 import 'dotenv/config'
 import { provider } from './services/provider'
 import RouterABI from "./abi/Router.json";
-import { Contract } from 'starknet';
+import { Contract, num } from 'starknet';
 
 export function isValidStarknetAddress(address: string): boolean {
   const regex = /^0x[0-9a-fA-F]{50,64}$/
   return regex.test(address)
+}
+
+export function processAddress(address: string) {
+  return num.toHex(num.toBigInt(address));
 }
 
 export const decimalsScale = (decimals: number) => `1${Array(decimals).fill('0').join('')}`
@@ -28,7 +32,7 @@ export const getInitialPrice = (startingTick: number) => EKUBO.EKUBO_TICK_SIZE *
 export const getStartingTick = (initialPrice: number) =>
   Math.floor(Math.log(initialPrice) / EKUBO.EKUBO_TICK_SIZE_LOG / EKUBO.EKUBO_TICK_SPACING) * EKUBO.EKUBO_TICK_SPACING
 
-export const getMinAmountOut = (expectedAmountOut: bigint, slippage: bigint) => Math.floor(Number(expectedAmountOut - (expectedAmountOut * slippage) / BigInt(100)))
+export const getMinAmountOut = (expectedAmountOut: bigint, slippage: bigint): bigint => (expectedAmountOut - (expectedAmountOut * slippage) / BigInt(100))
 
 export const account = (network: NetworkType = 'SEPOLIA') => {
   switch (network) {
@@ -113,4 +117,34 @@ export function filterEkuboTokens(tokens: EkuboTokenData[], filters: Partial<Eku
       return token[key] === value;
     });
   });
+}
+
+export function parseUserTokenData(rawResult: string[], tokenMap: Map<string, EkuboTokenData>): UserTokenData {
+  const total = Number(rawResult[0]);
+  const balances = [];
+
+  for (let i = 1; i < rawResult.length - 2; i += 3) {
+    const address = processAddress(rawResult[i]);
+    const low = rawResult[i + 1].slice(2).padStart(16, '0');
+    const high = rawResult[i + 2].slice(2).padStart(16, '0');
+    const balance = BigInt('0x' + high + low);
+    const tokenInfo = tokenMap.get(address);
+
+    if (tokenInfo) {
+      balances.push({
+        address,
+        balance,
+        name: tokenInfo.name,
+        symbol: tokenInfo.symbol,
+        decimals: tokenInfo.decimals
+      });
+    } else {
+      console.warn(`Token info not found for address: ${address}`);
+    }
+  }
+
+  return {
+    total,
+    tokens: balances
+  } as UserTokenData;
 }

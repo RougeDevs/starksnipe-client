@@ -124,9 +124,13 @@ export interface EkuboTokenData {
     logo_url: string
 }
 
-export interface AvnuTokenBalance {
-    userAddress: string,
-    tokenAddress: string,
-    balance: number,
-    balanceInUsd: number
+export interface UserTokenData {
+    total: number,
+    tokens: {
+        address: string,
+        balance: bigint,
+        name: string,
+        symbol: string,
+        decimals: number
+    }[]
 }
