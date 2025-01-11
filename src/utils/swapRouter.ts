@@ -29,7 +29,7 @@ export function getSwapCalls(token0: string, token1: string, amount: bigint, sli
     })
 
     if (splits.length === 1) {
-        if (quote.splits[0].route.length === 1) {
+        if (splits[0].route.length === 1) {
             throw new Error("unexpected single hop route")
         }
         const split = splits[0];

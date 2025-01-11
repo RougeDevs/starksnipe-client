@@ -24,6 +24,7 @@ import {
   Contract,
   TransactionType,
 } from "starknet";
+import SplashCursor from "../layouts/SplashCursor";
 import InfoIcon from "@/assets/InfoIcon";
 import { getBalance } from "@/Blockchain/scripts/swapinteraction";
 import numberFormatter from "@/functions/numberFormatter";
@@ -33,8 +34,8 @@ import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
 import { useAccount } from "@starknet-react/core";
 import { fetchQuote, getAllTokens, getSwapCalls } from "@/utils/swapRouter";
 import { TOKEN_SYMBOL } from "@/utils/constants";
-import { getMinAmountOut } from "@/utils/helper";
-import axios from 'axios'
+import { getMinAmountOut, getParsedTokenData } from "@/utils/helper";
+import axios from "axios";
 import {
   executeCalls,
   fetchAccountCompatibility,
@@ -43,8 +44,12 @@ import {
   fetchGasTokenPrices,
 } from "@avnu/gasless-sdk";
 import { provider } from "@/utils/services/provider";
-import { etherToWeiBN, parseAmount, processAddress } from "@/Blockchain/utils/utils";
-import { fetchUserBalances } from "@/utils/avnu";
+import {
+  etherToWeiBN,
+  parseAmount,
+  processAddress,
+} from "@/Blockchain/utils/utils";
+import { EkuboTokenData } from "@/utils/types";
 const SwapInterface = ({
   argentTMA,
 }: {
@@ -66,16 +71,16 @@ const SwapInterface = ({
   const [buyTokenBalance, setbuyTokenBalance] = useState<number>(0);
   const [sellTokenBalance, setsellTokenBalance] = useState<number>(0);
   const [currentBuyAmount, setcurrentBuyAmount] = useState<number>(0);
-  const [buyvalueChanged, setbuyvalueChanged] = useState<boolean>(false)
-  const [sellvalueChanged, setsellvalueChanged] = useState<boolean>(false)
+  const [buyvalueChanged, setbuyvalueChanged] = useState<boolean>(false);
+  const [sellvalueChanged, setsellvalueChanged] = useState<boolean>(false);
   const [currentSellAmount, setcurrentSellAmount] = useState<number>(0);
   const router = useRouter();
   const [firstReceivedToken, setfirstReceivedToken] = useState("");
   const { address, connector, account } = useAccount();
   const [calls, setcalls] = useState<any>();
-  const [prices, setprices] = useState<any>()
-  const [sellTokenPrice, setsellTokenPrice] = useState<number | null>(null)
-  const [buyTokenPrice, setbuyTokenPrice] = useState<number | null>(null)
+  const [prices, setprices] = useState<any>();
+  const [sellTokenPrice, setsellTokenPrice] = useState<number | null>(null);
+  const [buyTokenPrice, setbuyTokenPrice] = useState<number | null>(null);
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
     name: "ETH",
     l2_token_address:
@@ -88,11 +93,12 @@ const SwapInterface = ({
     level: "Medium",
     value: "32%",
   });
-  
+
   const [minReceived, setminReceived] = useState<any>(0);
   const [refereshData, setrefereshData] = useState<boolean>(false);
-  const [refreshBuyData, setrefreshBuyData] = useState<boolean>(false)
-  const [refereshSellData, setrefereshSellData] = useState<boolean>(false)
+  const [refreshBuyData, setrefreshBuyData] = useState<boolean>(false);
+  const [refereshSellData, setrefereshSellData] = useState<boolean>(false);
+  const [userTokens, setuserTokens] = useState<any>();
 
   const slippageOptions = [
     { level: "Zero", value: "0%" },
@@ -151,23 +157,42 @@ const SwapInterface = ({
   ]);
   const [searchTerm, setSearchTerm] = useState("");
 
-const filteredTokens = allTokens.filter((token: any) => {
-  // Exclude tokens with `hidden` set to true unless they match the search term
-  if (token.hidden) {
+  const filteredTokens = allTokens.filter((token: any) => {
+    // Exclude tokens with `hidden` set to true unless they match the search term
+    if (token.hidden) {
+      return (
+        searchTerm &&
+        (token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    // Include tokens that match the search term or show all if searchTerm is empty
     return (
-      searchTerm &&
-      (token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      !token.hidden &&
+      (searchTerm === "" ||
+        token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }
-  // Include tokens that match the search term or show all if searchTerm is empty
-  return (
-    !token.hidden &&
-    (searchTerm === "" ||
-      token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-});
+  });
+
+  const filteredUsertokens = userTokens?.filter((token: any) => {
+    // Exclude tokens with `hidden` set to true unless they match the search term
+    if (token.hidden) {
+      return (
+        searchTerm &&
+        (token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    // Include tokens that match the search term or show all if searchTerm is empty
+    return (
+      !token.hidden &&
+      (searchTerm === "" ||
+        token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  });
+
   const randomGradient = () => {
     const gradients = [
       "linear(to-br, teal.300, purple.500)",
@@ -207,54 +232,90 @@ const filteredTokens = allTokens.filter((token: any) => {
       // ],
     });
   };
-  const findTokenPrice = (address:string) => {
-    const token = prices.find((token: { tokenAddress: string; }) => processAddress(token.tokenAddress) === address);
+  const findTokenPrice = (address: string) => {
+    const token = prices.find(
+      (token: { tokenAddress: string }) =>
+        processAddress(token.tokenAddress) === address
+    );
     return token ? token.priceInUSD : null;
-};
-  useEffect(()=>{
+  };
+  useEffect(() => {
     try {
-      const fetchPrices=async()=>{
-        const res=await axios.get('https://starknet.api.avnu.fi/paymaster/v1/gas-token-prices')
-        if(res){
-          setprices(res.data)
+      const fetchPrices = async () => {
+        const res = await axios.get(
+          "https://starknet.api.avnu.fi/paymaster/v1/gas-token-prices"
+        );
+        if (res) {
+          setprices(res.data);
         }
-      }
-      fetchPrices()   
+      };
+      fetchPrices();
     } catch (error) {
-      console.log(error,'err')
+      console.log(error, "err");
     }
-  },[])
+  }, []);
 
-  useEffect(()=>{
-    if(prices){
-      if(currentSelectedSellToken.symbol!=="Select a token"){
-        const tokenPrice=findTokenPrice(processAddress(currentSelectedSellToken.l2_token_address))
-        setsellTokenPrice(tokenPrice)
+  useEffect(() => {
+    if (prices) {
+      if (currentSelectedSellToken.symbol !== "Select a token") {
+        const tokenPrice = findTokenPrice(
+          processAddress(currentSelectedSellToken.l2_token_address)
+        );
+        setsellTokenPrice(tokenPrice);
       }
-      if(currentSelectedBuyToken.symbol!=="Select a token"){
-        const tokenPrice=findTokenPrice(processAddress(currentSelectedBuyToken.l2_token_address))
-        setbuyTokenPrice(tokenPrice)
+      if (currentSelectedBuyToken.symbol !== "Select a token") {
+        const tokenPrice = findTokenPrice(
+          processAddress(currentSelectedBuyToken.l2_token_address)
+        );
+        setbuyTokenPrice(tokenPrice);
       }
     }
-  },[prices,currentSelectedBuyToken,currentSelectedSellToken])
+  }, [prices, currentSelectedBuyToken, currentSelectedSellToken]);
 
-  useEffect(()=>{
-      try {
-        const fetchData=async()=>{
-          const res=await getAllTokens()
-          if(res){
-            setallTokens(res)
-            // const res2=await fetchUserBalances(account.address,res)
-            // console.log(res2,'value for res2')
-          }
-          console.log(res,'values for all')
+  useEffect(() => {
+    try {
+      const fetchData = async () => {
+        const res = await getAllTokens();
+        if (res) {
+          setallTokens(res);
         }
-        fetchData()
-        
-      } catch (error) {
-        console.log(error,'err in fetching user balances')
+      };
+      fetchData();
+    } catch (error) {
+      console.log(error, "err in fetching user balances");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (account) {
+      const fetchData = async () => {
+        const res = await getParsedTokenData(
+          "MAINNET",
+          account.address,
+          allTokens as EkuboTokenData[]
+        );
+        if (res) {
+          setuserTokens(res?.userTokenData?.tokens);
+        }
+      };
+      fetchData();
+    }
+  }, [account]);
+
+  useEffect(() => {
+    try {
+      if (userTokens) {
+        userTokens.map((token: any) => {
+          console.log(
+            parseAmount(String(token.balance), token.decimals),
+            "balance"
+          );
+        });
       }
-  },[])
+    } catch (error) {
+      console.log(error, "err in fetch");
+    }
+  }, [userTokens]);
 
   // useEffect(()=>{
   //   try {
@@ -274,19 +335,23 @@ const filteredTokens = allTokens.filter((token: any) => {
 
   useEffect(() => {
     // setrefereshData(true);
-    if(currentSelectedSellToken.symbol!=="Select a token" && currentSellAmount>0){
+    if (
+      currentSelectedSellToken.symbol !== "Select a token" &&
+      currentSellAmount > 0
+    ) {
       // setrefereshSellData(true)
       // setrefreshBuyData(true)
     }
-  }, [
-    currentSelectedBuyToken,currentSelectedSellToken,buyvalueChanged
-  ]);
+  }, [currentSelectedBuyToken, currentSelectedSellToken, buyvalueChanged]);
 
-  useEffect(()=>{
-    if(currentSelectedBuyToken.symbol!=="Select a token" && currentSellAmount>0){
-      setrefreshBuyData(true)
+  useEffect(() => {
+    if (
+      currentSelectedBuyToken.symbol !== "Select a token" &&
+      currentSellAmount > 0
+    ) {
+      setrefreshBuyData(true);
     }
-  },[currentSelectedBuyToken,currentSelectedSellToken,sellvalueChanged])
+  }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged]);
 
   useEffect(() => {
     let intervalId: any;
@@ -328,8 +393,8 @@ const filteredTokens = allTokens.filter((token: any) => {
           }
         }
         setrefereshData(false);
-        setrefereshSellData(false)
-        setrefreshBuyData(false)
+        setrefereshSellData(false);
+        setrefreshBuyData(false);
       } catch (error) {
         console.log(error, "err");
       }
@@ -391,7 +456,7 @@ const filteredTokens = allTokens.filter((token: any) => {
           account?.address as any,
           currentSelectedBuyToken.l2_token_address
         );
-          setbuyTokenBalance(res as number);
+        setbuyTokenBalance(res as number);
       };
       if (account && currentSelectedBuyToken.l2_token_address) {
         fetchBalance();
@@ -414,6 +479,7 @@ const filteredTokens = allTokens.filter((token: any) => {
         borderRadius="6px"
         width={{ sm: "80%", md: "30%" }}
       >
+        {/* <SplashCursor/> */}
         <Text color="#D1D5DB">Swap</Text>
         <Box
           display="flex"
@@ -442,34 +508,34 @@ const filteredTokens = allTokens.filter((token: any) => {
               alignItems="center"
             >
               <Box>
-                {refereshSellData?<Skeleton
-                              width="10rem"
-                          height="2rem"
-                          borderRadius="6px"
-                        />:<Input
-                  border="0px"
-                  width="100%"
-                  pl="0.4rem"
-                  placeholder="0"
-                  _focus={{
-                    outline: "0",
-                    border: "0px",
-                    boxShadow: "none",
-                  }}
-                  value={currentSellAmount ? currentSellAmount : ""}
-                  onChange={(e) => {
-                    setsellvalueChanged(!sellvalueChanged)
-                    setcurrentSellAmount(Number(e.target.value));
-                  }}
-                  type="number"
-                  css={{
-                    "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
-                      {
-                        "-webkit-appearance": "none",
-                        margin: 0,
-                      },
-                  }}
-                />}
+                {refereshSellData ? (
+                  <Skeleton width="10rem" height="2rem" borderRadius="6px" />
+                ) : (
+                  <Input
+                    border="0px"
+                    width="100%"
+                    pl="0.4rem"
+                    placeholder="0"
+                    _focus={{
+                      outline: "0",
+                      border: "0px",
+                      boxShadow: "none",
+                    }}
+                    value={currentSellAmount ? currentSellAmount : ""}
+                    onChange={(e) => {
+                      setsellvalueChanged(!sellvalueChanged);
+                      setcurrentSellAmount(Number(e.target.value));
+                    }}
+                    type="number"
+                    css={{
+                      "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
+                        {
+                          "-webkit-appearance": "none",
+                          margin: 0,
+                        },
+                    }}
+                  />
+                )}
               </Box>
               <Box
                 bg="#374151"
@@ -492,18 +558,20 @@ const filteredTokens = allTokens.filter((token: any) => {
                     height={20}
                     width={20}
                   />
-                ):<Box
-                borderRadius="full"
-                boxSize="35px"
-                bg="gray.600"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <Text color="white" fontSize="2xl" fontWeight="bold">
-                  ?
-                </Text>
-              </Box>}
+                ) : (
+                  <Box
+                    borderRadius="full"
+                    boxSize="35px"
+                    bg="gray.600"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Text color="white" fontSize="2xl" fontWeight="bold">
+                      ?
+                    </Text>
+                  </Box>
+                )}
                 <Text>{currentSelectedSellToken.symbol}</Text>
                 <Box>
                   <DropdownUp />
@@ -511,7 +579,11 @@ const filteredTokens = allTokens.filter((token: any) => {
               </Box>
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
-              {<Text color="#9CA3AF">${sellTokenPrice? sellTokenPrice*currentSellAmount:0}</Text>}
+              {
+                <Text color="#9CA3AF">
+                  ${sellTokenPrice ? sellTokenPrice * currentSellAmount : 0}
+                </Text>
+              }
               <Box display="flex" gap="0.4rem">
                 <Text color="#9CA3AF">
                   balance: {numberFormatter(sellTokenBalance)}
@@ -520,7 +592,7 @@ const filteredTokens = allTokens.filter((token: any) => {
                   cursor="pointer"
                   color="#4F46E5"
                   onClick={() => {
-                    setsellvalueChanged(!sellvalueChanged)
+                    setsellvalueChanged(!sellvalueChanged);
                     setcurrentSellAmount(sellTokenBalance);
                   }}
                 >
@@ -542,8 +614,8 @@ const filteredTokens = allTokens.filter((token: any) => {
                 setcurrentSelectedBuyToken(currentSelectedSellToken);
                 setcurrentBuyAmount(currentSellAmount);
                 setcurrentSellAmount(currentBuyAmount);
-                setsellTokenBalance(buyTokenBalance)
-                setbuyTokenBalance(sellTokenBalance)
+                setsellTokenBalance(buyTokenBalance);
+                setbuyTokenBalance(sellTokenBalance);
               }}
             >
               <Image
@@ -569,35 +641,35 @@ const filteredTokens = allTokens.filter((token: any) => {
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
               <Box>
-                {refreshBuyData?                        <Skeleton
-                              width="10rem"
-                          height="2rem"
-                          borderRadius="6px"
-                        />:<Input
-                  border="0px"
-                  width="100%"
-                  cursor="pointer"
-                  pl="0.4rem"
-                  _focus={{
-                    outline: "0",
-                    border: "0px",
-                    boxShadow: "none",
-                  }}
-                  value={currentBuyAmount ? currentBuyAmount : ""}
-                  onChange={(e) => {
-                    setbuyvalueChanged(!buyvalueChanged)
-                    setcurrentBuyAmount(Number(e.target.value));
-                  }}
-                  placeholder="0"
-                  type="number"
-                  css={{
-                    "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
-                      {
-                        "-webkit-appearance": "none",
-                        margin: 0,
-                      },
-                  }}
-                />}
+                {refreshBuyData ? (
+                  <Skeleton width="10rem" height="2rem" borderRadius="6px" />
+                ) : (
+                  <Input
+                    border="0px"
+                    width="100%"
+                    cursor="pointer"
+                    pl="0.4rem"
+                    _focus={{
+                      outline: "0",
+                      border: "0px",
+                      boxShadow: "none",
+                    }}
+                    value={currentBuyAmount ? currentBuyAmount : ""}
+                    onChange={(e) => {
+                      setbuyvalueChanged(!buyvalueChanged);
+                      setcurrentBuyAmount(Number(e.target.value));
+                    }}
+                    placeholder="0"
+                    type="number"
+                    css={{
+                      "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
+                        {
+                          "-webkit-appearance": "none",
+                          margin: 0,
+                        },
+                    }}
+                  />
+                )}
               </Box>
               <Box
                 bg="#374151"
@@ -620,18 +692,20 @@ const filteredTokens = allTokens.filter((token: any) => {
                     height={20}
                     width={20}
                   />
-                ):<Box
-                borderRadius="full"
-                boxSize="35px"
-                bg="gray.600"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <Text color="white" fontSize="2xl" fontWeight="bold">
-                  ?
-                </Text>
-              </Box>}
+                ) : (
+                  <Box
+                    borderRadius="full"
+                    boxSize="35px"
+                    bg="gray.600"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Text color="white" fontSize="2xl" fontWeight="bold">
+                      ?
+                    </Text>
+                  </Box>
+                )}
                 <Text whiteSpace="nowrap">
                   {currentSelectedBuyToken.symbol}
                 </Text>
@@ -641,7 +715,9 @@ const filteredTokens = allTokens.filter((token: any) => {
               </Box>
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
-              <Text color="#9CA3AF">${buyTokenPrice? buyTokenPrice*currentBuyAmount:0}</Text>
+              <Text color="#9CA3AF">
+                ${buyTokenPrice ? buyTokenPrice * currentBuyAmount : 0}
+              </Text>
               <Box display="flex" gap="0.4rem">
                 <Text color="#9CA3AF">
                   balance: {numberFormatter(buyTokenBalance)}
@@ -695,7 +771,7 @@ const filteredTokens = allTokens.filter((token: any) => {
                         <InfoIcon />
                       </Box>
                       <Box display="flex" alignItems="center" gap="0.4rem">
-                        {(refereshSellData || refreshBuyData) ? (
+                        {refereshSellData || refreshBuyData ? (
                           <Skeleton
                             width="2.3rem"
                             height=".85rem"
@@ -703,7 +779,8 @@ const filteredTokens = allTokens.filter((token: any) => {
                           />
                         ) : (
                           <Text color="#9CA3AF">
-                            {minReceived} {currentSelectedBuyToken.symbol}
+                            {minReceived.toFixed(2)}{" "}
+                            {currentSelectedBuyToken.symbol}
                           </Text>
                         )}
                       </Box>
@@ -813,7 +890,9 @@ R
               currentSelectedBuyToken.symbol === "Select a token" ||
               currentSelectedSellToken.symbol === "Select a token" ||
               transactionStarted ||
-              refereshSellData || refreshBuyData || currentSellAmount>sellTokenBalance
+              refereshSellData ||
+              refreshBuyData ||
+              currentSellAmount > sellTokenBalance
             }
             onClick={() => {
               settransactionStarted(true);
@@ -838,14 +917,15 @@ R
               : transactionStarted
               ? "Swapping"
               : account
-              ?               currentSellAmount>sellTokenBalance ?
-              `Insufficient ${currentSelectedSellToken.symbol} Balance`:"Swap"
+              ? currentSellAmount > sellTokenBalance
+                ? `Insufficient ${currentSelectedSellToken.symbol} Balance`
+                : "Swap"
               : "Connect Wallet"}
           </Button>
         </Box>
         {sellDropdownSelected && (
           <Box
-          width={{ base: "70vw", md: "50vw", lg: "30vw" }}
+            width={{ base: "70vw", md: "50vw", lg: "30vw" }}
             // overflow="auto"
             height="500px"
             mt="9rem"
@@ -873,7 +953,7 @@ R
                 cursor="pointer"
                 onClick={() => {
                   setsellDropdownSelected(false);
-                  setSearchTerm("")
+                  setSearchTerm("");
                 }}
               >
                 <Image
@@ -896,10 +976,10 @@ R
               />
             </Box>
             <Box overflow="auto">
-              <Text mt="0.5rem" mb="1rem">
-                Popular Tokens
-              </Text>
-              {filteredTokens.map((token: any, index: number) => (
+              {filteredUsertokens && filteredUsertokens?.length>0 &&<Text mt="0.5rem" mb="1rem">
+                Your Tokens
+              </Text>}
+              {filteredUsertokens?.map((token: any, index: number) => (
                 <Box
                   key={index}
                   display="flex"
@@ -914,40 +994,119 @@ R
                     borderRadius="8px"
                     cursor="pointer"
                     alignItems="center"
+                    justifyContent="space-between"
                     onClick={() => {
                       setsellDropdownSelected(false);
                       setSellToken(token);
                       setcurrentSelectedSellToken(token);
                     }}
                   >
-                    <Box>
-                      {token.logo_url ?<Image
-                        src={token.logo_url}
-                        alt="trial"
-                        height={35}
-                        width={35}
-                      />:<Box
-                      borderRadius="full"
-                      boxSize="35px"
-                      bg="gray.600"
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      <Text color="white" fontSize="2xl" fontWeight="bold">
-                        ?
-                      </Text>
-                    </Box>}
+                    <Box display="flex" gap="0.8rem" alignItems="center">
+                      <Box>
+                        {token.logo_url ? (
+                          <Image
+                            src={token.logo_url}
+                            alt="trial"
+                            height={35}
+                            width={35}
+                          />
+                        ) : (
+                          <Box
+                            borderRadius="full"
+                            boxSize="35px"
+                            bg="gray.600"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <Text color="white" fontSize="2xl" fontWeight="bold">
+                              ?
+                            </Text>
+                          </Box>
+                        )}
+                      </Box>
+                      <Box>
+                        <Text fontSize="18px">{token.name}</Text>
+                        <Text fontSize="14px" color="grey">
+                          {token.symbol}
+                        </Text>
+                      </Box>
                     </Box>
-                    <Box>
-                      <Text fontSize="18px">{token.name}</Text>
-                      <Text fontSize="14px" color="grey">
-                        {token.symbol}
-                      </Text>
+                    <Box color="grey">
+                      {parseAmount(String(token.balance), token.decimals)}
                     </Box>
                   </Box>
                 </Box>
               ))}
+              <Text mt="0.5rem" mb="1rem">
+                Popular Tokens
+              </Text>
+              {filteredTokens
+                .filter(
+                  (token: any) =>
+                    !userTokens?.some(
+                      (userToken: any) =>
+                        userToken?.address ===
+                        processAddress(token?.l2_token_address)
+                    )
+                )
+                .map((token: any, index: number) => (
+                  <Box
+                    key={index}
+                    display="flex"
+                    flexDirection="column"
+                    mb="0.5rem"
+                  >
+                    <Box
+                      display="flex"
+                      gap="0.8rem"
+                      _hover={{ bg: "gray.800" }}
+                      padding="0.5rem"
+                      borderRadius="8px"
+                      cursor="pointer"
+                      alignItems="center"
+                      onClick={() => {
+                        setsellDropdownSelected(false);
+                        setSellToken(token);
+                        setcurrentSelectedSellToken(token);
+                      }}
+                    >
+                      <Box>
+                        {token.logo_url ? (
+                          <Image
+                            src={token.logo_url}
+                            alt="trial"
+                            height={35}
+                            width={35}
+                          />
+                        ) : (
+                          <Box
+                            borderRadius="full"
+                            boxSize="35px"
+                            bg="gray.600"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <Text
+                              color="white"
+                              fontSize="2xl"
+                              fontWeight="bold"
+                            >
+                              ?
+                            </Text>
+                          </Box>
+                        )}
+                      </Box>
+                      <Box>
+                        <Text fontSize="18px">{token.name}</Text>
+                        <Text fontSize="14px" color="grey">
+                          {token.symbol}
+                        </Text>
+                      </Box>
+                    </Box>
+                  </Box>
+                ))}
             </Box>
           </Box>
         )}
@@ -981,7 +1140,7 @@ R
                 cursor="pointer"
                 onClick={() => {
                   setbuyDropdownSelected(false);
-                  setSearchTerm("")
+                  setSearchTerm("");
                 }}
               >
                 <Image
@@ -1004,6 +1163,68 @@ R
               />
             </Box>
             <Box overflow="auto">
+            {filteredUsertokens && filteredUsertokens?.length>0 &&<Text mt="0.5rem" mb="1rem">
+                Your Tokens
+              </Text>}
+              {filteredUsertokens?.map((token: any, index: number) => (
+                <Box
+                  key={index}
+                  display="flex"
+                  flexDirection="column"
+                  mb="0.5rem"
+                >
+                  <Box
+                    display="flex"
+                    gap="0.8rem"
+                    _hover={{ bg: "gray.800" }}
+                    padding="0.5rem"
+                    borderRadius="8px"
+                    cursor="pointer"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    onClick={() => {
+                      setsellDropdownSelected(false);
+                      setSellToken(token);
+                      setcurrentSelectedSellToken(token);
+                    }}
+                  >
+                    <Box display='flex' gap="0.8rem" alignItems="center">
+                      <Box>
+                        {token.logo_url ? (
+                          <Image
+                            src={token.logo_url}
+                            alt="trial"
+                            height={35}
+                            width={35}
+                          />
+                        ) : (
+                          <Box
+                            borderRadius="full"
+                            boxSize="35px"
+                            bg="gray.600"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <Text color="white" fontSize="2xl" fontWeight="bold">
+                              ?
+                            </Text>
+                          </Box>
+                        )}
+                      </Box>
+                      <Box>
+                        <Text fontSize="18px">{token.name}</Text>
+                        <Text fontSize="14px" color="grey">
+                          {token.symbol}
+                        </Text>
+                      </Box>
+                    </Box>
+                    <Box color="grey">
+                      {parseAmount(String(token.balance), token.decimals)}
+                    </Box>
+                  </Box>
+                </Box>
+              ))}
               <Text mt="0.5rem" mb="1rem">
                 Popular Tokens
               </Text>
@@ -1028,23 +1249,27 @@ R
                     }}
                   >
                     <Box>
-                      {token.logo_url ?<Image
-                        src={token.logo_url}
-                        alt="trial"
-                        height={35}
-                        width={35}
-                      />:                <Box
-                      borderRadius="full"
-                      boxSize="35px"
-                      bg="gray.600"
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      <Text color="white" fontSize="2xl" fontWeight="bold">
-                        ?
-                      </Text>
-                    </Box>}
+                      {token.logo_url ? (
+                        <Image
+                          src={token.logo_url}
+                          alt="trial"
+                          height={35}
+                          width={35}
+                        />
+                      ) : (
+                        <Box
+                          borderRadius="full"
+                          boxSize="35px"
+                          bg="gray.600"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <Text color="white" fontSize="2xl" fontWeight="bold">
+                            ?
+                          </Text>
+                        </Box>
+                      )}
                     </Box>
                     <Box>
                       <Text fontSize="18px">{token.name}</Text>
