@@ -304,7 +304,6 @@ const filteredTokens = allTokens.filter((token: any) => {
           setcurrentBuyAmount(
             parseAmount(String(res?.total), currentSelectedBuyToken.decimals)
           );
-          console.log(res?.total,'value')
           const res2 = getMinAmountOut(BigInt(res?.total), BigInt(1));
           if (res2) {
             setminReceived(
@@ -478,7 +477,7 @@ const filteredTokens = allTokens.filter((token: any) => {
                 padding="8px"
                 display="flex"
                 borderRadius="8px"
-                width={currentSelectedSellToken.logo_url ? "100px" : "140px"}
+                // width={currentSelectedSellToken.logo_url ? "100px" : "140px"}
                 gap="0.4rem"
                 alignItems="center"
                 onClick={() => {
@@ -606,7 +605,7 @@ const filteredTokens = allTokens.filter((token: any) => {
                 padding="8px"
                 display="flex"
                 borderRadius="8px"
-                width={currentSelectedBuyToken.logo_url === "" ? "140px" : "100px"}
+                // width={currentSelectedBuyToken.logo_url === "" ? "140px" : "100px"}
                 gap="0.4rem"
                 alignItems="center"
                 onClick={() => {
@@ -849,7 +848,7 @@ R
           width={{ base: "70vw", md: "50vw", lg: "30vw" }}
             // overflow="auto"
             height="500px"
-            mt="10rem"
+            mt="9rem"
             display="flex"
             padding="1rem"
             borderRadius="8px"
@@ -910,7 +909,7 @@ R
                   <Box
                     display="flex"
                     gap="0.8rem"
-                    _hover={{ bg: "grey" }}
+                    _hover={{ bg: "gray.800" }}
                     padding="0.5rem"
                     borderRadius="8px"
                     cursor="pointer"
@@ -957,7 +956,7 @@ R
             width={{ base: "70vw", md: "50vw", lg: "30vw" }}
             // overflow="auto"
             height="500px"
-            mt="10rem"
+            mt="9rem"
             display="flex"
             padding="1rem"
             borderRadius="8px"
@@ -1018,7 +1017,7 @@ R
                   <Box
                     display="flex"
                     gap="0.8rem"
-                    _hover={{ bg: "grey" }}
+                    _hover={{ bg: "gray.800" }}
                     padding="0.5rem"
                     borderRadius="8px"
                     cursor="pointer"
