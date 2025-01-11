@@ -131,6 +131,7 @@ export interface UserTokenData {
         balance: bigint,
         name: string,
         symbol: string,
-        decimals: number
+        decimals: number,
+        logo_url: string
     }[]
 }

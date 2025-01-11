@@ -11,8 +11,8 @@ export function isValidStarknetAddress(address: string): boolean {
   return regex.test(address)
 }
 
-export function processAddress(address: string) {
-  return num.toHex(num.toBigInt(address));
+export function processAddress(address: string): string {
+  return ('0x' + address.toLowerCase().replace('0x', '').padStart(64, '0'))
 }
 
 export const decimalsScale = (decimals: number) => `1${Array(decimals).fill('0').join('')}`
@@ -119,9 +119,10 @@ export function filterEkuboTokens(tokens: EkuboTokenData[], filters: Partial<Eku
   });
 }
 
-export function parseUserTokenData(rawResult: string[], tokenMap: Map<string, EkuboTokenData>): UserTokenData {
+export function parseTokenData(rawResult: string[], tokenMap: Map<string, EkuboTokenData>): { userTokenData: UserTokenData, remainingTokens: EkuboTokenData[] } {
   const total = Number(rawResult[0]);
   const balances = [];
+  const processedAddresses = new Set<string>();
 
   for (let i = 1; i < rawResult.length - 2; i += 3) {
     const address = processAddress(rawResult[i]);
@@ -136,15 +137,24 @@ export function parseUserTokenData(rawResult: string[], tokenMap: Map<string, Ek
         balance,
         name: tokenInfo.name,
         symbol: tokenInfo.symbol,
-        decimals: tokenInfo.decimals
+        decimals: tokenInfo.decimals,
+        logo_url: tokenInfo.logo_url
       });
+
+      processedAddresses.add(address);
     } else {
       console.warn(`Token info not found for address: ${address}`);
     }
   }
 
+  const remainingTokens = Array.from(tokenMap.values()).filter(
+    token => !processedAddresses.has(processAddress(token.l2_token_address))
+  );
   return {
-    total,
-    tokens: balances
-  } as UserTokenData;
+    userTokenData: {
+      total,
+      tokens: balances
+    } as UserTokenData,
+    remainingTokens: remainingTokens as EkuboTokenData[]
+  };
 }

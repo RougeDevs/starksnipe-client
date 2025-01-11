@@ -1,7 +1,7 @@
 import { Account, Call, CallData, hash } from "starknet";
 import { MULTICALL_AGGREGATOR_ADDRESS, USER_BALANCE_CONTRACT_ADDRESS } from "./constants";
 import { Selector } from "./constants";
-import { account, parseUserTokenData, processAddress } from './helper'
+import { account, parseTokenData, processAddress } from './helper'
 import { EkuboTokenData, NetworkType } from "./types";
 import { getAllTokens } from "./ekubo";
 
@@ -49,7 +49,7 @@ export async function multiCallExecute(network: NetworkType, calls: Call[]) {
   });
 }
 
-export async function getUserTokenBalances(network: NetworkType, userAddress: string, tokens: EkuboTokenData[]) {
+export async function getParsedTokenData(network: NetworkType, userAddress: string, tokens: EkuboTokenData[]) {
   const rawResult = await account(network).provider.callContract({
     contractAddress: USER_BALANCE_CONTRACT_ADDRESS,
     entrypoint: Selector.GET_BALANCES,
@@ -60,5 +60,5 @@ export async function getUserTokenBalances(network: NetworkType, userAddress: st
     tokens.map(token => [processAddress(token.l2_token_address), token])
   );
 
-  return parseUserTokenData(rawResult, tokenMap);
+  return parseTokenData(rawResult, tokenMap);
 }
