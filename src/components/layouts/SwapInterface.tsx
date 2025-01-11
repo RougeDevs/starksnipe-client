@@ -78,9 +78,9 @@ const SwapInterface = ({
   const [buyTokenPrice, setbuyTokenPrice] = useState<number | null>(null)
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
     name: "ETH",
-    address:
+    l2_token_address:
       "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    logo: "https://token-icons.s3.amazonaws.com/eth.png",
+    logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
     decimals: 18,
     symbol: "ETH",
   });
@@ -88,6 +88,7 @@ const SwapInterface = ({
     level: "Medium",
     value: "32%",
   });
+  
   const [minReceived, setminReceived] = useState<any>(0);
   const [refereshData, setrefereshData] = useState<boolean>(false);
   const [refreshBuyData, setrefreshBuyData] = useState<boolean>(false)
@@ -101,53 +102,82 @@ const SwapInterface = ({
   ];
   const [currentSelectedBuyToken, setcurrentSelectedBuyToken] = useState({
     name: "Select a token",
-    address: "",
-    logo: "",
+    l2_token_address: "",
+    logo_url: "",
     decimals: 18,
     symbol: "Select a token",
   });
   const [allTokens, setallTokens] = useState([
     {
       name: "ETH",
-      address:
+      l2_token_address:
         "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
       decimals: 18,
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
+      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
       symbol: "ETH",
     },
     {
       name: "USDT",
-      address:
+      l2_token_address:
         "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8",
       decimals: 6,
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
+      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
       symbol: "USDT",
     },
     {
       name: "USDC",
-      address:
+      l2_token_address:
         "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
       decimals: 6,
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
+      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
       symbol: "USDC",
     },
     {
       name: "WBTC",
-      address:
+      l2_token_address:
         "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
       decimals: 8,
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
+      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
       symbol: "WBTC",
     },
     {
       name: "STRK",
-      address:
+      l2_token_address:
         "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       decimals: 18,
-      logo: "https://token-icons.s3.amazonaws.com/eth.png",
+      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
       symbol: "STRK",
     },
   ]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+const filteredTokens = allTokens.filter((token: any) => {
+  // Exclude tokens with `hidden` set to true unless they match the search term
+  if (token.hidden) {
+    return (
+      searchTerm &&
+      (token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }
+  // Include tokens that match the search term or show all if searchTerm is empty
+  return (
+    !token.hidden &&
+    (searchTerm === "" ||
+      token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+});
+  const randomGradient = () => {
+    const gradients = [
+      "linear(to-br, teal.300, purple.500)",
+      "linear(to-br, pink.400, orange.400)",
+      "linear(to-br, blue.400, cyan.400)",
+      "linear(to-br, green.400, yellow.400)",
+      "linear(to-br, red.400, purple.400)",
+    ];
+    return gradients[Math.floor(Math.random() * gradients.length)];
+  };
   const handleTransaction = async () => {
     try {
       if (account) {
@@ -198,22 +228,22 @@ const SwapInterface = ({
   useEffect(()=>{
     if(prices){
       if(currentSelectedSellToken.symbol!=="Select a token"){
-        const tokenPrice=findTokenPrice(processAddress(currentSelectedSellToken.address))
+        const tokenPrice=findTokenPrice(processAddress(currentSelectedSellToken.l2_token_address))
         setsellTokenPrice(tokenPrice)
       }
       if(currentSelectedBuyToken.symbol!=="Select a token"){
-        const tokenPrice=findTokenPrice(processAddress(currentSelectedBuyToken.address))
+        const tokenPrice=findTokenPrice(processAddress(currentSelectedBuyToken.l2_token_address))
         setbuyTokenPrice(tokenPrice)
       }
     }
   },[prices,currentSelectedBuyToken,currentSelectedSellToken])
 
   useEffect(()=>{
-    if(account){
       try {
         const fetchData=async()=>{
           const res=await getAllTokens()
           if(res){
+            setallTokens(res)
             // const res2=await fetchUserBalances(account.address,res)
             // console.log(res2,'value for res2')
           }
@@ -224,8 +254,7 @@ const SwapInterface = ({
       } catch (error) {
         console.log(error,'err in fetching user balances')
       }
-    }
-  },[account])
+  },[])
 
   // useEffect(()=>{
   //   try {
@@ -246,7 +275,7 @@ const SwapInterface = ({
   useEffect(() => {
     // setrefereshData(true);
     if(currentSelectedSellToken.symbol!=="Select a token" && currentSellAmount>0){
-      setrefereshSellData(true)
+      // setrefereshSellData(true)
       // setrefreshBuyData(true)
     }
   }, [
@@ -282,8 +311,8 @@ const SwapInterface = ({
               parseAmount(String(res2), currentSelectedBuyToken.decimals)
             );
             const res3 = getSwapCalls(
-              currentSelectedSellToken.address,
-              currentSelectedBuyToken.address,
+              currentSelectedSellToken.l2_token_address,
+              currentSelectedBuyToken.l2_token_address,
               BigInt(
                 etherToWeiBN(
                   currentSellAmount,
@@ -346,11 +375,11 @@ const SwapInterface = ({
       const fetchBalance = async () => {
         const res = await getBalance(
           account?.address as any,
-          currentSelectedSellToken.address
+          currentSelectedSellToken.l2_token_address
         );
         setsellTokenBalance(res as number);
       };
-      if (account && currentSelectedSellToken.address) {
+      if (account && currentSelectedSellToken.l2_token_address) {
         fetchBalance();
       }
     }
@@ -361,11 +390,11 @@ const SwapInterface = ({
       const fetchBalance = async () => {
         const res = await getBalance(
           account?.address as any,
-          currentSelectedBuyToken.address
+          currentSelectedBuyToken.l2_token_address
         );
           setbuyTokenBalance(res as number);
       };
-      if (account && currentSelectedBuyToken.address) {
+      if (account && currentSelectedBuyToken.l2_token_address) {
         fetchBalance();
       }
     }
@@ -449,7 +478,7 @@ const SwapInterface = ({
                 padding="8px"
                 display="flex"
                 borderRadius="8px"
-                width={currentSelectedSellToken.logo ? "100px" : "140px"}
+                width={currentSelectedSellToken.logo_url ? "100px" : "140px"}
                 gap="0.4rem"
                 alignItems="center"
                 onClick={() => {
@@ -457,14 +486,25 @@ const SwapInterface = ({
                   setbuyDropdownSelected(false);
                 }}
               >
-                {currentSelectedSellToken.logo && (
+                {currentSelectedSellToken.logo_url ? (
                   <Image
-                    src={currentSelectedSellToken.logo}
+                    src={currentSelectedSellToken.logo_url}
                     alt="trial"
                     height={20}
                     width={20}
                   />
-                )}
+                ):<Box
+                borderRadius="full"
+                boxSize="35px"
+                bg="gray.600"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Text color="white" fontSize="2xl" fontWeight="bold">
+                  ?
+                </Text>
+              </Box>}
                 <Text>{currentSelectedSellToken.symbol}</Text>
                 <Box>
                   <DropdownUp />
@@ -566,7 +606,7 @@ const SwapInterface = ({
                 padding="8px"
                 display="flex"
                 borderRadius="8px"
-                width={currentSelectedBuyToken.logo === "" ? "140px" : "100px"}
+                width={currentSelectedBuyToken.logo_url === "" ? "140px" : "100px"}
                 gap="0.4rem"
                 alignItems="center"
                 onClick={() => {
@@ -574,14 +614,25 @@ const SwapInterface = ({
                   setbuyDropdownSelected(true);
                 }}
               >
-                {currentSelectedBuyToken?.logo && (
+                {currentSelectedBuyToken?.logo_url ? (
                   <Image
-                    src={currentSelectedBuyToken.logo}
+                    src={currentSelectedBuyToken.logo_url}
                     alt="trial"
                     height={20}
                     width={20}
                   />
-                )}
+                ):<Box
+                borderRadius="full"
+                boxSize="35px"
+                bg="gray.600"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Text color="white" fontSize="2xl" fontWeight="bold">
+                  ?
+                </Text>
+              </Box>}
                 <Text whiteSpace="nowrap">
                   {currentSelectedBuyToken.symbol}
                 </Text>
@@ -823,6 +874,7 @@ R
                 cursor="pointer"
                 onClick={() => {
                   setsellDropdownSelected(false);
+                  setSearchTerm("")
                 }}
               >
                 <Image
@@ -840,13 +892,15 @@ R
                 bg="#101010"
                 pl="0.4rem"
                 placeholder="Enter token name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </Box>
             <Box overflow="auto">
               <Text mt="0.5rem" mb="1rem">
                 Popular Tokens
               </Text>
-              {allTokens.map((token: any, index: number) => (
+              {filteredTokens.map((token: any, index: number) => (
                 <Box
                   key={index}
                   display="flex"
@@ -868,12 +922,23 @@ R
                     }}
                   >
                     <Box>
-                      <Image
-                        src={token.logo}
+                      {token.logo_url ?<Image
+                        src={token.logo_url}
                         alt="trial"
                         height={35}
                         width={35}
-                      />
+                      />:<Box
+                      borderRadius="full"
+                      boxSize="35px"
+                      bg="gray.600"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Text color="white" fontSize="2xl" fontWeight="bold">
+                        ?
+                      </Text>
+                    </Box>}
                     </Box>
                     <Box>
                       <Text fontSize="18px">{token.name}</Text>
@@ -917,6 +982,7 @@ R
                 cursor="pointer"
                 onClick={() => {
                   setbuyDropdownSelected(false);
+                  setSearchTerm("")
                 }}
               >
                 <Image
@@ -933,6 +999,8 @@ R
                 _selected={{ border: "1px solid blue" }}
                 bg="#101010"
                 pl="0.4rem"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Enter token name"
               />
             </Box>
@@ -940,7 +1008,7 @@ R
               <Text mt="0.5rem" mb="1rem">
                 Popular Tokens
               </Text>
-              {allTokens.map((token: any, index: number) => (
+              {filteredTokens.map((token: any, index: number) => (
                 <Box
                   key={index}
                   display="flex"
@@ -961,12 +1029,23 @@ R
                     }}
                   >
                     <Box>
-                      <Image
-                        src={token.logo}
+                      {token.logo_url ?<Image
+                        src={token.logo_url}
                         alt="trial"
                         height={35}
                         width={35}
-                      />
+                      />:                <Box
+                      borderRadius="full"
+                      boxSize="35px"
+                      bg="gray.600"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Text color="white" fontSize="2xl" fontWeight="bold">
+                        ?
+                      </Text>
+                    </Box>}
                     </Box>
                     <Box>
                       <Text fontSize="18px">{token.name}</Text>

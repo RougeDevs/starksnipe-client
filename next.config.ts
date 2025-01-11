@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    dangerouslyAllowSVG: true,
     domains: ['imagedelivery.net', 'token-icons.s3.amazonaws.com'],
   },
   reactStrictMode: true,
