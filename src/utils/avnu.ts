@@ -1,44 +1,77 @@
-// import { EkuboTokenData, AvnuTokenBalance, AvnuConfig, NetworkType } from "./types";
-// import { avnu } from './helper';
+import {
+    executeCalls,
+    fetchAccountCompatibility,
+    fetchAccountsRewards,
+    fetchGasTokenPrices,
+    GaslessOptions,
+    GasTokenPrice,
+    getGasFeesInGasToken,
+    PaymasterReward,
+    SEPOLIA_BASE_URL,
+    BASE_URL,
+} from '@avnu/gasless-sdk';
 
-// export let avnuConfig: AvnuConfig = avnu('MAINNET');
+import { AccountInterface, Call, EstimateFeeResponse, stark, transaction } from 'starknet';
+import { provider } from './services/provider';
+import { NetworkType } from './types';
 
-// export async function fetchUserBalances(
-//     userAddress: string,
-//     tokens: EkuboTokenData[]
-// ): Promise<AvnuTokenBalance[]> {
-//     const baseUrl = `${avnuConfig.api}/balances`;
-//     console.log(baseUrl,'baseurl')
-//     const tokenAddresses = tokens.map(token => token.l2_token_address);
+const estimateCalls =
+    async (network: NetworkType, account: AccountInterface, calls: Call[]): Promise<EstimateFeeResponse> => {
+        const contractVersion = await provider.getContractVersion(account.address);
+        const nonce = await provider.getNonceForAddress(account.address);
+        const details = stark.v3Details({ skipValidate: true });
+        const invocation = {
+            ...details,
+            contractAddress: account.address,
+            calldata: transaction.getExecuteCalldata(calls, contractVersion.cairo),
+            signature: [],
+        };
+        return provider.getInvokeEstimateFee(invocation, { ...details, nonce, version: 1 }, 'pending', true);
+    };
 
-//     const url = new URL(baseUrl);
-//     url.searchParams.append('userAddress', userAddress);
-//     tokenAddresses.forEach(address => {
-//         url.searchParams.append('tokenAddress', address);
-//     });
-//     console.log(url,'yurl')
+// CC: Frontend Use All of these functions inside useEffect {Use The gasless-sdk functions directly inside useeffect maintaining the states}
 
-//     try {
-//         const response = await fetch(url.toString());
-//         console.log(response,'recheck')
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! status: ${response.status}`);
-//         }
+export const options = (network: NetworkType): GaslessOptions => (network === 'MAINNET' ? { baseUrl: BASE_URL } : { baseUrl: SEPOLIA_BASE_URL });
 
-//         const data = await response.json();
+export async function getAccountData(network: NetworkType, account: AccountInterface) {
+    const compatibility = await fetchAccountCompatibility(account.address, options(network));
+    const account_rewards = await fetchAccountsRewards(account.address, { ...options(network), protocol: 'gasless-sdk' });
+    return { compatibility, account_rewards };
+}
 
-//         return data.map((item: { balance: string; }) => ({
-//             ...item,
-//             balance: parseInt(item.balance, 16)
-//         }));
+export async function getGasTokenPrices(network: NetworkType): Promise<GasTokenPrice[]> {
+    return fetchGasTokenPrices(options(network));
+}
 
-//     } catch (error) {
-//         console.error('Error fetching balances:', error);
-//         throw error;
-//     }
-// }
+export async function getPaymasterRewards(network: NetworkType, account: AccountInterface): Promise<PaymasterReward[]> {
+    const account_data = await getAccountData(network, account);
+    return account_data.account_rewards;
+}
 
-// if (require.main === module) {
-//     const network = process.argv.slice(2)[0] as NetworkType;
-//     avnuConfig = avnu(network);
-// }
+/// dev: This function returns the {gas token price, estimated gas fees and max gas fees} in gas token for the given calls
+export async function getEstimatedGasFees(network: NetworkType, account: AccountInterface, gas_token: string, calls: Call[]) {
+    const account_data = await getAccountData(network, account);
+    if (!account_data.compatibility.isCompatible) { throw new Error('Account not compatible with Paymaster'); }
+    const gas_token_price = await fetchGasTokenPrices(options(network)).then((prices) => prices.find((price) => price.tokenAddress === gas_token));
+    if (!gas_token_price) {
+        throw new Error(`Gas token ${gas_token} not found`);
+    }
+    const fees = await estimateCalls(network,account, calls);
+    const estimated_gas_fee = getGasFeesInGasToken(BigInt(fees.overall_fee), gas_token_price, BigInt(fees.gas_price!), BigInt(fees.data_gas_price ?? '0x1'), account_data.compatibility.gasConsumedOverhead, account_data.compatibility.dataGasConsumedOverhead);
+    return { gasTokenPrice: gas_token_price, estimatedFees: estimated_gas_fee, maxFees: estimated_gas_fee *  15n/10n };
+}
+
+// example Invocation
+
+export async function exampleExecuteCalls(network: NetworkType, account: AccountInterface, gas_token: string, calls: Call[]) {
+    const estimated_gas_fee = await getEstimatedGasFees(network, account, gas_token, calls);
+    return await executeCalls(
+        account,
+        calls,
+        {
+            gasTokenAddress: estimated_gas_fee.gasTokenPrice?.tokenAddress,
+            maxGasTokenAmount: estimated_gas_fee.maxFees,
+        },
+        options(network),
+    )
+}

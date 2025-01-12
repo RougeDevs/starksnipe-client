@@ -26,15 +26,15 @@ export function parseTokenData(rawResult: string[], tokenMap: Map<string, EkuboT
   const processedAddresses = new Set<string>();
 
   for (let i = 1; i < rawResult.length - 2; i += 3) {
-    const address = processAddress(rawResult[i]);
+    const l2_token_address = processAddress(rawResult[i]);
     const low = rawResult[i + 1].slice(2).padStart(16, '0');
     const high = rawResult[i + 2].slice(2).padStart(16, '0');
     const balance = BigInt('0x' + high + low);
-    const tokenInfo = tokenMap.get(address);
+    const tokenInfo = tokenMap.get(l2_token_address);
 
     if (tokenInfo) {
       balances.push({
-        address,
+        l2_token_address,
         balance,
         name: tokenInfo.name,
         symbol: tokenInfo.symbol,
@@ -42,9 +42,9 @@ export function parseTokenData(rawResult: string[], tokenMap: Map<string, EkuboT
         logo_url: tokenInfo.logo_url
       });
 
-      processedAddresses.add(address);
+      processedAddresses.add(l2_token_address);
     } else {
-      console.warn(`Token info not found for address: ${address}`);
+      console.warn(`Token info not found for address: ${l2_token_address}`);
     }
   }
 
@@ -84,7 +84,7 @@ export const getStartingTick = (initialPrice: number) =>
 
 export const getMinAmountOut = (expectedAmountOut: bigint, slippage: bigint) => Math.floor(Number(expectedAmountOut - (expectedAmountOut * slippage) / BigInt(100)))
 
-export const account = (network: NetworkType = 'SEPOLIA') => {
+export const account = (network: NetworkType = 'MAINNET') => {
   switch (network) {
     case 'MAINNET': return (
       {

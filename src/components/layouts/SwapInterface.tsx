@@ -50,6 +50,8 @@ import {
   processAddress,
 } from "@/Blockchain/utils/utils";
 import { EkuboTokenData } from "@/utils/types";
+import { exampleExecuteCalls } from "@/utils/avnu";
+import formatNumberEs from "@/functions/esnumberFormatter";
 const SwapInterface = ({
   argentTMA,
 }: {
@@ -99,7 +101,8 @@ const SwapInterface = ({
   const [refreshBuyData, setrefreshBuyData] = useState<boolean>(false);
   const [refereshSellData, setrefereshSellData] = useState<boolean>(false);
   const [userTokens, setuserTokens] = useState<any>();
-
+  const [exchangeRate, setexchangeRate] = useState<number |null>(null)
+  console.log(prices,'prices')
   const slippageOptions = [
     { level: "Zero", value: "0%" },
     { level: "Low", value: "10%" },
@@ -206,7 +209,12 @@ const SwapInterface = ({
   const handleTransaction = async () => {
     try {
       if (account) {
-        const result = await account.execute(calls);
+        const res=await fetchAccountCompatibility(account.address)
+        if(res?.isCompatible){
+          const result = await exampleExecuteCalls('MAINNET',account, processAddress(currentSelectedSellToken.l2_token_address),calls);
+        }else{
+          const result=await account.execute(calls)
+        }
         settransactionStarted(false);
         // alert(result);
       }
@@ -219,6 +227,10 @@ const SwapInterface = ({
     setSelectedSlippage(option);
     setslippageDetailsCheck(false);
   };
+  function getPriceInUSD(tokens:[], l2TokenAddress:string) {
+    const matchedToken:any = tokens.find((item:any) => item.tokenAddress === l2TokenAddress);
+    return matchedToken ? matchedToken?.priceInUSD : null; // Return null if no match is found
+}
 
   const handleConnectButton = async () => {
     await argentTMA.requestConnection({
@@ -301,21 +313,6 @@ const SwapInterface = ({
       fetchData();
     }
   }, [account]);
-
-  useEffect(() => {
-    try {
-      if (userTokens) {
-        userTokens.map((token: any) => {
-          console.log(
-            parseAmount(String(token.balance), token.decimals),
-            "balance"
-          );
-        });
-      }
-    } catch (error) {
-      console.log(error, "err in fetch");
-    }
-  }, [userTokens]);
 
   // useEffect(()=>{
   //   try {
@@ -409,30 +406,48 @@ const SwapInterface = ({
     }
   }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && router.query.token) {
-      const token = router.query.token;
-      if (token) {
-        localStorage.setItem("token", token as string);
-      }
-    }
-  }, [router.query]);
-
-  useEffect(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const persistedToken = localStorage.getItem("token");
-        if (persistedToken) {
-          setfirstReceivedToken(persistedToken);
-          console.log("Persisted token retrieved:", persistedToken);
-        } else {
-          // alert('No token found in localStorage.');
+  useEffect(()=>{
+    if(currentSelectedBuyToken.symbol!=='Select a token' || currentSelectedSellToken.symbol!=='Select a token'){
+      const fetchExchangeRate=async()=>{
+        const res=await fetchQuote(
+          BigInt(
+            etherToWeiBN(1, currentSelectedSellToken.decimals)
+          ),
+          currentSelectedSellToken.symbol as TOKEN_SYMBOL,
+          currentSelectedBuyToken.symbol as TOKEN_SYMBOL
+        )
+        if(res){
+          setexchangeRate(parseAmount(String(res?.total), currentSelectedBuyToken.decimals))
         }
       }
-    } catch (error) {
-      alert("Error accessing localStorage:");
+      fetchExchangeRate()
     }
-  }, []); // Run once on mount
+  },[currentSelectedBuyToken,currentSelectedSellToken])
+
+  // useEffect(() => {
+  //   if (typeof window !== "undefined" && router.query.token) {
+  //     const token = router.query.token;
+  //     if (token) {
+  //       localStorage.setItem("token", token as string);
+  //     }
+  //   }
+  // }, [router.query]);
+
+  // useEffect(() => {
+  //   try {
+  //     if (typeof window !== "undefined") {
+  //       const persistedToken = localStorage.getItem("token");
+  //       if (persistedToken) {
+  //         setfirstReceivedToken(persistedToken);
+  //         console.log("Persisted token retrieved:", persistedToken);
+  //       } else {
+  //         // alert('No token found in localStorage.');
+  //       }
+  //     }
+  //   } catch (error) {
+  //     alert("Error accessing localStorage:");
+  //   }
+  // }, []); // Run once on mount
 
   useEffect(() => {
     if (currentSelectedSellToken.symbol !== "Select a token") {
@@ -581,12 +596,12 @@ const SwapInterface = ({
             <Box display="flex" width="100%" justifyContent="space-between">
               {
                 <Text color="#9CA3AF">
-                  ${sellTokenPrice ? sellTokenPrice * currentSellAmount : 0}
+                  ${sellTokenPrice ? formatNumberEs(sellTokenPrice * currentSellAmount) : 0}
                 </Text>
               }
               <Box display="flex" gap="0.4rem">
                 <Text color="#9CA3AF">
-                  balance: {numberFormatter(sellTokenBalance)}
+                  balance: {formatNumberEs(sellTokenBalance)}
                 </Text>
                 <Box
                   cursor="pointer"
@@ -716,11 +731,11 @@ const SwapInterface = ({
             </Box>
             <Box display="flex" width="100%" justifyContent="space-between">
               <Text color="#9CA3AF">
-                ${buyTokenPrice ? buyTokenPrice * currentBuyAmount : 0}
+                ${buyTokenPrice ? formatNumberEs(buyTokenPrice * currentBuyAmount) : 0}
               </Text>
               <Box display="flex" gap="0.4rem">
                 <Text color="#9CA3AF">
-                  balance: {numberFormatter(buyTokenBalance)}
+                  balance: {formatNumberEs(buyTokenBalance)}
                 </Text>
               </Box>
             </Box>
@@ -736,8 +751,8 @@ const SwapInterface = ({
                   padding="0px 8px"
                 >
                   <Text color="#9CA3AF">
-                    1 {currentSelectedSellToken.symbol} = 0.999{" "}
-                    {currentSelectedBuyToken.symbol} ($0.50)
+                    1 {currentSelectedSellToken.symbol} = {formatNumberEs(exchangeRate as number)}{" "}
+                    {currentSelectedBuyToken.symbol} (${formatNumberEs(sellTokenPrice as number)})
                   </Text>
                   <Box
                     display="flex"
@@ -779,7 +794,7 @@ const SwapInterface = ({
                           />
                         ) : (
                           <Text color="#9CA3AF">
-                            {minReceived.toFixed(2)}{" "}
+                            {formatNumberEs(minReceived)}{" "}
                             {currentSelectedBuyToken.symbol}
                           </Text>
                         )}
@@ -1032,8 +1047,13 @@ R
                         </Text>
                       </Box>
                     </Box>
-                    <Box color="grey">
-                      {parseAmount(String(token.balance), token.decimals)}
+                    <Box color="grey" mr="0.5rem" display="flex" flexDirection="column" justifyContent="flex-end" alignItems="flex-end">
+                      {getPriceInUSD(prices,token.l2_token_address) &&<Text color="white">
+                        ${formatNumberEs(getPriceInUSD(prices,token.l2_token_address) ?getPriceInUSD(prices,token.l2_token_address)*parseAmount(String(token.balance), token.decimals):0)}
+                      </Text>}
+                      <Text>
+                        {formatNumberEs(parseAmount(String(token.balance), token.decimals))}
+                      </Text>
                     </Box>
                   </Box>
                 </Box>
@@ -1183,9 +1203,9 @@ R
                     alignItems="center"
                     justifyContent="space-between"
                     onClick={() => {
-                      setsellDropdownSelected(false);
-                      setSellToken(token);
-                      setcurrentSelectedSellToken(token);
+                      setbuyDropdownSelected(false);
+                      setBuyToken(token);
+                      setcurrentSelectedBuyToken(token);
                     }}
                   >
                     <Box display='flex' gap="0.8rem" alignItems="center">
@@ -1219,8 +1239,13 @@ R
                         </Text>
                       </Box>
                     </Box>
-                    <Box color="grey">
-                      {parseAmount(String(token.balance), token.decimals)}
+                    <Box color="grey" mr="0.5rem" display="flex" flexDirection="column" justifyContent="flex-end" alignItems="flex-end">
+                      {getPriceInUSD(prices,token.l2_token_address) &&<Text color="white">
+                        ${formatNumberEs(getPriceInUSD(prices,token.l2_token_address) ?getPriceInUSD(prices,token.l2_token_address)*parseAmount(String(token.balance), token.decimals):0)}
+                      </Text>}
+                      <Text>
+                        {formatNumberEs(parseAmount(String(token.balance), token.decimals))}
+                      </Text>
                     </Box>
                   </Box>
                 </Box>

@@ -136,15 +136,19 @@ export function processAddress(address: string) {
 
 
   export const parseAmount = (amount: string, decimals = 18, precision = 18) => {
-    // Use native BigInt for calculations
-    const factor = BigInt("1000000");
-    const divisor = BigInt(10) ** BigInt(decimals);
-    const amountBigInt = (BigInt(amount) * factor) / divisor;
-  
-    // Convert to string for decimal arithmetic since BigInt can't handle decimals
-    const preciseValue = Number(amountBigInt.toString()) / Number(factor);
-  
-    // Truncate to the desired precision
-    const multiplier = Math.pow(10, precision);
-    return Math.floor(preciseValue * multiplier) / multiplier;
-  };
+    try {
+        const normalizedAmount = Number(amount).toLocaleString('fullwide', { useGrouping: false });
+        
+        const factor = BigInt("1000000");
+        const divisor = BigInt(10) ** BigInt(decimals);
+        const amountBigInt = (BigInt(normalizedAmount) * factor) / divisor;
+        
+        const preciseValue = Number(amountBigInt.toString()) / Number(factor);
+        
+        const multiplier = Math.pow(10, precision);
+        return Math.floor(preciseValue * multiplier) / multiplier;
+    } catch (error) {
+        console.error('Error parsing amount:', error);
+        throw error;
+    }
+};

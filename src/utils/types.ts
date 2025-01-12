@@ -127,7 +127,7 @@ export interface EkuboTokenData {
 export interface UserTokenData {
     total: number,
     tokens: {
-        address: string,
+        l2_token_address: string,
         balance: bigint,
         name: string,
         symbol: string,
