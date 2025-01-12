@@ -13,18 +13,16 @@ import {
 
 import { AccountInterface, Call, EstimateFeeResponse, stark, transaction } from 'starknet';
 import { provider } from './services/provider';
-import { account } from './helper';
 import { NetworkType } from './types';
 
 const estimateCalls =
-    async (network: NetworkType, calls: Call[]): Promise<EstimateFeeResponse> => {
-        const account_config = account(network);
-        const contractVersion = await provider.getContractVersion(account_config.address);
-        const nonce = await provider.getNonceForAddress(account_config.address);
+    async (account: AccountInterface, calls: Call[]): Promise<EstimateFeeResponse> => {
+        const contractVersion = await provider.getContractVersion(account.address);
+        const nonce = await provider.getNonceForAddress(account.address);
         const details = stark.v3Details({ skipValidate: true });
         const invocation = {
             ...details,
-            contractAddress: account_config.address,
+            contractAddress: account.address,
             calldata: transaction.getExecuteCalldata(calls, contractVersion.cairo),
             signature: [],
         };
@@ -58,7 +56,7 @@ export async function getEstimatedGasFees(network: NetworkType, account: Account
     if (!gas_token_price) {
         throw new Error(`Gas token ${gas_token} not found`);
     }
-    const fees = await estimateCalls(network, calls);
+    const fees = await estimateCalls(account, calls);
     const estimated_gas_fee = getGasFeesInGasToken(BigInt(fees.overall_fee), gas_token_price, BigInt(fees.gas_price!), BigInt(fees.data_gas_price ?? '0x1'), account_data.compatibility.gasConsumedOverhead, account_data.compatibility.dataGasConsumedOverhead);
     return { gasTokenPrice: gas_token_price, estimatedFees: estimated_gas_fee, maxFees: estimated_gas_fee * BigInt(1.5) };
 }
