@@ -202,15 +202,11 @@ const SwapInterface = ({
     );
   });
 
-  const randomGradient = () => {
-    const gradients = [
-      "linear(to-br, teal.300, purple.500)",
-      "linear(to-br, pink.400, orange.400)",
-      "linear(to-br, blue.400, cyan.400)",
-      "linear(to-br, green.400, yellow.400)",
-      "linear(to-br, red.400, purple.400)",
-    ];
-    return gradients[Math.floor(Math.random() * gradients.length)];
+  const generateRandomGradient = () => {
+    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F5A623", "#FF00FF"];
+    const color1 = colors[Math.floor(Math.random() * colors.length)];
+    const color2 = colors[Math.floor(Math.random() * colors.length)];
+    return `linear-gradient(45deg, ${color1}, ${color2})`;
   };
   const handleTransaction = async () => {
     try {
@@ -812,6 +808,8 @@ const SwapInterface = ({
                   setbuyDropdownSelected(false);
                 }}
               >
+                                      <Box height="20px" width="20px" bg={generateRandomGradient()} borderRadius="200px">
+                                      </Box>
                 <Text textTransform="uppercase">{currentCurrencySelected}</Text>
                 <Box>
                   <DropdownUp />
@@ -1344,6 +1342,8 @@ R
                       }}
                     >
                       <Box display="flex" alignItems="center" gap="0.8rem">
+                      <Box height="14px" width="14px" bg={generateRandomGradient()} borderRadius="200px">
+                        </Box>
                         <Box>
                           <Text textTransform="uppercase" fontSize="14px" color="white">
                             {token}
