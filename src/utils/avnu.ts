@@ -16,13 +16,13 @@ import { provider } from './services/provider';
 import { NetworkType } from './types';
 
 const estimateCalls =
-    async (network: NetworkType, account: AccountInterface, calls: Call[]): Promise<EstimateFeeResponse> => {
-        const contractVersion = await provider.getContractVersion(account.address);
-        const nonce = await provider.getNonceForAddress(account.address);
+    async (account: string, calls: Call[]): Promise<EstimateFeeResponse> => {
+        const contractVersion = await provider.getContractVersion(account);
+        const nonce = await provider.getNonceForAddress(account);
         const details = stark.v3Details({ skipValidate: true });
         const invocation = {
             ...details,
-            contractAddress: account.address,
+            contractAddress: account,
             calldata: transaction.getExecuteCalldata(calls, contractVersion.cairo),
             signature: [],
         };
@@ -33,9 +33,9 @@ const estimateCalls =
 
 export const options = (network: NetworkType): GaslessOptions => (network === 'MAINNET' ? { baseUrl: BASE_URL } : { baseUrl: SEPOLIA_BASE_URL });
 
-export async function getAccountData(network: NetworkType, account: AccountInterface) {
-    const compatibility = await fetchAccountCompatibility(account.address, options(network));
-    const account_rewards = await fetchAccountsRewards(account.address, { ...options(network), protocol: 'gasless-sdk' });
+export async function getAccountData(network: NetworkType, account: string) {
+    const compatibility = await fetchAccountCompatibility(account, options(network));
+    const account_rewards = await fetchAccountsRewards(account, { ...options(network), protocol: 'gasless-sdk' });
     return { compatibility, account_rewards };
 }
 
@@ -43,28 +43,28 @@ export async function getGasTokenPrices(network: NetworkType): Promise<GasTokenP
     return fetchGasTokenPrices(options(network));
 }
 
-export async function getPaymasterRewards(network: NetworkType, account: AccountInterface): Promise<PaymasterReward[]> {
+export async function getPaymasterRewards(network: NetworkType, account: string): Promise<PaymasterReward[]> {
     const account_data = await getAccountData(network, account);
     return account_data.account_rewards;
 }
 
 /// dev: This function returns the {gas token price, estimated gas fees and max gas fees} in gas token for the given calls
-export async function getEstimatedGasFees(network: NetworkType, account: AccountInterface, gas_token: string, calls: Call[]) {
+export async function getEstimatedGasFees(network: NetworkType, account: string, gas_token: string, calls: Call[]) {
     const account_data = await getAccountData(network, account);
     if (!account_data.compatibility.isCompatible) { throw new Error('Account not compatible with Paymaster'); }
     const gas_token_price = await fetchGasTokenPrices(options(network)).then((prices) => prices.find((price) => price.tokenAddress === gas_token));
     if (!gas_token_price) {
         throw new Error(`Gas token ${gas_token} not found`);
     }
-    const fees = await estimateCalls(network,account, calls);
+    const fees = await estimateCalls(account, calls);
     const estimated_gas_fee = getGasFeesInGasToken(BigInt(fees.overall_fee), gas_token_price, BigInt(fees.gas_price!), BigInt(fees.data_gas_price ?? '0x1'), account_data.compatibility.gasConsumedOverhead, account_data.compatibility.dataGasConsumedOverhead);
-    return { gasTokenPrice: gas_token_price, estimatedFees: estimated_gas_fee, maxFees: estimated_gas_fee *  15n/10n };
+    return { gasTokenPrice: gas_token_price, estimatedFees: estimated_gas_fee, maxFees: estimated_gas_fee * 30n / 10n };
 }
 
 // example Invocation
 
 export async function exampleExecuteCalls(network: NetworkType, account: AccountInterface, gas_token: string, calls: Call[]) {
-    const estimated_gas_fee = await getEstimatedGasFees(network, account, gas_token, calls);
+    const estimated_gas_fee = await getEstimatedGasFees(network, account.address, gas_token, calls);
     return await executeCalls(
         account,
         calls,
