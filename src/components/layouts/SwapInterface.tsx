@@ -444,7 +444,7 @@ const SwapInterface = ({
         const res = await fetchQuote(
           BigInt(
             etherToWeiBN(
-              currentSellAmount - (protocolFees + (3*defaultFees)),
+              currentSellAmount - (protocolFees + (5*defaultFees)),
               currentSelectedSellToken.decimals
             )
           ),
@@ -457,7 +457,7 @@ const SwapInterface = ({
             currentSelectedBuyToken.l2_token_address,
             BigInt(
               etherToWeiBN(
-                currentSellAmount - (protocolFees + (3*defaultFees)),
+                currentSellAmount - (protocolFees + (5*defaultFees)),
                 currentSelectedSellToken.decimals
               )
             ),
@@ -523,17 +523,11 @@ const SwapInterface = ({
   useEffect(() => {
     try {
       const fetchDefaultfees = async () => {
-        let amount = sellTokenBalance!= 0 ? sellTokenBalance : 1;
-        if(account){
-          amount = (await getBalance(account.address, currentSelectedSellToken.l2_token_address) as number)/1000;
-        }
-        const protocolFees = amount / 1000;
-        amount = amount - protocolFees;
-
+        const protocolFees=sellTokenBalance / 1000
         const res = await fetchQuote(
           BigInt(
             etherToWeiBN(
-              amount,
+              sellTokenBalance - protocolFees,
               currentSelectedSellToken.decimals
             )
           ),
@@ -546,41 +540,39 @@ const SwapInterface = ({
             currentSelectedBuyToken.l2_token_address,
             BigInt(
               etherToWeiBN(
-                amount,
+                sellTokenBalance - protocolFees,
                 currentSelectedSellToken.decimals
               )
             ),
             BigInt(1),
             res
           );
-          if(res3) {
-            res3.push(
-              {
-                contractAddress: currentSelectedSellToken.l2_token_address,
-                entrypoint: "approve",
-                calldata: [
-                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-                  etherToWeiBN(
-                    protocolFees,
-                    currentSelectedSellToken.decimals
-                  ).toString(),
-                  "0",
-                ],
-              },
-              {
-                contractAddress:
-                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-                entrypoint: "collectFees",
-                calldata: CallData.compile([
-                  currentSelectedSellToken.l2_token_address,
-                  etherToWeiBN(
-                    currentSellAmount,
-                    currentSelectedSellToken.decimals
-                  ).toString(),
-                  "0",
-                ]),
-              }
-            );
+          if (res3) {
+            res3.push({
+              contractAddress: currentSelectedSellToken.l2_token_address,
+              entrypoint: "approve",
+              calldata: [
+                "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                etherToWeiBN(
+                  protocolFees,
+                  currentSelectedSellToken.decimals
+                ).toString(),
+                "0",
+              ],
+            },
+            {
+              contractAddress:
+                "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+              entrypoint: "collectFees",
+              calldata: CallData.compile([
+                currentSelectedSellToken.l2_token_address,
+                etherToWeiBN(
+                  sellTokenBalance,
+                  currentSelectedSellToken.decimals
+                ).toString(),
+                "0",
+              ]),
+            })
             const estimated_gas_fee = await getEstimatedGasFees(
               "MAINNET",
               processAddress(account?.address as string),
@@ -594,7 +586,7 @@ const SwapInterface = ({
               )
             );
           }
-      }
+        }
       };
       if (account) {
         if (
@@ -661,7 +653,6 @@ const SwapInterface = ({
           account?.address as any,
           currentSelectedSellToken.l2_token_address
         );
-        console.log(res,'balance')
         setsellTokenBalance(res as number);
       };
       if (account && currentSelectedSellToken.l2_token_address) {
