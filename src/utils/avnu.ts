@@ -58,7 +58,7 @@ export async function getEstimatedGasFees(network: NetworkType, account: string,
     }
     const fees = await estimateCalls(account, calls);
     const estimated_gas_fee = getGasFeesInGasToken(BigInt(fees.overall_fee), gas_token_price, BigInt(fees.gas_price!), BigInt(fees.data_gas_price ?? '0x1'), account_data.compatibility.gasConsumedOverhead, account_data.compatibility.dataGasConsumedOverhead);
-    return { gasTokenPrice: gas_token_price, estimatedFees: estimated_gas_fee, maxFees: estimated_gas_fee * 30n / 10n };
+    return { gasTokenPrice: gas_token_price, estimatedFees: estimated_gas_fee, maxFees: estimated_gas_fee * 20n / 10n };
 }
 
 // example Invocation

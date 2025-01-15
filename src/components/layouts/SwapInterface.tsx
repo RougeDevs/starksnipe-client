@@ -533,7 +533,6 @@ const SwapInterface = ({
               processAddress(currentSelectedSellToken.l2_token_address),
               res3
             );
-            console.log(estimated_gas_fee, "gas fee");
             setdefaultFees(
               parseAmount(
                 String(estimated_gas_fee?.estimatedFees),
