@@ -289,7 +289,6 @@ const SwapInterface = ({
       if(valueToken){
         setcurrentSelectedBuyToken(valueToken)
       }
-      console.log(valueToken,router.query,'token')
     }
   },[allTokens,router.query.token])
 
@@ -442,7 +441,6 @@ const SwapInterface = ({
             if (res3) {
               setcalls(res3);
             }
-            console.log(res2, res, res3, "values 1");
           }
         }
         setrefereshData(false);
@@ -752,7 +750,7 @@ const SwapInterface = ({
             paddingTop="0rem"
           >
             <Box>
-              <Text>You get</Text>
+              <Text>Payout Amount</Text>
             </Box>
             <Box
               display="flex"
