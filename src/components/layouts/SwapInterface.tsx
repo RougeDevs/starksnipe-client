@@ -22,6 +22,7 @@ import {
   AccountInterface,
   AccountInvocationItem,
   cairo,
+  Call,
   CallData,
   Contract,
   hash,
@@ -56,6 +57,7 @@ import { EkuboTokenData } from "@/utils/types";
 import { exampleExecuteCalls, getEstimatedGasFees } from "@/utils/avnu";
 import formatNumberEs from "@/functions/esnumberFormatter";
 import { toast } from "react-toastify";
+
 const SwapInterface = ({
   argentTMA,
 }: {
@@ -521,10 +523,17 @@ const SwapInterface = ({
   useEffect(() => {
     try {
       const fetchDefaultfees = async () => {
+        let amount = sellTokenBalance!= 0 ? sellTokenBalance : 1;
+        if(account){
+          amount = (await getBalance(account.address, currentSelectedSellToken.l2_token_address) as number)/1000;
+        }
+        const protocolFees = amount / 1000;
+        amount = amount - protocolFees;
+
         const res = await fetchQuote(
           BigInt(
             etherToWeiBN(
-              sellTokenBalance - sellTokenBalance / 1000,
+              amount,
               currentSelectedSellToken.decimals
             )
           ),
@@ -537,14 +546,41 @@ const SwapInterface = ({
             currentSelectedBuyToken.l2_token_address,
             BigInt(
               etherToWeiBN(
-                sellTokenBalance - sellTokenBalance / 1000,
+                amount,
                 currentSelectedSellToken.decimals
               )
             ),
             BigInt(1),
             res
           );
-          if (res3) {
+          if(res3) {
+            res3.push(
+              {
+                contractAddress: currentSelectedSellToken.l2_token_address,
+                entrypoint: "approve",
+                calldata: [
+                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                  etherToWeiBN(
+                    protocolFees,
+                    currentSelectedSellToken.decimals
+                  ).toString(),
+                  "0",
+                ],
+              },
+              {
+                contractAddress:
+                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                entrypoint: "collectFees",
+                calldata: CallData.compile([
+                  currentSelectedSellToken.l2_token_address,
+                  etherToWeiBN(
+                    currentSellAmount,
+                    currentSelectedSellToken.decimals
+                  ).toString(),
+                  "0",
+                ]),
+              }
+            );
             const estimated_gas_fee = await getEstimatedGasFees(
               "MAINNET",
               processAddress(account?.address as string),
@@ -558,7 +594,7 @@ const SwapInterface = ({
               )
             );
           }
-        }
+      }
       };
       if (account) {
         if (
