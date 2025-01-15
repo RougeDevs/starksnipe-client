@@ -5,6 +5,7 @@ import type { AppProps } from "next/app";
 import { Provider as JotaiProvider } from "jotai";
 import { mainnet, sepolia } from "@starknet-react/chains";
 import { MY_STORE } from "@/store";
+import Layout from "@/toasts";
 import {
   argent,
   braavos,
@@ -44,7 +45,9 @@ export default function App({ Component, pageProps }: AppProps) {
                 connectors={connectors}
                 explorer={voyager}
               >
-                <Component {...pageProps} />
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
               </StarknetConfig>
           </Provider>
       </JotaiProvider>

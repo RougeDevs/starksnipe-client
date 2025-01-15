@@ -55,6 +55,7 @@ import {
 import { EkuboTokenData } from "@/utils/types";
 import { exampleExecuteCalls, getEstimatedGasFees } from "@/utils/avnu";
 import formatNumberEs from "@/functions/esnumberFormatter";
+import { toast } from "react-toastify";
 const SwapInterface = ({
   argentTMA,
 }: {
@@ -114,6 +115,7 @@ const SwapInterface = ({
   const [currencies, setcurrencies] = useState<any>();
   const [currentCurrencySelected, setcurrentCurrencySelected] = useState("usd");
   const [defaultFees, setdefaultFees] = useState<number>(0);
+  const [transactionSuccessfull, settransactionSuccessfull] = useState<boolean>(false)
 
   const slippageOptions = [
     { level: "Zero", value: "0%" },
@@ -225,13 +227,29 @@ const SwapInterface = ({
             processAddress(currentSelectedSellToken.l2_token_address),
             calls
           );
+          if(result){
+            toast.success('Successfully swapped tokens',{
+              position:'bottom-right'
+            })
+            settransactionSuccessfull(true)
+          }
+          console.log(result,'result')
         } else {
           const result = await account.execute(calls);
+          if(result){
+            toast.success('Successfully swapped tokens',{
+              position:'bottom-right'
+            })
+            settransactionSuccessfull(true)
+          }
         }
         settransactionStarted(false);
         // alert(result);
       }
     } catch (error) {
+      toast.error('Something went wrong',{
+        position:'bottom-right'
+      })
       settransactionStarted(false);
       console.log(error, "err in call");
     }
@@ -607,13 +625,14 @@ const SwapInterface = ({
           account?.address as any,
           currentSelectedSellToken.l2_token_address
         );
+        console.log(res,'balance')
         setsellTokenBalance(res as number);
       };
       if (account && currentSelectedSellToken.l2_token_address) {
         fetchBalance();
       }
     }
-  }, [currentSelectedSellToken, account]);
+  }, [currentSelectedSellToken, account,transactionSuccessfull]);
 
   useEffect(() => {
     if (currentSelectedBuyToken.symbol !== "Select a token") {
@@ -628,7 +647,7 @@ const SwapInterface = ({
         fetchBalance();
       }
     }
-  }, [currentSelectedBuyToken, account]);
+  }, [currentSelectedBuyToken, account,transactionSuccessfull]);
 
   useEffect(() => {
     if (sellTokenPrice) {
@@ -1230,8 +1249,10 @@ R
                   settransactionStarted(true);
                   if (!transactionStarted) {
                     if (account) {
+                      settransactionSuccessfull(false)
                       handleTransaction();
                     } else {
+                      settransactionSuccessfull(false)
                       handleConnectButton();
                     }
                   }
