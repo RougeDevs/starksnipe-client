@@ -38,8 +38,8 @@ function sendTokenInfo(ctx:any) {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "🟢 Buy", web_app: { url: `https://e432-2401-4900-1c71-f312-4cfa-5408-ab13-9551.ngrok-free.app?token=${sampleToken.address}` } },
-            { text: "🔴 Sell", web_app: { url: `https://e432-2401-4900-1c71-f312-4cfa-5408-ab13-9551.ngrok-free.app?token=${sampleToken.address}` } },
+            { text: "🟢 Buy",  url: `https://9fbe-2401-4900-1c6f-a6ea-2836-ef56-55f4-e612.ngrok-free.app?token=${sampleToken.address}`  },
+            { text: "🔴 Sell",  url: `https://9fbe-2401-4900-1c6f-a6ea-2836-ef56-55f4-e612.ngrok-free.app?token=${sampleToken.address}`  },
           ],
         ],
       },

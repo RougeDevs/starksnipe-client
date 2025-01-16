@@ -119,12 +119,12 @@ export default function Home() {
       </Head>
       <Box>
         <Navbar account={account} argentTma={argentTMA}/>
-        <SwapInterface account={account} argentTMA={argentTMA}/>
-        <Button onClick={()=>{
+        <SwapInterface account={account as any} argentTMA={argentTMA}/>
+        {/* <Button onClick={()=>{
           handleClearSessionButton()
         }}>
           Clear
-        </Button>
+        </Button> */}
       </Box>
     </>
   );
