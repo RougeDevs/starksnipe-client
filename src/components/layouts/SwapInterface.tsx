@@ -35,7 +35,7 @@ import numberFormatter from "@/functions/numberFormatter";
 import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
 import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
-import { useAccount } from "@starknet-react/core";
+import { useAccount, useConnect } from "@starknet-react/core";
 import { fetchQuote, getAllTokens, getSwapCalls } from "@/utils/swapRouter";
 import { TOKEN_SYMBOL } from "@/utils/constants";
 import { getMinAmountOut, getParsedTokenData } from "@/utils/helper";
@@ -57,6 +57,8 @@ import { EkuboTokenData } from "@/utils/types";
 import { exampleExecuteCalls, getEstimatedGasFees } from "@/utils/avnu";
 import formatNumberEs from "@/functions/esnumberFormatter";
 import { toast } from "react-toastify";
+import { useStarknetkitConnectModal } from "starknetkit";
+import { MYCONNECTORS } from "@/pages/_app";
 
 const SwapInterface = ({
   argentTMA,
@@ -125,6 +127,29 @@ const SwapInterface = ({
     { level: "Medium", value: "32%" },
     { level: "High", value: "50%" },
   ];
+  const { starknetkitConnectModal: starknetkitConnectModal1 } =
+  useStarknetkitConnectModal({
+    modalMode: "canAsk",
+    modalTheme: "dark",
+    connectors: MYCONNECTORS,
+  });
+  const { connect, connectors } = useConnect();
+  const connectWallet = async () => {
+    try {
+      const result = await starknetkitConnectModal1();
+
+      connect({ connector: result.connector });
+    } catch (error) {
+      console.warn("connectWallet error", error);
+      try {
+        const result = await starknetkitConnectModal1();
+        connect({ connector: result.connector });
+      } catch (error) {
+        console.error("connectWallet error", error);
+        alert("Error connecting wallet");
+      }
+    }
+  };
   const [currentSelectedBuyToken, setcurrentSelectedBuyToken] = useState({
     name: "Select a token",
     l2_token_address: "",
@@ -256,10 +281,7 @@ const SwapInterface = ({
       console.log(error, "err in call");
     }
   };
-  const handleSelect = (option: any) => {
-    setSelectedSlippage(option);
-    setslippageDetailsCheck(false);
-  };
+
   function getPriceInUSD(tokens: [], l2TokenAddress: string) {
     const matchedToken: any = tokens.find(
       (item: any) => item.tokenAddress === l2TokenAddress
@@ -659,9 +681,6 @@ const SwapInterface = ({
         fetchBalance();
       }
     }
-  }, [currentSelectedSellToken, account,transactionSuccessfull]);
-
-  useEffect(() => {
     if (currentSelectedBuyToken.symbol !== "Select a token") {
       const fetchBalance = async () => {
         const res = await getBalance(
@@ -674,7 +693,7 @@ const SwapInterface = ({
         fetchBalance();
       }
     }
-  }, [currentSelectedBuyToken, account,transactionSuccessfull]);
+  }, [currentSelectedSellToken, account,transactionSuccessfull,currentSelectedBuyToken]);
 
   useEffect(() => {
     if (sellTokenPrice) {
@@ -1270,24 +1289,25 @@ R
                   transactionStarted ||
                   refereshSellData ||
                   refreshBuyData ||
-                  currentSellAmount > sellTokenBalance
+                  (sellTokenBalance!==0? currentSellAmount > sellTokenBalance:false)
                 }
-                onClick={() => {
-                  settransactionStarted(true);
+                onClick={() => {            
                   if (!transactionStarted) {
                     if (account) {
+                      settransactionStarted(true);
                       settransactionSuccessfull(false)
                       handleTransaction();
                     } else {
                       settransactionSuccessfull(false)
-                      handleConnectButton();
+                      connectWallet()
+                      // handleConnectButton();
                     }
                   }
                 }}
               >
                 {(transactionStarted || refereshSellData || refreshBuyData) && (
                   <Spinner
-                    color="red.500"
+                    color="gray.500"
                     css={{ "--spinner-track-color": "colors.gray.200" }}
                   />
                 )}
@@ -2116,20 +2136,23 @@ R
                   refreshBuyData ||
                   currentSellAmount > sellTokenBalance
                 }
-                onClick={() => {
-                  settransactionStarted(true);
+                onClick={() => {           
                   if (!transactionStarted) {
                     if (account) {
+                      settransactionStarted(true);
+                      settransactionSuccessfull(false)
                       handleTransaction();
                     } else {
-                      handleConnectButton();
+                      settransactionSuccessfull(false)
+                      connectWallet()
+                      // handleConnectButton();
                     }
                   }
                 }}
               >
                 {(transactionStarted || refereshSellData || refreshBuyData) && (
                   <Spinner
-                    color="red.500"
+                    color="gray.500"
                     css={{ "--spinner-track-color": "colors.gray.200" }}
                   />
                 )}
