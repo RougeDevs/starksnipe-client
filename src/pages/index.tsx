@@ -115,7 +115,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Starksnipe | Memecoin Snipping</title>
+        <title>Sniq | Memecoin Snipping</title>
       </Head>
       <Box>
         <Navbar account={account} argentTma={argentTMA}/>

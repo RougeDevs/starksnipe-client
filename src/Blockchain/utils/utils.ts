@@ -36,64 +36,6 @@ export const toFixed = (num: number, digit: number) => {
 
 export const OnErrorCallback = (err: any) => {};
 
-export const depositInterestAccrued = (asset: any, historicalData: any[]) => {
-  const compare = (entryA: any, entryB: any) => {
-    if (entryA.timestamp > entryB.timestamp) {
-      return -1;
-    } else if (entryA < entryB) {
-      return 1;
-    }
-    return 0;
-  };
-  let marketCommitmentSpecificData = historicalData
-    .filter((entry) => {
-      return (
-        entry["market"] === asset.marketAddress &&
-        parseInt(entry["commitment"]) === asset.commitmentIndex
-      );
-    })
-    .sort(compare);
-
-  let currentTime = Date.now() / 1000;
-  const secondsInYear_bn = new BigNumber(31536000);
-
-  const result_bn: BigNumber = marketCommitmentSpecificData.reduce(
-    (accumulator, entry, index) => {
-      let interest = 0;
-      let timeDifference = 0;
-      // let rate = parseInt(entry.apr100x) / 100;
-      if (index === 0) {
-        timeDifference = currentTime - entry.timestamp;
-      } else {
-        timeDifference =
-          marketCommitmentSpecificData[index - 1].timestamp - entry.timestamp;
-      }
-      // amount * difference/seconds in year * rate/100
-      let rate = new BigNumber(parseFloat(entry?.apr100x) / 100);
-      //   let rate = new BigNumber(parseFloat("200") / 100);
-      let timeDifference_bn = new BigNumber(timeDifference);
-      let amount_bn = new BigNumber(asset.amount);
-
-      const result_bn: BigNumber = timeDifference_bn
-        .multipliedBy(amount_bn)
-        .multipliedBy(rate)
-        .dividedBy(secondsInYear_bn)
-        .dividedBy(100);
-      return result_bn.plus(accumulator);
-    },
-    new BigNumber(0)
-  );
-
-  return result_bn.dividedBy(10e18).toFixed(6);
-};
-
-export const borrowInterestAccrued = (asset: any) => {
-  return new BigNumber(asset.loanInterest)
-    .dividedBy(new BigNumber(1e18))
-    .toFixed(6);
-  //   return new BigNumber(0).toFixed(6);
-};
-
 export const etherToWeiBN = (amount:any, decimals:any) => {
   if (!amount) {
     return 0;

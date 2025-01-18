@@ -47,7 +47,7 @@ const Navbar = ({ argentTma }: any) => {
       padding="1rem 2rem"
       alignItems="center"
     >
-      <Box color="#8aa2ff" fontWeight="bold" fontSize="24px">Starksnipe</Box>
+      <Box color="#8aa2ff" fontWeight="bold" fontSize="24px">Sniq</Box>
       {account ? (
         <Box
           padding="8px"

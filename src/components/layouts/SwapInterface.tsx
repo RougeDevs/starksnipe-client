@@ -302,6 +302,12 @@ const SwapInterface = ({
     }
   }, [allTokens, router.query.token]);
 
+  useEffect(()=>{
+    if(router.query.amount){
+      setcurrentConvertedSellAmount(Number(router.query.amount))
+    }
+  },[router.query.amount])
+
   useEffect(() => {
     try {
       const fetchPrices = async () => {
