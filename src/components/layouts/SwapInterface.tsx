@@ -4,14 +4,10 @@ import {
   Box,
   Button,
   Input,
-  NumberInputLabel,
-  NumberInputRoot,
-  NumberInputRootProvider,
   Skeleton,
   Spinner,
   Tabs,
   Text,
-  useMediaQuery,
 } from "@chakra-ui/react";
 import { useSetAtom } from "jotai";
 import Image from "next/image";
@@ -20,34 +16,21 @@ import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
 import {
   AccountInterface,
-  AccountInvocationItem,
-  cairo,
-  Call,
   CallData,
-  Contract,
-  hash,
   TransactionType,
 } from "starknet";
 import SplashCursor from "../layouts/SplashCursor";
 import InfoIcon from "@/assets/InfoIcon";
 import { getBalance } from "@/Blockchain/scripts/swapinteraction";
-import numberFormatter from "@/functions/numberFormatter";
-import { fetchPrices, PriceRequest } from "@avnu/avnu-sdk";
 import { useRouter } from "next/router";
-import { getTokenData, parseTokenData } from "@/utils/memeCoinData";
 import { useAccount, useConnect } from "@starknet-react/core";
 import { fetchQuote, getAllTokens, getSwapCalls } from "@/utils/swapRouter";
 import { TOKEN_SYMBOL } from "@/utils/constants";
 import { getMinAmountOut, getParsedTokenData } from "@/utils/helper";
 import axios from "axios";
 import {
-  executeCalls,
   fetchAccountCompatibility,
-  fetchAccountsRewards,
-  fetchBuildTypedData,
-  fetchGasTokenPrices,
 } from "@avnu/gasless-sdk";
-import { provider } from "@/utils/services/provider";
 import {
   etherToWeiBN,
   parseAmount,
@@ -66,8 +49,6 @@ const SwapInterface = ({
   account: AccountInterface;
   argentTMA: any;
 }) => {
-  const [tokenSelectorDropdown, settokenSelectorDropdown] =
-    useState<boolean>(false);
   const [buyDropdownSelected, setbuyDropdownSelected] =
     useState<boolean>(false);
   const [sellDropdownSelected, setsellDropdownSelected] =
@@ -75,8 +56,6 @@ const SwapInterface = ({
   const [currencyDropdownSelected, setcurrencyDropdownSelected] =
     useState(false);
   const [showPriceDetails, setshowPriceDetails] = useState<boolean>(false);
-  const [slippageDetailsCheck, setslippageDetailsCheck] =
-    useState<boolean>(false);
   const [transactionStarted, settransactionStarted] = useState<boolean>(false);
   const setSellToken = useSetAtom(sellToken);
   const setBuyToken = useSetAtom(buyToken);
@@ -121,12 +100,6 @@ const SwapInterface = ({
   const [defaultFees, setdefaultFees] = useState<number>(0);
   const [transactionSuccessfull, settransactionSuccessfull] = useState<boolean>(false)
 
-  const slippageOptions = [
-    { level: "Zero", value: "0%" },
-    { level: "Low", value: "10%" },
-    { level: "Medium", value: "32%" },
-    { level: "High", value: "50%" },
-  ];
   const { starknetkitConnectModal: starknetkitConnectModal1 } =
   useStarknetkitConnectModal({
     modalMode: "canAsk",
@@ -296,19 +269,6 @@ const SwapInterface = ({
       ? parseAmount(String(matchedToken?.balance), matchedToken?.decimals)
       : 0; // Return null if no match is found
   }
-
-  const handleConnectButton = async () => {
-    await argentTMA.requestConnection({
-      callbackData: "custom_callback",
-      // approvalRequests: [
-      //   {
-      //     tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
-      //     amount: BigInt(1000000000000000000).toString(),
-      //     spender: 'spender_address',
-      //   }
-      // ],
-    });
-  };
   const findTokenPrice = (address: string) => {
     const token = prices.find(
       (token: { tokenAddress: string }) =>
