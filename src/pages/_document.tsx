@@ -8,6 +8,7 @@ export default function Document() {
         <Main />
         <NextScript />
       </body>
+      <link rel="shortcut icon" href="/sniq.png" />
     </Html>
   );
 }

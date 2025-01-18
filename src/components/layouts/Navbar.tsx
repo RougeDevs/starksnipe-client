@@ -1,6 +1,7 @@
 import { ArgentTMA } from "@argent/tma-wallet";
 import { Box, Button } from "@chakra-ui/react";
 import React, { useState } from "react";
+import Image from "next/image";
 import {
   useAccount,
   useConnect,
@@ -11,6 +12,7 @@ import { uint256 } from "starknet";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
 import STRKLogo from "@/assets/strkLogo";
+import logo from '../../../public/sniq.png'
 const Navbar = ({ argentTma }: any) => {
   const { starknetkitConnectModal: starknetkitConnectModal1 } =
     useStarknetkitConnectModal({
@@ -44,10 +46,18 @@ const Navbar = ({ argentTma }: any) => {
       display="flex"
       width="100%"
       justifyContent="space-between"
-      padding="1rem 2rem"
+      padding="0.5rem 2rem"
       alignItems="center"
     >
-      <Box color="#8aa2ff" fontWeight="bold" fontSize="24px">Sniq</Box>
+      <Box color="#8aa2ff" fontWeight="bold" fontSize="24px" display="flex" alignItems="center">
+                              <Image
+                                src={logo}
+                                alt="trial"
+                                height={60}
+                                width={60}
+                              />
+        Sniq
+      </Box>
       {account ? (
         <Box
           padding="8px"
