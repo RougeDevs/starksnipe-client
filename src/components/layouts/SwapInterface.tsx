@@ -56,6 +56,7 @@ const SwapInterface = ({
   const [currencyDropdownSelected, setcurrencyDropdownSelected] =
     useState(false);
   const [showPriceDetails, setshowPriceDetails] = useState<boolean>(false);
+  const [firstAmountChanged, setfirstAmountChanged] = useState(false)
   const [transactionStarted, settransactionStarted] = useState<boolean>(false);
   const setSellToken = useSetAtom(sellToken);
   const setBuyToken = useSetAtom(buyToken);
@@ -309,7 +310,6 @@ const SwapInterface = ({
       setrefreshBuyData(true)
       setcurrentConvertedSellAmount(Number(router.query.amount))
       setconvertedSellAmountChanged(!convertedSellAmountChanged)
-      setfirstPrefilledAmount(true)
     }
   },[router.query.amount])
 
@@ -541,7 +541,6 @@ const SwapInterface = ({
       fetchValue(); // Initial fetch
     }
   }, [currentSelectedBuyToken, currentSelectedSellToken,currentSellAmount]);
-
   useEffect(() => {
     try {
       const fetchDefaultfees = async () => {
@@ -613,7 +612,7 @@ const SwapInterface = ({
       if (account) {
         if (
           currentSelectedBuyToken.symbol !== "Select a token" &&
-          currentSelectedSellToken.symbol !== "Select a token"
+          currentSelectedSellToken.symbol !== "Select a token" &&sellTokenBalance
         ) {
           fetchDefaultfees();
         }
@@ -621,7 +620,7 @@ const SwapInterface = ({
     } catch (error) {
       console.log(error, "err in fetching fees for deafult");
     }
-  }, [currentSelectedSellToken, currentSelectedBuyToken, account]);
+  }, [currentSelectedSellToken, currentSelectedBuyToken, sellTokenBalance]);
   useEffect(() => {
     if (
       currentSelectedBuyToken.symbol !== "Select a token" &&
@@ -706,19 +705,19 @@ const SwapInterface = ({
       // setsellvalueChanged(!sellvalueChanged);
     }
   }, [convertedSellAmountChanged, currentSelectedCurrencyAmount]);
+
   useEffect(() => {
-    if (sellTokenPrice) {
-      if(router.query.amount && !firstPrefilledAmount){
-        setcurrentConvertedSellAmount(
-          currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
-        );
-      }else{
+    const handler = setTimeout(() => {
+      if (sellTokenPrice &&firstAmountChanged) {
         setcurrentConvertedSellAmount(
           currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
         );
       }
-    }
-  }, [sellvalueChanged,sellTokenPrice]);
+    }, 3000);
+
+    return () => clearTimeout(handler);
+  }, [sellvalueChanged, sellTokenPrice]);
+
 
   return (
     <Box
@@ -834,6 +833,7 @@ const SwapInterface = ({
                         }}
                         value={currentSellAmount ? currentSellAmount : ""}
                         onChange={(e) => {
+                          setfirstAmountChanged(true)
                           setsellvalueChanged(!sellvalueChanged);
                           setcurrentSellAmount(Number(e.target.value));
                         }}
@@ -963,6 +963,7 @@ const SwapInterface = ({
                         }
                         onChange={(e) => {
                           // setsellvalueChanged(!sellvalueChanged);
+                          setfirstAmountChanged(true)
                           setconvertedSellAmountChanged(!convertedSellAmountChanged)
                           setcurrentConvertedSellAmount(Number(e.target.value));
                         }}
