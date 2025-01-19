@@ -8,11 +8,13 @@ import {
   useDisconnect,
   useWaitForTransaction,
 } from "@starknet-react/core";
+import TelegramIcon from "@/assets/icons/telegramIcon";
 import { uint256 } from "starknet";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
 import STRKLogo from "@/assets/strkLogo";
-import logo from '../../../public/sniq.png'
+import logo from "../../../public/sniq.png";
+import Link from "next/link";
 const Navbar = ({ argentTma }: any) => {
   const { starknetkitConnectModal: starknetkitConnectModal1 } =
     useStarknetkitConnectModal({
@@ -49,48 +51,63 @@ const Navbar = ({ argentTma }: any) => {
       padding="0.5rem 2rem"
       alignItems="center"
     >
-      <Box color="#8aa2ff" fontWeight="bold" fontSize="24px" display="flex" alignItems="center">
-                              <Image
-                                src={logo}
-                                alt="trial"
-                                height={60}
-                                width={60}
-                              />
-        Sniq
+      <Box
+        color="#8aa2ff"
+        fontWeight="bold"
+        fontSize="24px"
+        display="flex"
+        alignItems="center"
+      >
+        <Image src={logo} alt="trial" height={60} width={60} />
+        SniQ
       </Box>
       {account ? (
-        <Box
-          padding="8px"
-          border="1px solid #374151"
-          borderRadius="6px"
-          color="#34D399"
-          display="flex"
-          gap="0.4rem"
-          alignItems="center"
-          cursor="pointer"
-          onClick={() => {
-            setwalletDropdownSelected(!walletDropdownSelected);
-          }}
-        >
-          <STRKLogo width={16} height={16} />
-          {`${account.address.substring(0, 5)}...${account?.address.substring(
-            account.address.length - 7,
-            account.address.length
-          )}`}
+        <Box display="flex" gap="1rem" alignItems="center">
+          <Box cursor="pointer">
+          <Link href="" target="_blank">
+              <TelegramIcon />
+            </Link>
+          </Box>
+          <Box
+            padding="8px"
+            border="1px solid #374151"
+            borderRadius="6px"
+            color="#34D399"
+            display="flex"
+            gap="0.4rem"
+            alignItems="center"
+            cursor="pointer"
+            onClick={() => {
+              setwalletDropdownSelected(!walletDropdownSelected);
+            }}
+          >
+            <STRKLogo width={16} height={16} />
+            {`${account.address.substring(0, 5)}...${account?.address.substring(
+              account.address.length - 7,
+              account.address.length
+            )}`}
+          </Box>
         </Box>
       ) : (
-        <Button
-          padding="8px 16px"
-          bg="#4F46E5"
-          color="white"
-          borderRadius="8px"
-          // disabled={!argentTma}
-          onClick={() => {
-            connectWallet();
-          }}
-        >
-          Connect Wallet
-        </Button>
+        <Box display="flex" gap="1rem" alignItems="center">
+          <Box cursor="pointer">
+            <Link href="" target="_blank">
+              <TelegramIcon />
+            </Link>
+          </Box>
+          <Button
+            padding="8px 16px"
+            bg="#4F46E5"
+            color="white"
+            borderRadius="8px"
+            // disabled={!argentTma}
+            onClick={() => {
+              connectWallet();
+            }}
+          >
+            Connect Wallet
+          </Button>
+        </Box>
       )}
       {walletDropdownSelected && (
         <Box

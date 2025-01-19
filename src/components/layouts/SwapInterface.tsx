@@ -64,6 +64,7 @@ const SwapInterface = ({
   const [currentBuyAmount, setcurrentBuyAmount] = useState<number>(0);
   const [buyvalueChanged, setbuyvalueChanged] = useState<boolean>(false);
   const [sellvalueChanged, setsellvalueChanged] = useState<boolean>(false);
+  const [convertedSellAmountChanged, setconvertedSellAmountChanged] = useState<boolean>(false)
   const [currentSellAmount, setcurrentSellAmount] = useState<number>(0);
   const [currentConvertedSellAmount, setcurrentConvertedSellAmount] =
     useState<number>(0);
@@ -297,6 +298,7 @@ const SwapInterface = ({
         allTokens
       );
       if (valueToken) {
+        setrefreshBuyData(true);
         setcurrentSelectedBuyToken(valueToken);
       }
     }
@@ -304,7 +306,9 @@ const SwapInterface = ({
 
   useEffect(()=>{
     if(router.query.amount){
+      setrefreshBuyData(true)
       setcurrentConvertedSellAmount(Number(router.query.amount))
+      setconvertedSellAmountChanged(!convertedSellAmountChanged)
     }
   },[router.query.amount])
 
@@ -325,19 +329,48 @@ const SwapInterface = ({
   }, []);
 
   useEffect(() => {
-    try {
-      const fetchData = async () => {
+    const fetchData = async () => {
+      try {
         const res = await axios.get(
           "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json"
         );
-        if (res) {
-          setcurrencies(res?.data?.usd);
+
+        if (res?.data?.usd) {
+          const fiatCurrencies = [
+            "aed", "afn", "all", "amd", "ang", "aoa", "ars", "aud", "awg", "bam",
+            "bbd", "bdt", "bgn", "bhd", "bif", "bmd", "bnd", "bob", "brl", "bsd",
+            "btn", "bwp", "byn", "bzd", "cad", "cdf", "chf", "clp", "cny", "cop",
+            "crc", "cup", "cve", "czk", "djf", "dkk", "dop", "dzd", "egp", "ern",
+            "etb", "eur", "fjd", "fkp", "fok", "gbp", "gel", "ghs", "gip", "gmd",
+            "gnf", "gtq", "gyd", "hkd", "hnl", "hrk", "htg", "huf", "idr", "ils",
+            "inr", "iqd", "irr", "isk", "jmd", "jod", "jpy", "kes", "kgs", "khr",
+            "kmf", "kpw", "krw", "kwd", "kyd", "kzt", "lak", "lbp", "lkr", "lrd",
+            "lsl", "lyd", "mad", "mdl", "mga", "mkd", "mmk", "mnt", "mop", "mru",
+            "mur", "mvr", "mwk", "mxn", "myr", "mzn", "nad", "ngn", "nio", "nok",
+            "npr", "nzd", "omr", "pab", "pen", "pgk", "php", "pkr", "pln", "pyg",
+            "qar", "ron", "rsd", "rub", "rwf", "sar", "sbd", "scr", "sdg", "sek",
+            "sgd", "shp", "sle", "sll", "sos", "srd", "ssp", "stn", "svc", "syp",
+            "szl", "thb", "tjs", "tmt", "tnd", "top", "try", "ttd", "tvd", "twd",
+            "tzs", "uah", "ugx", "usd", "uyu", "uzs", "ves", "vnd", "vuv", "wst",
+            "xaf", "xcd", "xof", "xpf", "yer", "zar", "zmw", "zwl"
+          ];
+
+          // Filter the API response to include only native fiat currencies
+          const filteredCurrencies = Object.keys(res.data.usd)
+            .filter((key) => fiatCurrencies.includes(key))
+            .reduce((obj:any, key:any) => {
+              obj[key] = res.data.usd[key];
+              return obj;
+            }, {});
+
+          setcurrencies(filteredCurrencies);
         }
-      };
-      fetchData();
-    } catch (error) {
-      console.log(error, "err in fetching currencies");
-    }
+      } catch (error) {
+        console.error("Error fetching currencies:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -421,7 +454,7 @@ const SwapInterface = ({
     ) {
       setrefreshBuyData(true);
     }
-  }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged]);
+  }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged,currentConvertedSellAmount]);
 
   useEffect(() => {
     let intervalId: any;
@@ -506,7 +539,7 @@ const SwapInterface = ({
     ) {
       fetchValue(); // Initial fetch
     }
-  }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged]);
+  }, [currentSelectedBuyToken, currentSelectedSellToken,currentSellAmount]);
 
   useEffect(() => {
     try {
@@ -578,7 +611,7 @@ const SwapInterface = ({
       };
       if (account) {
         if (
-          currentSelectedBuyToken.symbol !== "Select a token" ||
+          currentSelectedBuyToken.symbol !== "Select a token" &&
           currentSelectedSellToken.symbol !== "Select a token"
         ) {
           fetchDefaultfees();
@@ -590,7 +623,7 @@ const SwapInterface = ({
   }, [currentSelectedSellToken, currentSelectedBuyToken, account]);
   useEffect(() => {
     if (
-      currentSelectedBuyToken.symbol !== "Select a token" ||
+      currentSelectedBuyToken.symbol !== "Select a token" &&
       currentSelectedSellToken.symbol !== "Select a token"
     ) {
       const fetchExchangeRate = async () => {
@@ -669,17 +702,16 @@ const SwapInterface = ({
           currentSelectedCurrencyAmount /
           sellTokenPrice
       );
-      setsellvalueChanged(!sellvalueChanged);
+      // setsellvalueChanged(!sellvalueChanged);
     }
-  }, [currentConvertedSellAmount, currentSelectedCurrencyAmount]);
-
+  }, [convertedSellAmountChanged, currentSelectedCurrencyAmount]);
   useEffect(() => {
     if (sellTokenPrice) {
       setcurrentConvertedSellAmount(
         currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
       );
     }
-  }, [currentSellAmount]);
+  }, [sellvalueChanged,sellTokenPrice]);
 
   return (
     <Box
@@ -867,8 +899,11 @@ const SwapInterface = ({
                       cursor="pointer"
                       color="#4F46E5"
                       onClick={() => {
-                        setsellvalueChanged(!sellvalueChanged);
-                        setcurrentSellAmount(sellTokenBalance);
+                        if(currentSellAmount===sellTokenBalance){
+                        }else{
+                          setsellvalueChanged(!sellvalueChanged);
+                          setcurrentSellAmount(sellTokenBalance);
+                        }
                       }}
                     >
                       MAX
@@ -920,7 +955,8 @@ const SwapInterface = ({
                             : ""
                         }
                         onChange={(e) => {
-                          setsellvalueChanged(!sellvalueChanged);
+                          // setsellvalueChanged(!sellvalueChanged);
+                          setconvertedSellAmountChanged(!convertedSellAmountChanged)
                           setcurrentConvertedSellAmount(Number(e.target.value));
                         }}
                         type="number"
@@ -1091,7 +1127,7 @@ const SwapInterface = ({
                     >
                       <Text color="#9CA3AF">
                         1 {currentSelectedSellToken.symbol} ={" "}
-                        {formatNumberEs(exchangeRate as number)}{" "}
+                        {formatNumberEs(exchangeRate ?exchangeRate:0)}{" "}
                         {currentSelectedBuyToken.symbol} ($
                         {formatNumberEs(sellTokenPrice as number)})
                       </Text>
@@ -1519,6 +1555,7 @@ R
                           onClick={() => {
                             setcurrentCurrencySelected(token);
                             setcurrencyDropdownSelected(false);
+                            setSearchTerm("");
                             setcurrentSelectedCurrencyAmount(currencies[token]);
                           }}
                         >
