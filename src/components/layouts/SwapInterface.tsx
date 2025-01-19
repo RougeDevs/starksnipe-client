@@ -89,7 +89,7 @@ const SwapInterface = ({
     level: "Medium",
     value: "32%",
   });
-
+  const [firstPrefilledAmount, setfirstPrefilledAmount] = useState<boolean>(false)
   const [minReceived, setminReceived] = useState<any>(0);
   const [refereshData, setrefereshData] = useState<boolean>(false);
   const [refreshBuyData, setrefreshBuyData] = useState<boolean>(false);
@@ -309,6 +309,7 @@ const SwapInterface = ({
       setrefreshBuyData(true)
       setcurrentConvertedSellAmount(Number(router.query.amount))
       setconvertedSellAmountChanged(!convertedSellAmountChanged)
+      setfirstPrefilledAmount(true)
     }
   },[router.query.amount])
 
@@ -707,9 +708,15 @@ const SwapInterface = ({
   }, [convertedSellAmountChanged, currentSelectedCurrencyAmount]);
   useEffect(() => {
     if (sellTokenPrice) {
-      setcurrentConvertedSellAmount(
-        currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
-      );
+      if(router.query.amount && !firstPrefilledAmount){
+        setcurrentConvertedSellAmount(
+          currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
+        );
+      }else{
+        setcurrentConvertedSellAmount(
+          currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
+        );
+      }
     }
   }, [sellvalueChanged,sellTokenPrice]);
 
