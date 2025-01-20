@@ -64,7 +64,7 @@ const Navbar = ({ argentTma }: any) => {
       {account ? (
         <Box display="flex" gap="1rem" alignItems="center">
           <Box cursor="pointer">
-          <Link href="" target="_blank">
+          <Link href="http://t.me/STRKsnipeBot" target="_blank">
               <TelegramIcon />
             </Link>
           </Box>
@@ -91,7 +91,7 @@ const Navbar = ({ argentTma }: any) => {
       ) : (
         <Box display="flex" gap="1rem" alignItems="center">
           <Box cursor="pointer">
-            <Link href="" target="_blank">
+            <Link href="http://t.me/STRKsnipeBot" target="_blank">
               <TelegramIcon />
             </Link>
           </Box>
