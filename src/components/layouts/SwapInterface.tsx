@@ -455,7 +455,7 @@ const SwapInterface = ({
     ) {
       setrefreshBuyData(true);
     }
-  }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged,currentConvertedSellAmount]);
+  }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged,convertedSellAmountChanged]);
 
   useEffect(() => {
     let intervalId: any;
@@ -491,9 +491,10 @@ const SwapInterface = ({
               parseAmount(String(res?.total), currentSelectedBuyToken.decimals)
             );
             const res2 = getMinAmountOut(BigInt(res?.total), BigInt(1));
-            setminReceived(
-              parseAmount(String(res2), currentSelectedBuyToken.decimals)
-            );
+            // setminReceived(
+            //   parseAmount(String(res2), currentSelectedBuyToken.decimals)
+            // );
+            console.log(res2,res3,parseAmount(String(res?.total), currentSelectedBuyToken.decimals),'res2')
             const arr: any = res3;
             arr.push(
               {
