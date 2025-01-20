@@ -494,7 +494,6 @@ const SwapInterface = ({
             // setminReceived(
             //   parseAmount(String(res2), currentSelectedBuyToken.decimals)
             // );
-            console.log(res2,res3,parseAmount(String(res?.total), currentSelectedBuyToken.decimals),'res2')
             const arr: any = res3;
             arr.push(
               {
@@ -1670,6 +1669,7 @@ R
                         onClick={() => {
                           setbuyDropdownSelected(false);
                           setBuyToken(token);
+                          setSearchTerm("");
                           setcurrentSelectedBuyToken(token);
                         }}
                       >
