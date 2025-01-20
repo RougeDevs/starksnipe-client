@@ -1110,12 +1110,12 @@ const SwapInterface = ({
                   </Box>
                 </Box>
                 <Box display="flex" width="100%" justifyContent="space-between">
-                  <Text color="#9CA3AF">
-                    $
+                  {<Text color="#9CA3AF">
+                    {buyTokenPrice?"$":""}
                     {buyTokenPrice
                       ? formatNumberEs(buyTokenPrice * currentBuyAmount)
-                      : 0}
-                  </Text>
+                      : ""}
+                  </Text>}
                   <Box display="flex" gap="0.4rem">
                     <Text color="#9CA3AF">
                       balance: {formatNumberEs(buyTokenBalance)}
