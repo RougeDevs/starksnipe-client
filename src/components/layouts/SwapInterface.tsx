@@ -491,9 +491,9 @@ const SwapInterface = ({
               parseAmount(String(res?.total), currentSelectedBuyToken.decimals)
             );
             const res2 = getMinAmountOut(BigInt(res?.total), BigInt(1));
-            // setminReceived(
-            //   parseAmount(String(res2), currentSelectedBuyToken.decimals)
-            // );
+            setminReceived(
+              parseAmount(String(res2), currentSelectedBuyToken.decimals)
+            );
             const arr: any = res3;
             arr.push(
               {
