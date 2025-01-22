@@ -535,10 +535,13 @@ const SwapInterface = ({
 
     if (
       currentSelectedBuyToken.symbol !== "Select a token" &&
-      currentSelectedSellToken.symbol !== "Select a token" &&
-      currentSellAmount > 0
+      currentSelectedSellToken.symbol !== "Select a token" 
     ) {
-      fetchValue(); // Initial fetch
+      if(currentSellAmount > 0){
+        fetchValue(); // Initial fetch
+      }else{
+        setcurrentBuyAmount(0)
+      }
     }
   }, [currentSelectedBuyToken, currentSelectedSellToken,currentSellAmount]);
 
