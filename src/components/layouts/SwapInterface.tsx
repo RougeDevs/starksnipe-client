@@ -470,10 +470,17 @@ const SwapInterface = ({
               currentSelectedSellToken.decimals
             )
           ),
-          currentSelectedSellToken.symbol as TOKEN_SYMBOL,
-          currentSelectedBuyToken.symbol as TOKEN_SYMBOL
+          currentSelectedSellToken.l2_token_address,
+          currentSelectedBuyToken.l2_token_address
         );
         if (res) {
+          setcurrentBuyAmount(
+            parseAmount(res?.total_calculated, currentSelectedBuyToken.decimals)
+          );
+          const res2 = getMinAmountOut(BigInt(res?.total_calculated), BigInt(1));
+          setminReceived(
+            parseAmount(String(res2), currentSelectedBuyToken.decimals)
+          );
           const res3 = getSwapCalls(
             currentSelectedSellToken.l2_token_address,
             currentSelectedBuyToken.l2_token_address,
@@ -487,13 +494,6 @@ const SwapInterface = ({
             res
           );
           if (res3) {
-            setcurrentBuyAmount(
-              parseAmount(String(res?.total), currentSelectedBuyToken.decimals)
-            );
-            const res2 = getMinAmountOut(BigInt(res?.total), BigInt(1));
-            setminReceived(
-              parseAmount(String(res2), currentSelectedBuyToken.decimals)
-            );
             const arr: any = res3;
             arr.push(
               {
@@ -541,6 +541,7 @@ const SwapInterface = ({
       fetchValue(); // Initial fetch
     }
   }, [currentSelectedBuyToken, currentSelectedSellToken,currentSellAmount]);
+
   useEffect(() => {
     try {
       const fetchDefaultfees = async () => {
@@ -552,8 +553,8 @@ const SwapInterface = ({
               currentSelectedSellToken.decimals
             )
           ),
-          currentSelectedSellToken.symbol as TOKEN_SYMBOL,
-          currentSelectedBuyToken.symbol as TOKEN_SYMBOL
+          currentSelectedSellToken.l2_token_address,
+          currentSelectedBuyToken.l2_token_address
         );
         if (res) {
           const res3 = getSwapCalls(
@@ -620,7 +621,7 @@ const SwapInterface = ({
     } catch (error) {
       console.log(error, "err in fetching fees for deafult");
     }
-  }, [currentSelectedSellToken, currentSelectedBuyToken, sellTokenBalance]);
+  }, [currentSelectedSellToken, currentSelectedBuyToken, sellTokenBalance,account]);
   useEffect(() => {
     if (
       currentSelectedBuyToken.symbol !== "Select a token" &&
@@ -629,12 +630,12 @@ const SwapInterface = ({
       const fetchExchangeRate = async () => {
         const res = await fetchQuote(
           BigInt(etherToWeiBN(1, currentSelectedSellToken.decimals)),
-          currentSelectedSellToken.symbol as TOKEN_SYMBOL,
-          currentSelectedBuyToken.symbol as TOKEN_SYMBOL
+          currentSelectedSellToken.l2_token_address,
+          currentSelectedBuyToken.l2_token_address
         );
         if (res) {
           setexchangeRate(
-            parseAmount(String(res?.total), currentSelectedBuyToken.decimals)
+            parseAmount(String(res?.total_calculated), currentSelectedBuyToken.decimals)
           );
         }
       };
@@ -707,15 +708,11 @@ const SwapInterface = ({
   }, [convertedSellAmountChanged, currentSelectedCurrencyAmount]);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      if (sellTokenPrice &&firstAmountChanged) {
-        setcurrentConvertedSellAmount(
-          currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
-        );
-      }
-    }, 3000);
-
-    return () => clearTimeout(handler);
+    if (sellTokenPrice &&firstAmountChanged) {
+      setcurrentConvertedSellAmount(
+        currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
+      );
+    }
   }, [sellvalueChanged, sellTokenPrice]);
 
 
@@ -908,6 +905,7 @@ const SwapInterface = ({
                       onClick={() => {
                         if(currentSellAmount===sellTokenBalance){
                         }else{
+                          setfirstAmountChanged(true)
                           setsellvalueChanged(!sellvalueChanged);
                           setcurrentSellAmount(sellTokenBalance);
                         }
@@ -2628,5 +2626,7 @@ R
     </Box>
   );
 };
+
+
 
 export default SwapInterface;

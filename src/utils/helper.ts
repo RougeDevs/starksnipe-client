@@ -108,7 +108,8 @@ export const ekubo = (network: NetworkType = 'SEPOLIA') => {
   switch (network) {
     case 'MAINNET': return ({
       network: network,
-      api: process.env.NEXT_PUBLIC_MAINNET_EKUBO_QUOTE_API,
+      api: process.env.NEXT_PUBLIC_MAINNET_EKUBO_API,
+      qoute_api:process.env.NEXT_PUBLIC_MAINNET_EKUBO_QUOTE_API,
       router: new Contract(RouterABI, process.env.NEXT_PUBLIC_MAINNET_EKUBO_ROUTER_ADDRESS as string, account(network).provider),
     }) as EkuboConfig
     case 'SEPOLIA': return ({

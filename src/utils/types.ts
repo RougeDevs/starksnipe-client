@@ -82,8 +82,8 @@ export interface AccountConfig {
 }
 
 export interface EkuboQuoteApiSwap {
-    specifiedAmount: string;
-    amount: string;
+    amount_specified: string;
+    amount_calculated: string;
     route: {
         pool_key: {
             token0: string;
@@ -97,13 +97,14 @@ export interface EkuboQuoteApiSwap {
     }[];
 }
 export interface EkuboQuoteApiResponse {
-    total: string;
+    total_calculated: string;
     splits: EkuboQuoteApiSwap[];
 }
 
 export interface EkuboConfig {
     network: NetworkType,
     api: string,
+    qoute_api:string,
     router: Contract
 }
 

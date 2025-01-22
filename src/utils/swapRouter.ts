@@ -6,9 +6,9 @@ import { EkuboConfig, NetworkType, EkuboQuoteApiResponse, EkuboTokenData } from 
 
 let ekuboConfig: EkuboConfig = ekubo('MAINNET');
 
-export async function fetchQuote(amount: bigint, token0: TOKEN_SYMBOL, token1: TOKEN_SYMBOL): Promise<EkuboQuoteApiResponse | null> {
+export async function fetchQuote(amount: bigint, token0: string, token1: string): Promise<EkuboQuoteApiResponse | null> {
     const quote = await fetch(
-        `${ekuboConfig.api}/quote/${amount}/${token0}/${token1}`
+        `${ekuboConfig.qoute_api}/${amount}/${token0}/${token1}`
     );
     if (!quote.ok) {
         return null;
@@ -96,7 +96,7 @@ export function getSwapCalls(token0: string, token1: string, amount: bigint, sli
                             }
                         ).encoded,
                         token0,
-                        num.toHex(BigInt(split.specifiedAmount) < 0n ? -BigInt(split.specifiedAmount) : BigInt(split.specifiedAmount)),
+                        num.toHex(BigInt(split.amount_specified) < 0n ? -BigInt(split.amount_specified) : BigInt(split.amount_specified)),
                         "0x0",
                     ]);
                 }, [] as string[]),
@@ -104,7 +104,7 @@ export function getSwapCalls(token0: string, token1: string, amount: bigint, sli
         }
         )
 
-    calls.push(ekuboConfig.router.populate(Selector.CLEAR_MINIMUM, [{ contract_address: token1 }, getMinAmountOut(BigInt(quote.total), slippage)]))
+    calls.push(ekuboConfig.router.populate(Selector.CLEAR_MINIMUM, [{ contract_address: token1 }, getMinAmountOut(BigInt(quote.total_calculated), slippage)]))
     calls.push(ekuboConfig.router.populate(Selector.CLEAR, [{ contract_address: token0 }]))
 
     return calls;
