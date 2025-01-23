@@ -9,108 +9,10 @@ import { useSetAtom } from "jotai";
 import { argentSetupAtom } from "@/store/address.atom";
 import SwapInterface from "@/components/layouts/SwapInterface";
 import { Box } from "@chakra-ui/react";
+import axios from "axios";
+import { getAllTokens } from "@/utils/swapRouter";
 
-export default function Home() {
-  const [argentTMA, setArgentTMA] = useState<any>(null);
-  const [debugLog, setDebugLog] = useState<string>("Initializing...");
-  const setArgentSetup=useSetAtom<any>(argentSetupAtom)
-  // useEffect(() => {
-  //   // Dynamically import to ensure it runs only in the browser
-  //   import("@argent/tma-wallet")
-  //     .then(({ ArgentTMA }) => {
-  //       const tma = ArgentTMA.init({
-  //         environment: "sepolia", // Replace with "mainnet" if needed
-  //         appName: "starksnipe",
-  //         appTelegramUrl: "https://t.me/snipebot",
-  //         sessionParams: {
-  //           allowedMethods: [
-  //             {
-  //               contract:
-  //                 "0x036133c88c1954413150db74c26243e2af77170a4032934b275708d84ec5452f",
-  //               selector: "increment",
-  //             },
-  //             {
-  //               contract:
-  //                 "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-  //               selector: "approve",
-  //             },
-  //             {
-  //               contract:
-  //                 "0x5e8506f1754a634f3cf9391cfef47ff25293848c7677f2f9eec4f395798f7c3",
-  //               selector: "deposit",
-  //             },
-              
-  //             // {
-  //             //   contract:'0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
-  //             //   selector:'approve'
-  //             // }
-  //           ],
-  //           validityDays: 90,
-  //         },
-  //       });
-  //       setArgentSetup(tma)
-  //       setArgentTMA(tma);
-  //     })
-  //     .catch((err) => {
-  //       console.debug('error',err)
-  //       setDebugLog(`Error: ${err.message}`);
-  //       console.error("Failed to initialize ArgentTMA:", err);
-  //     });
-  // }, []);
-
-  const handleConnectButton = async () => {
-    await argentTMA.requestConnection("custom_callback_data");
-  };
-  const [account, setAccount] = useState<SessionAccountInterface | undefined>();
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  useEffect(() => {
-    // Call connect() as soon as the app is loaded
-    if(argentTMA){
-      argentTMA.connect()
-        .then((res: { account: any; callbackData?: any; }) => {
-          if (!res) {
-            // Not connected
-            setIsConnected(false);
-            return;
-          }
-          
-          const { account, callbackData } = res;
-  
-          if (account.getSessionStatus() !== "VALID") {
-            // Session has expired or scope (allowed methods) has changed
-            // A new connection request should be triggered
-  
-            // The account object is still available to get access to user's address
-            // but transactions can't be executed
-            const { account } = res;
-
-  
-            setAccount(account);
-            setIsConnected(false);
-            return;
-          }
-  
-          // The session account is returned and can be used to submit transactions
-          setAccount(account);
-          setIsConnected(true);
-          // Custom data passed to the requestConnection() method is available here
-          console.log("callback data:", callbackData);
-        })
-        .catch((err: any) => {
-          console.error("Failed to connect", err);
-        });
-    }
-  }, [argentTMA]);
-  const router=useRouter()
-
-  const sessionStatus = account?.getSessionStatus();
-// "VALID" | "EXPIRED" | "INVALID_SCOPE"
-
-  // const isConnected = argentTMA?.isConnected();
-  const handleClearSessionButton = async () => {
-    await argentTMA.clearSession();
-    setAccount(undefined);
-  };
+export default function Home({currencies,prices,allTokens}:any) {
 
   return (
     <>
@@ -118,14 +20,66 @@ export default function Home() {
         <title>SniQ | Memecoin Snipping</title>
       </Head>
       <Box>
-        <Navbar account={account} argentTma={argentTMA}/>
-        <SwapInterface account={account as any} argentTMA={argentTMA}/>
-        {/* <Button onClick={()=>{
-          handleClearSessionButton()
-        }}>
-          Clear
-        </Button> */}
+        <Navbar/>
+        <SwapInterface allTokens={allTokens} currencies={currencies} prices={prices}/>
       </Box>
     </>
   );
+}
+
+export async function getStaticProps() {
+  try {
+    const res = await axios.get(
+      "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json"
+    );
+
+    if (res?.data?.usd) {
+      const fiatCurrencies = [
+        "aed", "afn", "all", "amd", "ang", "aoa", "ars", "aud", "awg", "bam",
+        "bbd", "bdt", "bgn", "bhd", "bif", "bmd", "bnd", "bob", "brl", "bsd",
+        "btn", "bwp", "byn", "bzd", "cad", "cdf", "chf", "clp", "cny", "cop",
+        "crc", "cup", "cve", "czk", "djf", "dkk", "dop", "dzd", "egp", "ern",
+        "etb", "eur", "fjd", "fkp", "fok", "gbp", "gel", "ghs", "gip", "gmd",
+        "gnf", "gtq", "gyd", "hkd", "hnl", "hrk", "htg", "huf", "idr", "ils",
+        "inr", "iqd", "irr", "isk", "jmd", "jod", "jpy", "kes", "kgs", "khr",
+        "kmf", "kpw", "krw", "kwd", "kyd", "kzt", "lak", "lbp", "lkr", "lrd",
+        "lsl", "lyd", "mad", "mdl", "mga", "mkd", "mmk", "mnt", "mop", "mru",
+        "mur", "mvr", "mwk", "mxn", "myr", "mzn", "nad", "ngn", "nio", "nok",
+        "npr", "nzd", "omr", "pab", "pen", "pgk", "php", "pkr", "pln", "pyg",
+        "qar", "ron", "rsd", "rub", "rwf", "sar", "sbd", "scr", "sdg", "sek",
+        "sgd", "shp", "sle", "sll", "sos", "srd", "ssp", "stn", "svc", "syp",
+        "szl", "thb", "tjs", "tmt", "tnd", "top", "try", "ttd", "tvd", "twd",
+        "tzs", "uah", "ugx", "usd", "uyu", "uzs", "ves", "vnd", "vuv", "wst",
+        "xaf", "xcd", "xof", "xpf", "yer", "zar", "zmw", "zwl"
+      ];
+
+      const filteredCurrencies = Object.keys(res.data.usd)
+        .filter((key) => fiatCurrencies.includes(key))
+        .reduce((obj:any, key) => {
+          obj[key] = res.data.usd[key];
+          return obj;
+        }, {});
+
+        const res2 = await axios.get(
+          "https://starknet.api.avnu.fi/paymaster/v1/gas-token-prices"
+        );
+
+        const res3 = await getAllTokens();
+
+      return {
+        props: {
+          currencies:filteredCurrencies,
+          prices:res2?.data,
+          allTokens:res3
+        },
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return {
+      props: {
+        filteredCurrencies: null,
+      },
+    };
+  }
 }

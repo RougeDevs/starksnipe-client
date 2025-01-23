@@ -14,23 +14,14 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
 import invertIcon from "../../assets/buySellIcon.svg";
-import {
-  AccountInterface,
-  CallData,
-  TransactionType,
-} from "starknet";
-import SplashCursor from "../layouts/SplashCursor";
+import { AccountInterface, CallData, TransactionType } from "starknet";
 import InfoIcon from "@/assets/InfoIcon";
 import { getBalance } from "@/Blockchain/scripts/swapinteraction";
 import { useRouter } from "next/router";
 import { useAccount, useConnect } from "@starknet-react/core";
 import { fetchQuote, getAllTokens, getSwapCalls } from "@/utils/swapRouter";
-import { TOKEN_SYMBOL } from "@/utils/constants";
 import { getMinAmountOut, getParsedTokenData } from "@/utils/helper";
-import axios from "axios";
-import {
-  fetchAccountCompatibility,
-} from "@avnu/gasless-sdk";
+import { fetchAccountCompatibility } from "@avnu/gasless-sdk";
 import {
   etherToWeiBN,
   parseAmount,
@@ -42,12 +33,21 @@ import formatNumberEs from "@/functions/esnumberFormatter";
 import { toast } from "react-toastify";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
-
+import {
+  findTokenByAddress,
+  findTokenPrice,
+  getBalanceUserToken,
+  getFlagByCode,
+  getPriceInUSD,
+} from "@/functions/helpers";
 const SwapInterface = ({
-  argentTMA,
+  prices,
+  currencies,
+  allTokens,
 }: {
-  account: AccountInterface;
-  argentTMA: any;
+  prices: any;
+  currencies: any;
+  allTokens: any;
 }) => {
   const [buyDropdownSelected, setbuyDropdownSelected] =
     useState<boolean>(false);
@@ -55,8 +55,8 @@ const SwapInterface = ({
     useState<boolean>(false);
   const [currencyDropdownSelected, setcurrencyDropdownSelected] =
     useState(false);
-  const [showPriceDetails, setshowPriceDetails] = useState<boolean>(false);
-  const [firstAmountChanged, setfirstAmountChanged] = useState(false)
+  const [showPriceDetails, setshowPriceDetails] = useState<boolean>(true);
+  const [firstAmountChanged, setfirstAmountChanged] = useState(false);
   const [transactionStarted, settransactionStarted] = useState<boolean>(false);
   const setSellToken = useSetAtom(sellToken);
   const setBuyToken = useSetAtom(buyToken);
@@ -65,7 +65,8 @@ const SwapInterface = ({
   const [currentBuyAmount, setcurrentBuyAmount] = useState<number>(0);
   const [buyvalueChanged, setbuyvalueChanged] = useState<boolean>(false);
   const [sellvalueChanged, setsellvalueChanged] = useState<boolean>(false);
-  const [convertedSellAmountChanged, setconvertedSellAmountChanged] = useState<boolean>(false)
+  const [convertedSellAmountChanged, setconvertedSellAmountChanged] =
+    useState<boolean>(false);
   const [currentSellAmount, setcurrentSellAmount] = useState<number>(0);
   const [currentConvertedSellAmount, setcurrentConvertedSellAmount] =
     useState<number>(0);
@@ -75,7 +76,7 @@ const SwapInterface = ({
   const [firstReceivedToken, setfirstReceivedToken] = useState("");
   const { address, connector, account } = useAccount();
   const [calls, setcalls] = useState<any>();
-  const [prices, setprices] = useState<any>();
+  // const [prices, setprices] = useState<any>();
   const [sellTokenPrice, setsellTokenPrice] = useState<number | null>(null);
   const [buyTokenPrice, setbuyTokenPrice] = useState<number | null>(null);
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
@@ -90,24 +91,26 @@ const SwapInterface = ({
     level: "Medium",
     value: "32%",
   });
-  const [firstPrefilledAmount, setfirstPrefilledAmount] = useState<boolean>(false)
+  const [firstPrefilledAmount, setfirstPrefilledAmount] =
+    useState<boolean>(false);
   const [minReceived, setminReceived] = useState<any>(0);
   const [refereshData, setrefereshData] = useState<boolean>(false);
   const [refreshBuyData, setrefreshBuyData] = useState<boolean>(false);
   const [refereshSellData, setrefereshSellData] = useState<boolean>(false);
   const [userTokens, setuserTokens] = useState<any>();
   const [exchangeRate, setexchangeRate] = useState<number | null>(null);
-  const [currencies, setcurrencies] = useState<any>();
+  // const [currencies, setcurrencies] = useState<any>();
   const [currentCurrencySelected, setcurrentCurrencySelected] = useState("usd");
   const [defaultFees, setdefaultFees] = useState<number>(0);
-  const [transactionSuccessfull, settransactionSuccessfull] = useState<boolean>(false)
+  const [transactionSuccessfull, settransactionSuccessfull] =
+    useState<boolean>(false);
 
   const { starknetkitConnectModal: starknetkitConnectModal1 } =
-  useStarknetkitConnectModal({
-    modalMode: "canAsk",
-    modalTheme: "dark",
-    connectors: MYCONNECTORS,
-  });
+    useStarknetkitConnectModal({
+      modalMode: "canAsk",
+      modalTheme: "dark",
+      connectors: MYCONNECTORS,
+    });
   const { connect, connectors } = useConnect();
   const connectWallet = async () => {
     try {
@@ -132,48 +135,7 @@ const SwapInterface = ({
     decimals: 18,
     symbol: "Select a token",
   });
-  const [allTokens, setallTokens] = useState([
-    {
-      name: "ETH",
-      l2_token_address:
-        "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-      decimals: 18,
-      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "ETH",
-    },
-    {
-      name: "USDT",
-      l2_token_address:
-        "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8",
-      decimals: 6,
-      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "USDT",
-    },
-    {
-      name: "USDC",
-      l2_token_address:
-        "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
-      decimals: 6,
-      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "USDC",
-    },
-    {
-      name: "WBTC",
-      l2_token_address:
-        "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
-      decimals: 8,
-      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "WBTC",
-    },
-    {
-      name: "STRK",
-      l2_token_address:
-        "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      decimals: 18,
-      logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
-      symbol: "STRK",
-    },
-  ]);
+
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredTokens = allTokens.filter((token: any) => {
@@ -211,13 +173,7 @@ const SwapInterface = ({
         token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   });
-
-  const generateRandomGradient = () => {
-    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F5A623", "#FF00FF"];
-    const color1 = colors[Math.floor(Math.random() * colors.length)];
-    const color2 = colors[Math.floor(Math.random() * colors.length)];
-    return `linear-gradient(45deg, ${color1}, ${color2})`;
-  };
+  
   const handleTransaction = async () => {
     try {
       if (account) {
@@ -229,68 +185,33 @@ const SwapInterface = ({
             processAddress(currentSelectedSellToken.l2_token_address),
             calls
           );
-          if(result){
-            toast.success('Successfully swapped tokens',{
-              position:'bottom-right'
-            })
-            settransactionSuccessfull(true)
+          if (result) {
+            toast.success("Successfully swapped tokens", {
+              position: "bottom-right",
+            });
+            settransactionSuccessfull(true);
           }
-          console.log(result,'result')
+          console.log(result, "result");
         } else {
           const result = await account.execute(calls);
-          if(result){
-            toast.success('Successfully swapped tokens',{
-              position:'bottom-right'
-            })
-            settransactionSuccessfull(true)
+          if (result) {
+            toast.success("Successfully swapped tokens", {
+              position: "bottom-right",
+            });
+            settransactionSuccessfull(true);
           }
         }
         settransactionStarted(false);
         // alert(result);
       }
     } catch (error) {
-      toast.error('Something went wrong',{
-        position:'bottom-right'
-      })
+      toast.error("Something went wrong", {
+        position: "bottom-right",
+      });
       settransactionStarted(false);
       console.log(error, "err in call");
     }
   };
-
-  function getPriceInUSD(tokens: [], l2TokenAddress: string) {
-    const matchedToken: any = tokens.find(
-      (item: any) => item.tokenAddress === l2TokenAddress
-    );
-    return matchedToken ? matchedToken?.priceInUSD : null; // Return null if no match is found
-  }
-  function getBalanceUserToken(tokens: [], l2TokenAddress: string) {
-    const matchedToken: any = tokens.find(
-      (item: any) => item.l2_token_address === processAddress(l2TokenAddress)
-    );
-    return matchedToken
-      ? parseAmount(String(matchedToken?.balance), matchedToken?.decimals)
-      : 0; // Return null if no match is found
-  }
-  const findTokenPrice = (address: string) => {
-    const token = prices.find(
-      (token: { tokenAddress: string }) =>
-        processAddress(token.tokenAddress) === address
-    );
-    return token ? token.priceInUSD : null;
-  };
-
-  function findTokenByAddress(currentToken: string, tokens: any) {
-    let matchedToken = null;
-
-    for (let token of tokens) {
-      if (processAddress(token.l2_token_address) === currentToken) {
-        matchedToken = token;
-        break;
-      }
-    }
-
-    return matchedToken;
-  }
 
   useEffect(() => {
     if (allTokens && router.query.token) {
@@ -305,105 +226,32 @@ const SwapInterface = ({
     }
   }, [allTokens, router.query.token]);
 
-  useEffect(()=>{
-    if(router.query.amount){
-      setrefreshBuyData(true)
-      setcurrentConvertedSellAmount(Number(router.query.amount))
-      setconvertedSellAmountChanged(!convertedSellAmountChanged)
-    }
-  },[router.query.amount])
-
   useEffect(() => {
-    try {
-      const fetchPrices = async () => {
-        const res = await axios.get(
-          "https://starknet.api.avnu.fi/paymaster/v1/gas-token-prices"
-        );
-        if (res) {
-          setprices(res.data);
-        }
-      };
-      fetchPrices();
-    } catch (error) {
-      console.log(error, "err");
+    if (router.query.amount) {
+      setrefreshBuyData(true);
+      setcurrentConvertedSellAmount(Number(router.query.amount));
+      setconvertedSellAmountChanged(!convertedSellAmountChanged);
     }
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(
-          "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json"
-        );
-
-        if (res?.data?.usd) {
-          const fiatCurrencies = [
-            "aed", "afn", "all", "amd", "ang", "aoa", "ars", "aud", "awg", "bam",
-            "bbd", "bdt", "bgn", "bhd", "bif", "bmd", "bnd", "bob", "brl", "bsd",
-            "btn", "bwp", "byn", "bzd", "cad", "cdf", "chf", "clp", "cny", "cop",
-            "crc", "cup", "cve", "czk", "djf", "dkk", "dop", "dzd", "egp", "ern",
-            "etb", "eur", "fjd", "fkp", "fok", "gbp", "gel", "ghs", "gip", "gmd",
-            "gnf", "gtq", "gyd", "hkd", "hnl", "hrk", "htg", "huf", "idr", "ils",
-            "inr", "iqd", "irr", "isk", "jmd", "jod", "jpy", "kes", "kgs", "khr",
-            "kmf", "kpw", "krw", "kwd", "kyd", "kzt", "lak", "lbp", "lkr", "lrd",
-            "lsl", "lyd", "mad", "mdl", "mga", "mkd", "mmk", "mnt", "mop", "mru",
-            "mur", "mvr", "mwk", "mxn", "myr", "mzn", "nad", "ngn", "nio", "nok",
-            "npr", "nzd", "omr", "pab", "pen", "pgk", "php", "pkr", "pln", "pyg",
-            "qar", "ron", "rsd", "rub", "rwf", "sar", "sbd", "scr", "sdg", "sek",
-            "sgd", "shp", "sle", "sll", "sos", "srd", "ssp", "stn", "svc", "syp",
-            "szl", "thb", "tjs", "tmt", "tnd", "top", "try", "ttd", "tvd", "twd",
-            "tzs", "uah", "ugx", "usd", "uyu", "uzs", "ves", "vnd", "vuv", "wst",
-            "xaf", "xcd", "xof", "xpf", "yer", "zar", "zmw", "zwl"
-          ];
-
-          // Filter the API response to include only native fiat currencies
-          const filteredCurrencies = Object.keys(res.data.usd)
-            .filter((key) => fiatCurrencies.includes(key))
-            .reduce((obj:any, key:any) => {
-              obj[key] = res.data.usd[key];
-              return obj;
-            }, {});
-
-          setcurrencies(filteredCurrencies);
-        }
-      } catch (error) {
-        console.error("Error fetching currencies:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
+  }, [router.query.amount]);
 
   useEffect(() => {
     if (prices) {
       if (currentSelectedSellToken.symbol !== "Select a token") {
         const tokenPrice = findTokenPrice(
-          processAddress(currentSelectedSellToken.l2_token_address)
+          processAddress(currentSelectedSellToken.l2_token_address),
+          prices
         );
         setsellTokenPrice(tokenPrice);
       }
       if (currentSelectedBuyToken.symbol !== "Select a token") {
         const tokenPrice = findTokenPrice(
-          processAddress(currentSelectedBuyToken.l2_token_address)
+          processAddress(currentSelectedBuyToken.l2_token_address),
+          prices
         );
         setbuyTokenPrice(tokenPrice);
       }
     }
   }, [prices, currentSelectedBuyToken, currentSelectedSellToken]);
-
-  useEffect(() => {
-    try {
-      const fetchData = async () => {
-        const res = await getAllTokens();
-        if (res) {
-          setallTokens(res);
-        }
-      };
-      fetchData();
-    } catch (error) {
-      console.log(error, "err in fetching user balances");
-    }
-  }, []);
 
   useEffect(() => {
     if (account) {
@@ -421,33 +269,6 @@ const SwapInterface = ({
     }
   }, [account]);
 
-  // useEffect(()=>{
-  //   try {
-  //     const fetchData=async()=>{
-  //       const res=await getTokenData('0x03b405a98c9e795d427fe82cdeeeed803f221b52471e3a757574a2b4180793ee')
-  //       if(res){
-  //         console.log(res,'res')
-  //         const res2=await parseTokenData('0x03b405a98c9e795d427fe82cdeeeed803f221b52471e3a757574a2b4180793ee',res as any)
-  //         console.log(res2,'value checks')
-  //       }
-  //     }
-  //     fetchData()
-  //   } catch (error) {
-  //     console.log(error,'err')
-  //   }
-  // },[])
-
-  useEffect(() => {
-    // setrefereshData(true);
-    if (
-      currentSelectedSellToken.symbol !== "Select a token" &&
-      currentSellAmount > 0
-    ) {
-      // setrefereshSellData(true)
-      // setrefreshBuyData(true)
-    }
-  }, [currentSelectedBuyToken, currentSelectedSellToken, buyvalueChanged]);
-
   useEffect(() => {
     if (
       currentSelectedBuyToken.symbol !== "Select a token" &&
@@ -455,7 +276,12 @@ const SwapInterface = ({
     ) {
       setrefreshBuyData(true);
     }
-  }, [currentSelectedBuyToken, currentSelectedSellToken, sellvalueChanged,convertedSellAmountChanged]);
+  }, [
+    currentSelectedBuyToken,
+    currentSelectedSellToken,
+    sellvalueChanged,
+    convertedSellAmountChanged,
+  ]);
 
   useEffect(() => {
     let intervalId: any;
@@ -466,7 +292,7 @@ const SwapInterface = ({
         const res = await fetchQuote(
           BigInt(
             etherToWeiBN(
-              currentSellAmount - (protocolFees + (5*defaultFees)),
+              currentSellAmount - (protocolFees + 5 * defaultFees),
               currentSelectedSellToken.decimals
             )
           ),
@@ -477,7 +303,10 @@ const SwapInterface = ({
           setcurrentBuyAmount(
             parseAmount(res?.total_calculated, currentSelectedBuyToken.decimals)
           );
-          const res2 = getMinAmountOut(BigInt(res?.total_calculated), BigInt(1));
+          const res2 = getMinAmountOut(
+            BigInt(res?.total_calculated),
+            BigInt(1)
+          );
           setminReceived(
             parseAmount(String(res2), currentSelectedBuyToken.decimals)
           );
@@ -486,7 +315,7 @@ const SwapInterface = ({
             currentSelectedBuyToken.l2_token_address,
             BigInt(
               etherToWeiBN(
-                currentSellAmount - (protocolFees + (5*defaultFees)),
+                currentSellAmount - (protocolFees + 5 * defaultFees),
                 currentSelectedSellToken.decimals
               )
             ),
@@ -535,20 +364,20 @@ const SwapInterface = ({
 
     if (
       currentSelectedBuyToken.symbol !== "Select a token" &&
-      currentSelectedSellToken.symbol !== "Select a token" 
+      currentSelectedSellToken.symbol !== "Select a token"
     ) {
-      if(currentSellAmount > 0){
+      if (currentSellAmount > 0) {
         fetchValue(); // Initial fetch
-      }else{
-        setcurrentBuyAmount(0)
+      } else {
+        setcurrentBuyAmount(0);
       }
     }
-  }, [currentSelectedBuyToken, currentSelectedSellToken,currentSellAmount]);
+  }, [currentSelectedBuyToken, currentSelectedSellToken, currentSellAmount]);
 
   useEffect(() => {
     try {
       const fetchDefaultfees = async () => {
-        const protocolFees=sellTokenBalance / 1000
+        const protocolFees = sellTokenBalance / 1000;
         const res = await fetchQuote(
           BigInt(
             etherToWeiBN(
@@ -573,31 +402,33 @@ const SwapInterface = ({
             res
           );
           if (res3) {
-            res3.push({
-              contractAddress: currentSelectedSellToken.l2_token_address,
-              entrypoint: "approve",
-              calldata: [
-                "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-                etherToWeiBN(
-                  protocolFees,
-                  currentSelectedSellToken.decimals
-                ).toString(),
-                "0",
-              ],
-            },
-            {
-              contractAddress:
-                "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-              entrypoint: "collectFees",
-              calldata: CallData.compile([
-                currentSelectedSellToken.l2_token_address,
-                etherToWeiBN(
-                  sellTokenBalance,
-                  currentSelectedSellToken.decimals
-                ).toString(),
-                "0",
-              ]),
-            })
+            res3.push(
+              {
+                contractAddress: currentSelectedSellToken.l2_token_address,
+                entrypoint: "approve",
+                calldata: [
+                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                  etherToWeiBN(
+                    protocolFees,
+                    currentSelectedSellToken.decimals
+                  ).toString(),
+                  "0",
+                ],
+              },
+              {
+                contractAddress:
+                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                entrypoint: "collectFees",
+                calldata: CallData.compile([
+                  currentSelectedSellToken.l2_token_address,
+                  etherToWeiBN(
+                    sellTokenBalance,
+                    currentSelectedSellToken.decimals
+                  ).toString(),
+                  "0",
+                ]),
+              }
+            );
             const estimated_gas_fee = await getEstimatedGasFees(
               "MAINNET",
               processAddress(account?.address as string),
@@ -616,7 +447,8 @@ const SwapInterface = ({
       if (account) {
         if (
           currentSelectedBuyToken.symbol !== "Select a token" &&
-          currentSelectedSellToken.symbol !== "Select a token" &&sellTokenBalance
+          currentSelectedSellToken.symbol !== "Select a token" &&
+          sellTokenBalance
         ) {
           fetchDefaultfees();
         }
@@ -624,7 +456,13 @@ const SwapInterface = ({
     } catch (error) {
       console.log(error, "err in fetching fees for deafult");
     }
-  }, [currentSelectedSellToken, currentSelectedBuyToken, sellTokenBalance,account]);
+  }, [
+    currentSelectedSellToken,
+    currentSelectedBuyToken,
+    sellTokenBalance,
+    account,
+  ]);
+
   useEffect(() => {
     if (
       currentSelectedBuyToken.symbol !== "Select a token" &&
@@ -638,38 +476,16 @@ const SwapInterface = ({
         );
         if (res) {
           setexchangeRate(
-            parseAmount(String(res?.total_calculated), currentSelectedBuyToken.decimals)
+            parseAmount(
+              String(res?.total_calculated),
+              currentSelectedBuyToken.decimals
+            )
           );
         }
       };
       fetchExchangeRate();
     }
   }, [currentSelectedBuyToken, currentSelectedSellToken]);
-
-  // useEffect(() => {
-  //   if (typeof window !== "undefined" && router.query.token) {
-  //     const token = router.query.token;
-  //     if (token) {
-  //       localStorage.setItem("token", token as string);
-  //     }
-  //   }
-  // }, [router.query]);
-
-  // useEffect(() => {
-  //   try {
-  //     if (typeof window !== "undefined") {
-  //       const persistedToken = localStorage.getItem("token");
-  //       if (persistedToken) {
-  //         setfirstReceivedToken(persistedToken);
-  //         console.log("Persisted token retrieved:", persistedToken);
-  //       } else {
-  //         // alert('No token found in localStorage.');
-  //       }
-  //     }
-  //   } catch (error) {
-  //     alert("Error accessing localStorage:");
-  //   }
-  // }, []); // Run once on mount
 
   useEffect(() => {
     if (currentSelectedSellToken.symbol !== "Select a token") {
@@ -696,7 +512,12 @@ const SwapInterface = ({
         fetchBalance();
       }
     }
-  }, [currentSelectedSellToken, account,transactionSuccessfull,currentSelectedBuyToken]);
+  }, [
+    currentSelectedSellToken,
+    account,
+    transactionSuccessfull,
+    currentSelectedBuyToken,
+  ]);
 
   useEffect(() => {
     if (sellTokenPrice) {
@@ -711,13 +532,12 @@ const SwapInterface = ({
   }, [convertedSellAmountChanged, currentSelectedCurrencyAmount]);
 
   useEffect(() => {
-    if (sellTokenPrice &&firstAmountChanged) {
+    if (sellTokenPrice && firstAmountChanged) {
       setcurrentConvertedSellAmount(
         currentSellAmount * sellTokenPrice * currentSelectedCurrencyAmount
       );
     }
   }, [sellvalueChanged, sellTokenPrice]);
-
 
   return (
     <Box
@@ -833,7 +653,7 @@ const SwapInterface = ({
                         }}
                         value={currentSellAmount ? currentSellAmount : ""}
                         onChange={(e) => {
-                          setfirstAmountChanged(true)
+                          setfirstAmountChanged(true);
                           setsellvalueChanged(!sellvalueChanged);
                           setcurrentSellAmount(Number(e.target.value));
                         }}
@@ -904,11 +724,11 @@ const SwapInterface = ({
                     </Text>
                     <Box
                       cursor="pointer"
-                      color="#4F46E5"
+                      color="#3c31ff"
                       onClick={() => {
-                        if(currentSellAmount===sellTokenBalance){
-                        }else{
-                          setfirstAmountChanged(true)
+                        if (currentSellAmount === sellTokenBalance) {
+                        } else {
+                          setfirstAmountChanged(true);
                           setsellvalueChanged(!sellvalueChanged);
                           setcurrentSellAmount(sellTokenBalance);
                         }
@@ -964,8 +784,10 @@ const SwapInterface = ({
                         }
                         onChange={(e) => {
                           // setsellvalueChanged(!sellvalueChanged);
-                          setfirstAmountChanged(true)
-                          setconvertedSellAmountChanged(!convertedSellAmountChanged)
+                          setfirstAmountChanged(true);
+                          setconvertedSellAmountChanged(
+                            !convertedSellAmountChanged
+                          );
                           setcurrentConvertedSellAmount(Number(e.target.value));
                         }}
                         type="number"
@@ -997,9 +819,20 @@ const SwapInterface = ({
                     <Box
                       height="20px"
                       width="20px"
-                      bg={generateRandomGradient()}
+                      // bg={generateRandomGradient()}
                       borderRadius="200px"
-                    ></Box>
+                    >
+                      <Image
+                        src={
+                          getFlagByCode(
+                            String(currentCurrencySelected).toUpperCase()
+                          ) as string
+                        }
+                        alt="Country Flag"
+                        height={100}
+                        width={100}
+                      />
+                    </Box>
                     <Text textTransform="uppercase">
                       {currentCurrencySelected}
                     </Text>
@@ -1111,12 +944,14 @@ const SwapInterface = ({
                   </Box>
                 </Box>
                 <Box display="flex" width="100%" justifyContent="space-between">
-                  {<Text color="#9CA3AF">
-                    {buyTokenPrice?"$":""}
-                    {buyTokenPrice
-                      ? formatNumberEs(buyTokenPrice * currentBuyAmount)
-                      : ""}
-                  </Text>}
+                  {
+                    <Text color="#9CA3AF">
+                      {buyTokenPrice ? "$" : ""}
+                      {buyTokenPrice
+                        ? formatNumberEs(buyTokenPrice * currentBuyAmount)
+                        : ""}
+                    </Text>
+                  }
                   <Box display="flex" gap="0.4rem">
                     <Text color="#9CA3AF">
                       balance: {formatNumberEs(buyTokenBalance)}
@@ -1136,7 +971,7 @@ const SwapInterface = ({
                     >
                       <Text color="#9CA3AF">
                         1 {currentSelectedSellToken.symbol} ={" "}
-                        {formatNumberEs(exchangeRate ?exchangeRate:0)}{" "}
+                        {formatNumberEs(exchangeRate ? exchangeRate : 0)}{" "}
                         {currentSelectedBuyToken.symbol} ($
                         {formatNumberEs(sellTokenPrice as number)})
                       </Text>
@@ -1300,17 +1135,19 @@ R
                   transactionStarted ||
                   refereshSellData ||
                   refreshBuyData ||
-                  (sellTokenBalance!==0? currentSellAmount > sellTokenBalance:false)
+                  (sellTokenBalance !== 0
+                    ? currentSellAmount > sellTokenBalance
+                    : false)
                 }
-                onClick={() => {            
+                onClick={() => {
                   if (!transactionStarted) {
                     if (account) {
                       settransactionStarted(true);
-                      settransactionSuccessfull(false)
+                      settransactionSuccessfull(false);
                       handleTransaction();
                     } else {
-                      settransactionSuccessfull(false)
-                      connectWallet()
+                      settransactionSuccessfull(false);
+                      connectWallet();
                       // handleConnectButton();
                     }
                   }
@@ -1570,11 +1407,22 @@ R
                         >
                           <Box display="flex" alignItems="center" gap="0.8rem">
                             <Box
-                              height="14px"
-                              width="14px"
-                              bg={generateRandomGradient()}
+                              height="16px"
+                              width="16px"
+                              // bg={generateRandomGradient()}
                               borderRadius="200px"
-                            ></Box>
+                            >
+                              <Image
+                                src={
+                                  getFlagByCode(
+                                    String(token).toUpperCase()
+                                  ) as string
+                                }
+                                alt="Country Flag"
+                                height={100}
+                                width={100}
+                              />
+                            </Box>
                             <Box>
                               <Text
                                 textTransform="uppercase"
@@ -1832,7 +1680,7 @@ R
                     </Text>
                     <Box
                       cursor="pointer"
-                      color="#4F46E5"
+                      color="#3c31ff"
                       onClick={() => {
                         setsellvalueChanged(!sellvalueChanged);
                         setcurrentSellAmount(sellTokenBalance);
@@ -2149,15 +1997,15 @@ R
                   refreshBuyData ||
                   currentSellAmount > sellTokenBalance
                 }
-                onClick={() => {           
+                onClick={() => {
                   if (!transactionStarted) {
                     if (account) {
                       settransactionStarted(true);
-                      settransactionSuccessfull(false)
+                      settransactionSuccessfull(false);
                       handleTransaction();
                     } else {
-                      settransactionSuccessfull(false)
-                      connectWallet()
+                      settransactionSuccessfull(false);
+                      connectWallet();
                       // handleConnectButton();
                     }
                   }
@@ -2622,14 +2470,11 @@ R
                 </Box>
               </Box>
             )}
-            {/* <Text>{firstReceivedToken}</Text> */}
           </Tabs.Content>
         </Tabs.Root>
       </Box>
     </Box>
   );
 };
-
-
 
 export default SwapInterface;
