@@ -11,9 +11,10 @@ import SwapInterface from "@/components/layouts/SwapInterface";
 import { Box } from "@chakra-ui/react";
 import axios from "axios";
 import { getAllTokens } from "@/utils/swapRouter";
+import TokenDashboard from "@/components/layouts/TokenDashboard";
+import Footer from "@/components/layouts/Footer";
 
 export default function Home({currencies,prices,allTokens}:any) {
-
   return (
     <>
       <Head>
@@ -21,13 +22,14 @@ export default function Home({currencies,prices,allTokens}:any) {
       </Head>
       <Box>
         <Navbar/>
-        <SwapInterface allTokens={allTokens} currencies={currencies} prices={prices}/>
+        <TokenDashboard/>
+        <Footer/>
       </Box>
     </>
   );
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
   try {
     const res = await axios.get(
       "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json"
