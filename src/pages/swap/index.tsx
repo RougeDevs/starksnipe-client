@@ -1,3 +1,4 @@
+import ParticleBackground from "@/components/animatedComponents/Particlebackground";
 import Footer from "@/components/layouts/Footer";
 import Navbar from "@/components/layouts/Navbar";
 import SwapDashboard from "@/components/layouts/SwapDashboard";
@@ -14,6 +15,7 @@ const Index = ({ currencies, prices, allTokens }: any) => {
         <title>SniQ | Memecoin Snipping</title>
       </Head>
       <Navbar />
+      <ParticleBackground/>
       <SwapDashboard
         allTokens={allTokens}
         currencies={currencies}

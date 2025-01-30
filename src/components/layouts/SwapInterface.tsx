@@ -650,7 +650,7 @@ const SwapInterface = ({
               // gap="0.3rem"
               borderRadius="8px"
               border="1px solid #374151"
-              bg="rgba(31, 41, 55, 0.5)"
+              bg="rgb(30 32 37)"
             >
               <Box
                 display="flex"
@@ -1072,7 +1072,9 @@ const SwapInterface = ({
                 mb="2rem"
                 padding="1rem"
                 color="white"
-                background="linear-gradient( to right,  #7E22CE, #2563EB)"
+                bg={tabContent==='Buy'? "#26513a":"#542226"}
+                _hover={tabContent==='Buy'?{  bg: "#377554" }:{bg:'#6e2c31'}}
+                border={tabContent==='Buy'?"1px solid rgb(69 156 110/1)":'1px solid #8a363c'}
                 disabled={
                   currentBuyAmount === 0 ||
                   currentSellAmount === 0 ||

@@ -1,3 +1,4 @@
+import ParticleBackground from '@/components/animatedComponents/Particlebackground'
 import Footer from '@/components/layouts/Footer'
 import MemeCoinDashboard from '@/components/layouts/MemeCoinDashboard'
 import Navbar from '@/components/layouts/Navbar'
@@ -16,6 +17,7 @@ const Index = ({currencies,prices,allTokens}:any) => {
         <title>SniQ | Memecoin Snipping</title>
       </Head>
         <Navbar/>
+        <ParticleBackground/>
         <MemeCoinDashboard  allTokens={allTokens}
         currencies={currencies}
         prices={prices}/>

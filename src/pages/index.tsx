@@ -13,6 +13,7 @@ import axios from "axios";
 import { getAllTokens } from "@/utils/swapRouter";
 import TokenDashboard from "@/components/layouts/TokenDashboard";
 import Footer from "@/components/layouts/Footer";
+import ParticleBackground from "@/components/animatedComponents/Particlebackground";
 
 export default function Home({currencies,prices,allTokens}:any) {
   return (
@@ -22,6 +23,7 @@ export default function Home({currencies,prices,allTokens}:any) {
       </Head>
       <Box>
         <Navbar/>
+        <ParticleBackground/>
         <TokenDashboard/>
         <Footer/>
       </Box>

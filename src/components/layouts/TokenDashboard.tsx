@@ -48,18 +48,18 @@ const TokenDashboard = () => {
         </Box>
         <SimpleGrid columns={{ sm: 1, md: 2, lg: 3 }} rowGap="10">
           {/* Reduced horizontal spacing with spacingX */}
-          {filteredTokens.slice(startRange, endRange).map((token, index) => (
+          {filteredTokens.slice(startRange, endRange).map((token, index:number) => (
             <Box
               key={index}
               cursor="pointer"
               bg="rgb(16 16 20)"
               padding="2rem 1rem"
               //   height="160px"
-              width={{ sm: "100%", md: "85%" }} // Reduced width for closer columns
+              width={{ sm: "90%", md: "85%" }} // Reduced width for closer columns
               gap="0.5rem"
               border="1px solid rgb(30 32 37)"
               borderRadius="8px"
-              _hover={{ animation: "pulse" }}
+              _hover={{ animation: "bounce",animationDuration:'slower' }}
               position="relative"
               display="flex"
               flexDirection="column"
@@ -81,10 +81,10 @@ const TokenDashboard = () => {
                   />
                 </Box>
                 <Box display="flex" flexDir="column">
-                  <Box fontSize="18px" color="#C9D3EE">
+                  <Box fontSize={"18px"} color="#C9D3EE">
                     {token.symbol}
                   </Box>
-                  <Box color="rgb(63, 224, 178)" whiteSpace="nowrap">
+                  <Box color="#61DC9B" whiteSpace="nowrap">
                     Market Cap: $34000
                   </Box>
                   <Box color="grey">{token.symbol}</Box>

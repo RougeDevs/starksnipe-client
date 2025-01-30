@@ -13,87 +13,88 @@ import { holder, transaction } from "@/interfaces/interface";
 import Link from "next/link";
 const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
   const router = useRouter();
-  const transactions:transaction[]=[
+  const transactions: transaction[] = [
     {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  },
-  {
-    Date:'25th Dec',
-    type:'buy',
-    amount:690,
-    user:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-    tx:'link'
-  }
-]
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+    {
+      Date: "25th Dec",
+      type: "buy",
+      amount: 690,
+      user: "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      tx: "link",
+    },
+  ];
 
-  const holders:holder[]=[
+  const holders: holder[] = [
     {
-      rank:1,
-      address:'0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4',
-      amount:900,
-      percentage:8
-    }
-  ]
+      rank: 1,
+      address:
+        "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
+      amount: 900,
+      percentage: 8,
+    },
+  ];
   return (
     <Box
       pt="6rem"
@@ -115,7 +116,7 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
       >
         <Box
           width={{ sm: "100%", md: "70%" }}
-          border="1px solid black"
+          border="1px solid #374151"
           borderRadius="8px"
           padding="1rem"
           display="flex"
@@ -123,7 +124,12 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
         >
           <Box>
             <Box display="flex" gap="0.5rem">
-              <Image src="https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/e5aaa970-a998-47e8-bd43-4a3b56b87200/logo" alt="" height={30} width={30} />
+              <Image
+                src="https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/e5aaa970-a998-47e8-bd43-4a3b56b87200/logo"
+                alt=""
+                height={30}
+                width={30}
+              />
               <Text fontSize="24px">Symbol</Text>
             </Box>
             <Box
@@ -151,26 +157,38 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                   bg={generateRandomGradient()}
                   borderRadius="200px"
                 ></Box>
-                {router.query?.address &&<Text textDecoration="underline" cursor="pointer">
-                  <Link href="">
-                    {String(router.query?.address)?.substring(0, 5)}...
-                    {String(router.query?.address)?.substring(
-                      router.query?.address.length - 5,
-                      router.query?.address.length
-                    )}
-                  </Link>
-                  </Text>}
+                {router.query?.address && (
+                  <Text textDecoration="underline" cursor="pointer">
+                    <Link href="">
+                      {String(router.query?.address)?.substring(0, 5)}...
+                      {String(router.query?.address)?.substring(
+                        router.query?.address.length - 5,
+                        router.query?.address.length
+                      )}
+                    </Link>
+                  </Text>
+                )}
               </Box>
               <Box>Created on 24th Dec</Box>
             </Box>
           </Box>
           <Tabs.Root defaultValue="transactions" mt="1rem">
             <Tabs.List rounded="13" gap="1rem">
-              <Tabs.Trigger value="transactions">
-              <MdAttachMoney/>
+              <Tabs.Trigger
+                value="transactions"
+                _selected={{
+                  color: "#61DC9B",
+                }}
+              >
+                <MdAttachMoney />
                 Transactions
               </Tabs.Trigger>
-              <Tabs.Trigger value="holders">
+              <Tabs.Trigger
+                value="holders"
+                _selected={{
+                  color: "#61DC9B",
+                }}
+              >
                 <LuUser />
                 Holders
               </Tabs.Trigger>
@@ -185,7 +203,7 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
         </Box>
         <Box
           width={{ sm: "100%", md: "30%" }}
-          border="1px solid black"
+          border="1px solid #374151"
           borderRadius="8px"
           padding="1rem"
         >

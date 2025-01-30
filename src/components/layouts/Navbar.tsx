@@ -1,15 +1,9 @@
 import { Box, Button, SimpleGrid, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
 import Image from "next/image";
+import { GiHamburgerMenu } from "react-icons/gi";
 import { FaGasPump } from "react-icons/fa";
-import {
-  useAccount,
-  useConnect,
-  useDisconnect,
-  useWaitForTransaction,
-} from "@starknet-react/core";
-import TelegramIcon from "@/assets/icons/telegramIcon";
-import { uint256 } from "starknet";
+import { useAccount, useConnect, useDisconnect } from "@starknet-react/core";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
 import STRKLogo from "@/assets/strkLogo";
@@ -23,7 +17,20 @@ import { Switch } from "../ui/switch";
 import { swapTokens } from "@/constants";
 import { processAddress } from "@/Blockchain/utils/utils";
 import ShinyText from "../animatedComponents/ShinnyText";
+import {
+  DrawerActionTrigger,
+  DrawerBackdrop,
+  DrawerBody,
+  DrawerCloseTrigger,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerRoot,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 const Navbar = () => {
+  const [open, setOpen] = useState(false);
   const router = useRouter();
   const { starknetkitConnectModal: starknetkitConnectModal1 } =
     useStarknetkitConnectModal({
@@ -35,10 +42,11 @@ const Navbar = () => {
   const { connect, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
   const gasMode = useAtomValue(gasLessMode);
-  const gaslessTokenAddress=useAtomValue(gasToken)
-  const setGaslessToken=useSetAtom(gasToken)
+  const gaslessTokenAddress = useAtomValue(gasToken);
+  const setGaslessToken = useSetAtom(gasToken);
   const setgaseMode = useSetAtom(gasLessMode);
-  const [gaslessdropdownSelected, setgaslessdropdownSelected] = useState<boolean>(false);
+  const [gaslessdropdownSelected, setgaslessdropdownSelected] =
+    useState<boolean>(false);
   const [walletDropdownSelected, setwalletDropdownSelected] =
     useState<boolean>(false);
   const connectWallet = async () => {
@@ -81,15 +89,16 @@ const Navbar = () => {
           }}
         >
           <Image src={logo} alt="trial" height={60} width={60} />
-          <ShinyText text="SniQ"/>
+          <ShinyText text="SniQ" />
         </Box>
         <Box display="flex" alignItems="center" gap="1.5rem">
           <Text
             color={router.pathname === "/" ? "rgb(33, 219, 166)" : "#9CA3AF"}
-            _hover={{color:'white'}}
-            fontSize={'20px'}
-            fontWeight={router.pathname==='/'?700:400}
-            display="flex"
+            _hover={{ color: "white" }}
+            fontSize={"20px"}
+            fontWeight={router.pathname === "/" ? 700 : 400}
+            display={"flex"}
+            hideBelow="md"
             alignItems="center"
             cursor="pointer"
             onClick={() => {
@@ -99,11 +108,14 @@ const Navbar = () => {
             Home
           </Text>
           <Text
-            color={router.pathname === "/swap" ? "rgb(33, 219, 166)" : "#9CA3AF"}
-            _hover={{color:'white'}}
-            fontWeight={router.pathname==='/swap'?700:400}
+            color={
+              router.pathname === "/swap" ? "rgb(33, 219, 166)" : "#9CA3AF"
+            }
+            _hover={{ color: "white" }}
+            fontWeight={router.pathname === "/swap" ? 700 : 400}
             fontSize="20px"
             display="flex"
+            hideBelow="md"
             alignItems="center"
             cursor="pointer"
             onClick={() => {
@@ -121,8 +133,10 @@ const Navbar = () => {
             padding="8px 16px"
             display="flex"
             gap="0.5rem"
-            border="1px solid grey"
-            _hover={{bg:'grey'}}
+            bg="#1E2025"
+            hideBelow="md"
+            border="1px solid transparent"
+            _hover={{ border: "1px solid #244f38" }}
             // bg="grey"
             borderRadius="8px"
             onClick={() => {
@@ -135,11 +149,12 @@ const Navbar = () => {
           </Box>
           <Box
             padding="8px"
-            border="1px solid #374151"
+            border="1px solid rgb(69 156 110/1)"
             borderRadius="6px"
             color="#34D399"
             display="flex"
             gap="0.4rem"
+            _hover={{bg:'#377554',color:'white'}}
             alignItems="center"
             cursor="pointer"
             onClick={() => {
@@ -152,6 +167,86 @@ const Navbar = () => {
               account.address.length
             )}`}
           </Box>
+          <DrawerRoot
+            size="sm"
+            open={open}
+            onOpenChange={(e) => setOpen(e.open)}
+          >
+            <DrawerBackdrop />
+            <DrawerTrigger asChild>
+              <Box hideFrom="lg" border="1px solid #374151" padding="12px" borderRadius="8px">
+                <GiHamburgerMenu />
+              </Box>
+            </DrawerTrigger>
+            <DrawerContent padding="1rem">
+              <DrawerHeader>
+                <DrawerTitle>SniQ</DrawerTitle>
+              </DrawerHeader>
+              <DrawerBody
+                display="flex"
+                width="100%"
+                mt="2rem"
+                justifyContent="center"
+                // alignItems="center"
+              >
+                <Box display="flex" flexDir="column" gap="1rem" width="100%">
+                  <Box
+                    border="1px solid grey"
+                    borderRadius="8px"
+                    padding="8px 16px"
+                    width="100%"
+                    cursor="pointer"
+                    textAlign="center"
+                    onClick={()=>{
+                      router.push('/')
+                      setOpen(false)
+                    }}
+                  >
+                    Home
+                  </Box>
+                  <Box
+                    border="1px solid grey"
+                    borderRadius="8px"
+                    padding="8px 16px"
+                    cursor="pointer"
+                    width="100%"
+                    textAlign="center"
+                    onClick={()=>{
+                      router.push('/swap')
+                      setOpen(false)
+                    }}
+                  >
+                    Swap
+                  </Box>
+                  <Box
+                    cursor="pointer"
+                    width="100%"
+                    textAlign="center"
+                    padding="8px 16px"
+                    display="flex"
+                    justifyContent="center"
+                    border="1px solid grey"
+                    _hover={{ bg: "grey" }}
+                    // bg="grey"
+                    borderRadius="8px"
+                    onClick={() => {
+                      setgaslessdropdownSelected(!gaslessdropdownSelected);
+                      setwalletDropdownSelected(false);
+                      setOpen(false);
+                    }}
+                  >
+                    <FaGasPump />
+                  </Box>
+                </Box>
+              </DrawerBody>
+              <DrawerFooter>
+                <DrawerActionTrigger asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DrawerActionTrigger>
+              </DrawerFooter>
+              <DrawerCloseTrigger />
+            </DrawerContent>
+          </DrawerRoot>
         </Box>
       ) : (
         <Box display="flex" gap="1rem" alignItems="center">
@@ -160,8 +255,11 @@ const Navbar = () => {
             padding="8px 16px"
             display="flex"
             gap="0.5rem"
-            border="1px solid grey"
-            _hover={{bg:'rgb(63, 224, 178)'}}
+            // border="1px solid grey"
+            bg="#1E2025"
+            hideBelow="md"
+            border="1px solid transparent"
+            _hover={{ border: "1px solid #244f38" }}
             // bg="grey"
             borderRadius="8px"
             onClick={() => {
@@ -174,7 +272,9 @@ const Navbar = () => {
           </Box>
           <Button
             padding="8px 16px"
-            bg="#4F46E5"
+            bg="#26513a"
+            border="1px solid rgb(69 156 110/1)"
+            _hover={{ bg: "#377554" }}
             color="white"
             borderRadius="8px"
             // disabled={!argentTma}
@@ -184,6 +284,86 @@ const Navbar = () => {
           >
             Connect Wallet
           </Button>
+          <DrawerRoot
+            size="sm"
+            open={open}
+            onOpenChange={(e) => setOpen(e.open)}
+          >
+            <DrawerBackdrop />
+            <DrawerTrigger asChild>
+              <Box hideFrom="lg" border="1px solid #374151" padding="12px" borderRadius="8px">
+                <GiHamburgerMenu />
+              </Box>
+            </DrawerTrigger>
+            <DrawerContent padding="1rem">
+              <DrawerHeader>
+                <DrawerTitle>SniQ</DrawerTitle>
+              </DrawerHeader>
+              <DrawerBody
+                display="flex"
+                width="100%"
+                mt="2rem"
+                justifyContent="center"
+                // alignItems="center"
+              >
+                <Box display="flex" flexDir="column" gap="1rem" width="100%">
+                  <Box
+                    border="1px solid grey"
+                    borderRadius="8px"
+                    padding="8px 16px"
+                    width="100%"
+                    cursor="pointer"
+                    textAlign="center"
+                    onClick={()=>{
+                      router.push('/')
+                      setOpen(false)
+                    }}
+                  >
+                    Home
+                  </Box>
+                  <Box
+                    border="1px solid grey"
+                    borderRadius="8px"
+                    padding="8px 16px"
+                    cursor="pointer"
+                    width="100%"
+                    textAlign="center"
+                    onClick={()=>{
+                      router.push('/swap')
+                      setOpen(false)
+                    }}
+                  >
+                    Swap
+                  </Box>
+                  <Box
+                    cursor="pointer"
+                    width="100%"
+                    textAlign="center"
+                    padding="8px 16px"
+                    display="flex"
+                    justifyContent="center"
+                    border="1px solid grey"
+                    _hover={{ bg: "grey" }}
+                    // bg="grey"
+                    borderRadius="8px"
+                    onClick={() => {
+                      setgaslessdropdownSelected(!gaslessdropdownSelected);
+                      setwalletDropdownSelected(false);
+                      setOpen(false);
+                    }}
+                  >
+                    <FaGasPump />
+                  </Box>
+                </Box>
+              </DrawerBody>
+              <DrawerFooter>
+                <DrawerActionTrigger asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DrawerActionTrigger>
+              </DrawerFooter>
+              <DrawerCloseTrigger />
+            </DrawerContent>
+          </DrawerRoot>
         </Box>
       )}
       {walletDropdownSelected && (
@@ -226,7 +406,9 @@ const Navbar = () => {
           pb="2rem"
         >
           <Box mt="1rem">
-            <Text>SniQ Paymaster</Text>
+            <Text fontSize="18px" fontWeight="500">
+              SniQ Paymaster
+            </Text>
           </Box>
           <Box mt="1rem">
             <Switch
@@ -234,6 +416,7 @@ const Navbar = () => {
               onCheckedChange={(e) => {
                 setgaseMode(e?.checked);
               }}
+              colorPalette="green"
             >
               Go Gasless
             </Switch>
@@ -243,18 +426,23 @@ const Navbar = () => {
               <Box
                 display="flex"
                 mb="0.5rem"
-                opacity={gasMode?"100%":"50%"}
-                _hover={{bg:'grey'}}
+                opacity={gasMode ? "100%" : "50%"}
+                _hover={{ bg: "rgb(30 32 37)" }}
                 borderRadius="8px"
                 justifyContent="space-between"
                 key={index}
                 padding="1rem"
-                cursor={gasMode? "pointer":"disabled"}
-                border={processAddress(gaslessTokenAddress)===processAddress(token.tokenAddress)?"1px solid blue": "1px solid grey"}
-                onClick={()=>{
-                  if(gasMode){
-                    setGaslessToken(token.tokenAddress)
-                    setgaslessdropdownSelected(false)
+                cursor={gasMode ? "pointer" : "disabled"}
+                border={
+                  processAddress(gaslessTokenAddress) ===
+                  processAddress(token.tokenAddress)
+                    ? "1px solid #244f38"
+                    : "1px solid rgb(30 32 37)"
+                }
+                onClick={() => {
+                  if (gasMode) {
+                    setGaslessToken(token.tokenAddress);
+                    setgaslessdropdownSelected(false);
                   }
                 }}
               >
