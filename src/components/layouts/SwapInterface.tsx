@@ -580,13 +580,13 @@ const SwapInterface = ({
       >
         {/* <SplashCursor/> */}
         <Tabs.Root variant="plain" lazyMount unmountOnExit defaultValue="Buy" >
-          <Tabs.List width="100%" bg="black"  rounded="l3" gap="1rem" padding="8px">
+          <Tabs.List width="100%" bg="#0D0D10"  rounded="l3" gap="1rem" padding="8px">
             <Tabs.Trigger
               py="1"
               width="50%"
               px="5"
               textAlign="center"
-              color="#459c6e"
+              color="white"
               fontSize="sm"
               display="flex"
               alignItems="center"
@@ -599,6 +599,7 @@ const SwapInterface = ({
                 bg: "#459c6e",
                 border: "none",
               }}
+              _hover={tabContent==='Sell'?{bg:'#353942'}:{}}
               onClick={() => {
                 setcurrentBuyAmount(0);
                 setcurrentSellAmount(0);
@@ -617,8 +618,9 @@ const SwapInterface = ({
               alignItems="center"
               justifyContent="center"
               width="50%"
-              color="#676D9A"
+              color="white"
               fontSize="sm"
+              _hover={tabContent==='Buy'?{bg:'#353942'}:{}}
               // border="1px solid var(--stroke-of-30, rgba(103, 109, 154, 0.30))"
               borderRadius="md"
               fontWeight="normal"
@@ -650,7 +652,7 @@ const SwapInterface = ({
               // gap="0.3rem"
               borderRadius="8px"
               border="1px solid #374151"
-              bg="rgb(30 32 37)"
+              bg="#0D0D10"
             >
               <Box
                 display="flex"
@@ -726,7 +728,7 @@ const SwapInterface = ({
                     )}
                   </Box>
                   <Box
-                    bg="#374151"
+                    bg="#1E2025"
                     cursor="pointer"
                     padding="8px"
                     display="flex"
@@ -742,12 +744,16 @@ const SwapInterface = ({
                     }}
                   >
                     {currentSelectedSellToken.logo_url ? (
-                      <Image
-                        src={currentSelectedSellToken.logo_url}
-                        alt="trial"
-                        height={20}
-                        width={20}
-                      />
+                      <Box  
+                      height="20px"
+                      width="20px">
+                        <Image
+                          src={currentSelectedSellToken.logo_url}
+                          alt="trial"
+                          height={20}
+                          width={20}
+                        />
+                      </Box>
                     ) : (
                       <Box
                         borderRadius="full"
@@ -832,7 +838,7 @@ const SwapInterface = ({
                     )}
                   </Box>
                   <Box
-                    bg="#374151"
+                    bg="#1E2025"
                     cursor="pointer"
                     padding="8px"
                     display="flex"
@@ -936,7 +942,7 @@ const SwapInterface = ({
                     )}
                   </Box>
                   <Box
-                    bg="#374151"
+                    bg="#1E2025"
                     cursor="pointer"
                     padding="8px"
                     display="flex"
@@ -952,12 +958,14 @@ const SwapInterface = ({
                     }}
                   >
                     {currentSelectedBuyToken?.logo_url ? (
-                      <Image
-                        src={currentSelectedBuyToken.logo_url}
-                        alt="trial"
-                        height={20}
-                        width={20}
-                      />
+                      <Box height="20px" width="20px">
+                        <Image
+                          src={currentSelectedBuyToken.logo_url}
+                          alt="trial"
+                          height={20}
+                          width={20}
+                        />
+                      </Box>
                     ) : (
                       <Box
                         borderRadius="full"
@@ -1000,7 +1008,7 @@ const SwapInterface = ({
                       justifyContent="space-between"
                       padding="0px 16px"
                     >
-                      <Text color="#9CA3AF">
+                      <Text color={tabContent==='Buy'? "#459C6E":'#A13C45'} fontSize={{lg:'14px',md:'14px',xl:'16px'}}>
                         1 {currentSelectedSellToken.symbol} ={" "}
                         {formatNumberEs(exchangeRate ? exchangeRate : 0)}{" "}
                         {currentSelectedBuyToken.symbol} ($

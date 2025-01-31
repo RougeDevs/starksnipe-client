@@ -73,7 +73,7 @@ const Navbar = () => {
       position="fixed"
       bg="black"
       zIndex="100"
-      padding="0.5rem 2rem"
+      padding={{base:'0.5rem 1rem',md:"0.5rem 2rem"}}
       alignItems="center"
     >
       <Box display="flex" alignItems="center" gap="3rem">
@@ -180,7 +180,7 @@ const Navbar = () => {
             </DrawerTrigger>
             <DrawerContent padding="1rem">
               <DrawerHeader>
-                <DrawerTitle>SniQ</DrawerTitle>
+                <DrawerTitle><ShinyText text="SniQ" /></DrawerTitle>
               </DrawerHeader>
               <DrawerBody
                 display="flex"
@@ -297,7 +297,7 @@ const Navbar = () => {
             </DrawerTrigger>
             <DrawerContent padding="1rem">
               <DrawerHeader>
-                <DrawerTitle>SniQ</DrawerTitle>
+                <DrawerTitle><ShinyText text="SniQ" /></DrawerTitle>
               </DrawerHeader>
               <DrawerBody
                 display="flex"

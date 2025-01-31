@@ -101,21 +101,21 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
       width="100%"
       display="flex"
       alignItems="center"
-      paddingLeft="3rem"
-      paddingRight="3rem"
+      paddingLeft={{ base: "1rem", lg: "3rem" }}
+      paddingRight={{ base: "1rem", lg: "3rem" }}
     >
       <Box
         display="flex"
-        flexDirection={{ sm: "column", md: "row" }}
+        flexDirection={{ base: "column", lg: "row" }}
         gap="1rem"
         width="100%"
         bg="rgb(16 16 20)"
         marginBottom="5rem"
-        padding="2rem"
+        padding={{ base: "1rem", lg: "2rem" }}
         borderRadius="8px"
       >
         <Box
-          width={{ sm: "100%", md: "70%" }}
+          width={{ sm: "100%", lg: "70%" }}
           border="1px solid #374151"
           borderRadius="8px"
           padding="1rem"
@@ -136,10 +136,12 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
               width="100%"
               justifyContent="space-between"
               display="flex"
+              flexWrap="wrap"
+              gap="1rem"
               mt="1rem"
             >
               {router.query.address && (
-                <Box>
+                <Box color="#98989B">
                   {String(router.query?.address)?.substring(0, 5)}...
                   {String(router.query?.address)?.substring(
                     router.query?.address.length - 5,
@@ -147,9 +149,11 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                   )}
                 </Box>
               )}
-              <Box>Market Cap: $4500</Box>
+              <Box color="#459C6E" display="flex" gap="0.2rem">
+                <Text color="#98989B">Market Cap:</Text>$4500
+              </Box>
               <Box display="flex" alignItems="center" gap="0.4rem">
-                <Text>Deployed By</Text>
+                <Text color="#98989B">Deployed By</Text>
                 <Box
                   height="16px"
                   width="16px"
@@ -169,7 +173,12 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                   </Text>
                 )}
               </Box>
-              <Box>Created on 24th Dec</Box>
+              <Box display="flex" gap="0.2rem">
+                <Text color="#98989B">
+                  Created on 
+                </Text>
+                24th Dec
+              </Box>
             </Box>
           </Box>
           <Tabs.Root defaultValue="transactions" mt="1rem">
@@ -202,7 +211,7 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
           </Tabs.Root>
         </Box>
         <Box
-          width={{ sm: "100%", md: "30%" }}
+          width={{ sm: "100%", lg: "30%" }}
           border="1px solid #374151"
           borderRadius="8px"
           padding="1rem"
