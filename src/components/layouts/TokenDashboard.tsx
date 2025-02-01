@@ -35,7 +35,7 @@ const TokenDashboard = () => {
   const count = filteredTokens.length
   return (
     <Box display="flex" width="100%" justifyContent="center" pt="6rem">
-      <Box width={{ sm: "100%", base: "75%", md: "80%" }} padding="1rem">
+      <Box width={{ sm: "100%", base: "100%", md: "100%" }} padding={{sm:"1rem 4rem",base:'1rem'}}>
         <Box width="95%" bg="grey" borderRadius="8px" mb="2rem">
           <Input
             _selected={{ border: "1px solid blue" }}
@@ -46,16 +46,16 @@ const TokenDashboard = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </Box>
-        <SimpleGrid columns={{ sm: 1, md: 2, lg: 3 }} rowGap="10">
+        <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} rowGap="10" >
           {/* Reduced horizontal spacing with spacingX */}
           {filteredTokens.slice(startRange, endRange).map((token, index:number) => (
             <Box
               key={index}
               cursor="pointer"
               bg="rgb(16 16 20)"
-              padding="2rem 1rem"
+              padding="2rem 0rem"
               //   height="160px"
-              width={{ sm: "90%", md: "85%" }} // Reduced width for closer columns
+              width={{ base: "90%", md: "90%" }} // Reduced width for closer columns
               gap="0.5rem"
               border="1px solid rgb(30 32 37)"
               borderRadius="8px"
@@ -70,8 +70,8 @@ const TokenDashboard = () => {
                 router.push(`/coin/${token.l2_token_address}`);
               }}
             >
-              <Box display="flex" gap="1rem" alignItems="center">
-                <Box>
+              <Box display="flex" gap={{base:'1rem',lg:'1.5rem'}} justifyContent="space-between" alignItems="space-between">
+                <Box height="100px" width="100px">
                   <Image
                     src={token.logo_url}
                     alt=""

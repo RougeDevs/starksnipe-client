@@ -495,7 +495,7 @@ const SwapDashboard = ({
         flexDirection="column"
         padding="1rem"
         borderRadius="6px"
-        width={{ sm: "80%", md: "30%" }}
+        width="30rem"
       >
         {/* <SplashCursor/> */}
         <Box
@@ -511,7 +511,7 @@ const SwapDashboard = ({
             flexDir="column"
             gap="0.5rem"
             border="1px solid #374151"
-            bg="rgba(31, 41, 55, 0.5)"
+            bg="#0D0D10"
             borderRadius="12px"
             padding="1rem"
           >
@@ -555,7 +555,7 @@ const SwapDashboard = ({
                 )}
               </Box>
               <Box
-                bg="#374151"
+                  bg="#1E2025"
                 cursor="pointer"
                 padding="8px"
                 display="flex"
@@ -569,12 +569,14 @@ const SwapDashboard = ({
                 }}
               >
                 {currentSelectedSellToken.logo_url ? (
-                  <Image
-                    src={currentSelectedSellToken.logo_url}
-                    alt="trial"
-                    height={20}
-                    width={20}
-                  />
+                  <Box height="20px" width="20px">
+                    <Image
+                      src={currentSelectedSellToken.logo_url}
+                      alt="trial"
+                      height={20}
+                      width={20}
+                    />
+                  </Box>
                 ) : (
                   <Box
                     borderRadius="full"
@@ -652,7 +654,7 @@ const SwapDashboard = ({
             flexDir="column"
             gap="0.5rem"
             border="1px solid #374151"
-            bg="rgba(31, 41, 55, 0.5)"
+            bg="#0D0D10"
             borderRadius="12px"
             padding="1rem"
           >
@@ -692,7 +694,7 @@ const SwapDashboard = ({
                 )}
               </Box>
               <Box
-                bg="#374151"
+                  bg="#1E2025"
                 cursor="pointer"
                 padding="8px"
                 display="flex"
@@ -706,12 +708,14 @@ const SwapDashboard = ({
                 }}
               >
                 {currentSelectedBuyToken?.logo_url ? (
-                  <Image
-                    src={currentSelectedBuyToken.logo_url}
-                    alt="trial"
-                    height={20}
-                    width={20}
-                  />
+                  <Box height="20px" width='20px'>
+                    <Image
+                      src={currentSelectedBuyToken.logo_url}
+                      alt="trial"
+                      height={20}
+                      width={20}
+                    />
+                  </Box>
                 ) : (
                   <Box
                     borderRadius="full"
@@ -758,7 +762,7 @@ const SwapDashboard = ({
                   mt="1rem"
                   padding="0px 8px"
                 >
-                  <Text color="#9CA3AF">
+                  <Text color="#459C6E">
                     1 {currentSelectedSellToken.symbol} ={" "}
                     {formatNumberEs(exchangeRate as number)}{" "}
                     {currentSelectedBuyToken.symbol} ($
@@ -828,81 +832,6 @@ const SwapDashboard = ({
                         <Text color="#9CA3AF">0.1%</Text>
                       </Box>
                     </Box>
-                    {/* <Box
-                      width="100%"
-                      display="flex"
-                      justifyContent="space-between"
-                      padding="0px 8px"
-                    >
-                      <Box display="flex" gap="0.4rem" alignItems="center">
-                        <Text color="#9CA3AF">Price Impact</Text>
-                        <InfoIcon/>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap="0.4rem">
-                        <Text color="#9CA3AF">High</Text>
-                      </Box>
-                    </Box> */}
-                    {/* <Box
-                      width="100%"
-                      display="flex"
-                      justifyContent="space-between"
-                      padding="0px 0px 0px 8px"
-                      alignItems="center"
-                    >
-                      <Box display="flex" gap="0.4rem" alignItems="center">
-                        <Text color="#9CA3AF">Slippage tolerance</Text>
-                        <InfoIcon/>
-                      </Box>
-                      <Box
-                        display="flex"
-                        alignItems="center"
-                        gap="0.4rem"
-                        padding="8px"
-                        border="1px solid grey"
-                        borderRadius="8px"
-                        cursor="pointer"
-                        position="relative"
-                        onClick={() =>
-                          setslippageDetailsCheck(!slippageDetailsCheck)
-                        }
-                        color="#9CA3AF"
-                      >
-                        <Text>{selectedSlippage.level}</Text>
-                        <Text>{selectedSlippage.value}</Text>
-R
-                        {slippageDetailsCheck && (
-                          <Box
-                            position="absolute"
-                            top="100%"
-                            left="0"
-                            bg="black"
-                            border="1px solid grey"
-                            borderRadius="8px"
-                            padding="4px"
-                            mt="0.5rem"
-                            boxShadow="md"
-                            zIndex="10"
-                            width="120px"
-                          >
-                            {slippageOptions.map((option, index) => (
-                              <Box
-                                key={index}
-                                padding="8px"
-                                cursor="pointer"
-                                display="flex"
-                                width="100%"
-                                justifyContent="space-between"
-                                _hover={{ backgroundColor: "gray.200" }}
-                                onClick={() => handleSelect(option)}
-                              >
-                                <Text>{option.level}</Text>
-                                <Text>{option.value}</Text>
-                              </Box>
-                            ))}
-                          </Box>
-                        )}
-                      </Box>
-                    </Box> */}
                   </Box>
                 )}
               </Box>
@@ -912,7 +841,9 @@ R
             mt="1rem"
             padding="1rem"
             color="white"
-            background="linear-gradient( to right,  #7E22CE, #2563EB)"
+            background="#26513a"
+            _hover={{bg:'#377554'}}
+            border="1px solid rgb(69 156 110/1)"
             disabled={
               currentBuyAmount === 0 ||
               currentSellAmount === 0 ||
@@ -960,7 +891,7 @@ R
             width={{ base: "70vw", md: "50vw", lg: "30vw" }}
             // overflow="auto"
             height="500px"
-            mt="9rem"
+            mt="13rem"
             display="flex"
             padding="1rem"
             borderRadius="8px"
@@ -1178,7 +1109,7 @@ R
             width={{ base: "70vw", md: "50vw", lg: "30vw" }}
             // overflow="auto"
             height="500px"
-            mt="9rem"
+            mt="13rem"
             display="flex"
             padding="1rem"
             borderRadius="8px"
