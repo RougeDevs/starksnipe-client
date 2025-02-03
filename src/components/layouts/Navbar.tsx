@@ -29,6 +29,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import StarBorder from "../animatedComponents/StarBorder";
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -73,7 +74,7 @@ const Navbar = () => {
       position="fixed"
       bg="black"
       zIndex="100"
-      padding={{base:'0.5rem 1rem',md:"0.5rem 2rem"}}
+      padding={{ base: "0.5rem 1rem", md: "0.5rem 2rem" }}
       alignItems="center"
     >
       <Box display="flex" alignItems="center" gap="3rem">
@@ -154,7 +155,7 @@ const Navbar = () => {
             color="#34D399"
             display="flex"
             gap="0.4rem"
-            _hover={{bg:'#377554',color:'white'}}
+            _hover={{ bg: "#377554", color: "white" }}
             alignItems="center"
             cursor="pointer"
             onClick={() => {
@@ -174,13 +175,20 @@ const Navbar = () => {
           >
             <DrawerBackdrop />
             <DrawerTrigger asChild>
-              <Box hideFrom="lg" border="1px solid #374151" padding="12px" borderRadius="8px">
+              <Box
+                hideFrom="lg"
+                border="1px solid #374151"
+                padding="12px"
+                borderRadius="8px"
+              >
                 <GiHamburgerMenu />
               </Box>
             </DrawerTrigger>
             <DrawerContent padding="1rem">
               <DrawerHeader>
-                <DrawerTitle><ShinyText text="SniQ" /></DrawerTitle>
+                <DrawerTitle>
+                  <ShinyText text="SniQ" />
+                </DrawerTitle>
               </DrawerHeader>
               <DrawerBody
                 display="flex"
@@ -197,9 +205,9 @@ const Navbar = () => {
                     width="100%"
                     cursor="pointer"
                     textAlign="center"
-                    onClick={()=>{
-                      router.push('/')
-                      setOpen(false)
+                    onClick={() => {
+                      router.push("/");
+                      setOpen(false);
                     }}
                   >
                     Home
@@ -211,9 +219,9 @@ const Navbar = () => {
                     cursor="pointer"
                     width="100%"
                     textAlign="center"
-                    onClick={()=>{
-                      router.push('/swap')
-                      setOpen(false)
+                    onClick={() => {
+                      router.push("/swap");
+                      setOpen(false);
                     }}
                   >
                     Swap
@@ -270,20 +278,17 @@ const Navbar = () => {
             <FaGasPump />
             <DropdownUp />
           </Box>
-          <Button
-            padding="8px 16px"
-            bg="#26513a"
-            border="1px solid rgb(69 156 110/1)"
-            _hover={{ bg: "#377554" }}
-            color="white"
-            borderRadius="8px"
-            // disabled={!argentTma}
+          <StarBorder
+            as="button"
+            className="custom-class"
+            color="cyan"
+            speed="6s"
             onClick={() => {
               connectWallet();
             }}
           >
             Connect Wallet
-          </Button>
+          </StarBorder>
           <DrawerRoot
             size="sm"
             open={open}
@@ -291,13 +296,20 @@ const Navbar = () => {
           >
             <DrawerBackdrop />
             <DrawerTrigger asChild>
-              <Box hideFrom="lg" border="1px solid #374151" padding="12px" borderRadius="8px">
+              <Box
+                hideFrom="lg"
+                border="1px solid #374151"
+                padding="12px"
+                borderRadius="8px"
+              >
                 <GiHamburgerMenu />
               </Box>
             </DrawerTrigger>
             <DrawerContent padding="1rem">
               <DrawerHeader>
-                <DrawerTitle><ShinyText text="SniQ" /></DrawerTitle>
+                <DrawerTitle>
+                  <ShinyText text="SniQ" />
+                </DrawerTitle>
               </DrawerHeader>
               <DrawerBody
                 display="flex"
@@ -314,9 +326,9 @@ const Navbar = () => {
                     width="100%"
                     cursor="pointer"
                     textAlign="center"
-                    onClick={()=>{
-                      router.push('/')
-                      setOpen(false)
+                    onClick={() => {
+                      router.push("/");
+                      setOpen(false);
                     }}
                   >
                     Home
@@ -328,9 +340,9 @@ const Navbar = () => {
                     cursor="pointer"
                     width="100%"
                     textAlign="center"
-                    onClick={()=>{
-                      router.push('/swap')
-                      setOpen(false)
+                    onClick={() => {
+                      router.push("/swap");
+                      setOpen(false);
                     }}
                   >
                     Swap
