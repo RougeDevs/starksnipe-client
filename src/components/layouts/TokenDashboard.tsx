@@ -1,6 +1,6 @@
 import { Box, Button, HStack, Input, SimpleGrid, Text } from "@chakra-ui/react";
-import React, { useState } from "react";
 import Image from "next/image";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { generateRandomGradient } from "@/functions/helpers";
 import {
@@ -36,7 +36,7 @@ const TokenDashboard = () => {
   return (
     <Box display="flex" width="100%" justifyContent="center" pt="6rem">
       <Box width={{ sm: "100%", base: "100%", md: "100%" }} padding={{sm:"1rem 4rem",base:'1rem'}}>
-        <Box width="95%" bg="grey" borderRadius="8px" mb="2rem">
+        <Box width={{base:'100%',sm:'95%'}} bg="grey" borderRadius="8px" mb="2rem">
           <Input
             _selected={{ border: "1px solid blue" }}
             bg="#101010"
@@ -46,7 +46,7 @@ const TokenDashboard = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </Box>
-        <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} rowGap="10" >
+        <SimpleGrid alignItems='center' columns={{ sm: 1, md: 2, xl: 3 }} rowGap="10" >
           {/* Reduced horizontal spacing with spacingX */}
           {filteredTokens.slice(startRange, endRange).map((token, index:number) => (
             <Box
@@ -55,7 +55,7 @@ const TokenDashboard = () => {
               bg="rgb(16 16 20)"
               padding="2rem 0rem"
               //   height="160px"
-              width={{ base: "90%", md: "90%" }} // Reduced width for closer columns
+              width={{ base: "100%",sm:'90%', md: "90%" }} // Reduced width for closer columns
               gap="0.5rem"
               border="1px solid rgb(30 32 37)"
               borderRadius="8px"
@@ -70,8 +70,8 @@ const TokenDashboard = () => {
                 router.push(`/coin/${token.l2_token_address}`);
               }}
             >
-              <Box display="flex" gap={{base:'1rem',lg:'1.5rem'}} justifyContent="space-between" alignItems="space-between">
-                <Box height="100px" width="100px">
+              <Box display="flex" gap={{base:'1rem',lg:'1.5rem'}}  alignItems="center">
+                <Box height={{base:'90px',sm:'90px',mdToLg:'90px',lg:'100px'}} width={{base:'90px',sm:'90px',mdToLg:'90px',lg:'100px'}}>
                   <Image
                     src={token.logo_url}
                     alt=""
@@ -81,7 +81,7 @@ const TokenDashboard = () => {
                   />
                 </Box>
                 <Box display="flex" flexDir="column">
-                  <Box fontSize={"18px"} color="#C9D3EE">
+                  <Box fontSize={{base:'16px',md:'18px'}} color="#C9D3EE">
                     {token.symbol}
                   </Box>
                   <Box color="#61DC9B" whiteSpace="nowrap">
@@ -95,7 +95,7 @@ const TokenDashboard = () => {
                     gap="0.4rem"
                     color="#C9D3EE"
                   >
-                    <Text>Deployed by</Text>
+                    <Text whiteSpace="nowrap">Deployed by</Text>
                     <Box
                       height="16px"
                       width="16px"

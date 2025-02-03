@@ -1,4 +1,3 @@
-import TelegramIcon from "@/assets/icons/telegramIcon";
 import { Box, Text } from "@chakra-ui/react";
 import Link from "next/link";
 import React from "react";
@@ -17,22 +16,22 @@ const Footer = () => {
     >
       <Box></Box>
       <Box display="flex" gap="1rem" alignItems="center">
-        <Box cursor="pointer">
-          <Link href="http://t.me/STRKsnipeBot" target="_blank" style={{display:'flex',alignItems:'center',gap:'0.2rem',color:'grey'}}>
-            <TelegramIcon />
+        <Box cursor="pointer" _hover={{color:'rgb(33, 219, 166)'}} color='grey'>
+          <Link href="http://t.me/STRKsnipeBot" target="_blank" style={{display:'flex',alignItems:'center',gap:'0.2rem'}}>
+            {/* <TelegramIcon /> */}
             Telegram
           </Link>
         </Box>
         <Box>
           <Link href="" target="_blank">
-            <Text color="grey">
+            <Text _hover={{color:'rgb(33, 219, 166)'}} color='grey'>
               Privacy
             </Text>
           </Link>
         </Box>
         <Box>
           <Link href="" target="_blank">
-            <Text color="grey">
+            <Text _hover={{color:'rgb(33, 219, 166)'}} color='grey'>
               Documentation
             </Text>
           </Link>

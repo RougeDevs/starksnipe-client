@@ -94,7 +94,7 @@ const Navbar = () => {
         <Box display="flex" alignItems="center" gap="1.5rem">
           <Text
             color={router.pathname === "/" ? "rgb(33, 219, 166)" : "#9CA3AF"}
-            _hover={{ color: "white" }}
+            _hover={{ color: "rgb(33, 219, 166)" }}
             fontSize={"20px"}
             fontWeight={router.pathname === "/" ? 700 : 400}
             display={"flex"}
@@ -111,7 +111,7 @@ const Navbar = () => {
             color={
               router.pathname === "/swap" ? "rgb(33, 219, 166)" : "#9CA3AF"
             }
-            _hover={{ color: "white" }}
+            _hover={{ color: "rgb(33, 219, 166)" }}
             fontWeight={router.pathname === "/swap" ? 700 : 400}
             fontSize="20px"
             display="flex"
