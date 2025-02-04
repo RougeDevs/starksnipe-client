@@ -439,16 +439,21 @@ const Navbar = () => {
                 display="flex"
                 mb="0.5rem"
                 opacity={gasMode ? "100%" : "50%"}
-                _hover={{ bg: "rgb(30 32 37)" }}
+                _hover={processAddress(gaslessTokenAddress) ===
+                  processAddress(token.tokenAddress)?{bg:'#377554'}:{ bg: "rgb(30 32 37)" }}
                 borderRadius="8px"
                 justifyContent="space-between"
                 key={index}
                 padding="1rem"
                 cursor={gasMode ? "pointer" : "disabled"}
+                bg={
+                  processAddress(gaslessTokenAddress) ===
+                  processAddress(token.tokenAddress) ?"#26513a":""
+                }
                 border={
                   processAddress(gaslessTokenAddress) ===
                   processAddress(token.tokenAddress)
-                    ? "1px solid #244f38"
+                    ? "1px solid rgb(69 156 110/1)"
                     : "1px solid rgb(30 32 37)"
                 }
                 onClick={() => {

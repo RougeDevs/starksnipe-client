@@ -704,7 +704,7 @@ const SwapInterface = ({
                         border="0px"
                         width="100%"
                         pl="0.4rem"
-                        placeholder="0"
+                        placeholder={`0 ${currentSelectedSellToken.symbol}`}
                         _focus={{
                           outline: "0",
                           border: "0px",
@@ -807,7 +807,7 @@ const SwapInterface = ({
                         border="0px"
                         width="100%"
                         pl="0.4rem"
-                        placeholder="0"
+                        placeholder={`0 ${currentCurrencySelected.toUpperCase()}`}
                         _focus={{
                           outline: "0",
                           border: "0px",
@@ -929,7 +929,7 @@ const SwapInterface = ({
                           setbuyvalueChanged(!buyvalueChanged);
                           setcurrentBuyAmount(Number(e.target.value));
                         }}
-                        placeholder="0"
+                        placeholder={`0 ${currentSelectedBuyToken.symbol}`}
                         type="number"
                         css={{
                           "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
