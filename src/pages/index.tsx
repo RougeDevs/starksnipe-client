@@ -22,7 +22,7 @@ export default function Home({currencies,prices,allTokens}:any) {
         <title>SniQ | Memecoin Snipping</title>
       </Head>
       <Box>
-        <Navbar/>
+        <Navbar allTokens={allTokens}/>
         <ParticleBackground/>
         <TokenDashboard/>
         <Footer/>

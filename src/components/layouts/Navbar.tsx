@@ -1,5 +1,5 @@
 import { Box, Button, SimpleGrid, Text } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { FaGasPump } from "react-icons/fa";
@@ -30,7 +30,9 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import StarBorder from "../animatedComponents/StarBorder";
-const Navbar = () => {
+import { getParsedTokenData } from "@/utils/helper";
+import { EkuboTokenData } from "@/utils/types";
+const Navbar = ({ allTokens }: any) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { starknetkitConnectModal: starknetkitConnectModal1 } =
@@ -46,6 +48,7 @@ const Navbar = () => {
   const gaslessTokenAddress = useAtomValue(gasToken);
   const setGaslessToken = useSetAtom(gasToken);
   const setgaseMode = useSetAtom(gasLessMode);
+  const [userTokens, setuserTokens] = useState<any>();
   const [gaslessdropdownSelected, setgaslessdropdownSelected] =
     useState<boolean>(false);
   const [walletDropdownSelected, setwalletDropdownSelected] =
@@ -66,6 +69,22 @@ const Navbar = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (account) {
+      const fetchData = async () => {
+        const res = await getParsedTokenData(
+          "MAINNET",
+          account.address,
+          allTokens as EkuboTokenData[]
+        );
+        if (res) {
+          setuserTokens(res?.userTokenData?.tokens);
+        }
+      };
+      fetchData();
+    }
+  }, [account]);
   return (
     <Box
       display="flex"
@@ -434,42 +453,66 @@ const Navbar = () => {
             </Switch>
           </Box>
           <Box mt="1rem">
-            {swapTokens.map((token, index: number) => (
-              <Box
-                display="flex"
-                mb="0.5rem"
-                opacity={gasMode ? "100%" : "50%"}
-                _hover={processAddress(gaslessTokenAddress) ===
-                  processAddress(token.tokenAddress)?{bg:'#377554'}:{ bg: "rgb(30 32 37)" }}
-                borderRadius="8px"
-                justifyContent="space-between"
-                key={index}
-                padding="1rem"
-                cursor={gasMode ? "pointer" : "disabled"}
-                bg={
-                  processAddress(gaslessTokenAddress) ===
-                  processAddress(token.tokenAddress) ?"#26513a":""
-                }
-                border={
-                  processAddress(gaslessTokenAddress) ===
+            {swapTokens.map((token, index: number) => {
+              // Find the corresponding token balance from userTokens
+              const matchedToken = userTokens?.find(
+                (userToken: any) =>
+                  processAddress(userToken.l2_token_address) ===
                   processAddress(token.tokenAddress)
-                    ? "1px solid rgb(69 156 110/1)"
-                    : "1px solid rgb(30 32 37)"
-                }
-                onClick={() => {
-                  if (gasMode) {
-                    setGaslessToken(token.tokenAddress);
-                    setgaslessdropdownSelected(false);
+              );
+
+              return (
+                <Box
+                  display="flex"
+                  mb="0.5rem"
+                  opacity={gasMode ? "100%" : "50%"}
+                  _hover={
+                    processAddress(gaslessTokenAddress) ===
+                    processAddress(token.tokenAddress)
+                      ? { bg: "#377554" }
+                      : { bg: "rgb(30 32 37)" }
                   }
-                }}
-              >
-                <Box display="flex" alignItems="center" gap="0.5rem">
-                  <Image src={token.logo_url} alt="" height={24} width={24} />
-                  <Text>{token.symbol}</Text>
+                  borderRadius="8px"
+                  justifyContent="space-between"
+                  key={index}
+                  padding="1rem"
+                  cursor={gasMode ? "pointer" : "disabled"}
+                  bg={
+                    processAddress(gaslessTokenAddress) ===
+                    processAddress(token.tokenAddress)
+                      ? "#26513a"
+                      : ""
+                  }
+                  border={
+                    processAddress(gaslessTokenAddress) ===
+                    processAddress(token.tokenAddress)
+                      ? "1px solid rgb(69 156 110/1)"
+                      : "1px solid rgb(30 32 37)"
+                  }
+                  onClick={() => {
+                    if (gasMode) {
+                      setGaslessToken(token.tokenAddress);
+                      setgaslessdropdownSelected(false);
+                    }
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap="0.5rem">
+                    <Image src={token.logo_url} alt="" height={24} width={24} />
+                    <Text>{token.symbol}</Text>
+                  </Box>
+                  <Box>
+                    <Text>
+                      {!account?"": matchedToken
+                        ? (
+                            parseFloat(matchedToken.balance) /
+                            10 ** matchedToken.decimals
+                          ).toFixed(4)
+                        : "0.0000"}
+                    </Text>
+                  </Box>
                 </Box>
-                <Box></Box>
-              </Box>
-            ))}
+              );
+            })}
           </Box>
         </Box>
       )}

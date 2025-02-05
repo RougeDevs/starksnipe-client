@@ -14,7 +14,7 @@ const Index = ({ currencies, prices, allTokens }: any) => {
       <Head>
         <title>SniQ | Memecoin Snipping</title>
       </Head>
-      <Navbar />
+      <Navbar allTokens={allTokens}/>
       <ParticleBackground/>
       <SwapDashboard
         allTokens={allTokens}
