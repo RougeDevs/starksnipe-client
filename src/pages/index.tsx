@@ -14,8 +14,10 @@ import { getAllTokens } from "@/utils/swapRouter";
 import TokenDashboard from "@/components/layouts/TokenDashboard";
 import Footer from "@/components/layouts/Footer";
 import ParticleBackground from "@/components/animatedComponents/Particlebackground";
+import { Pricer } from "@/interfaces/interface";
 
-export default function Home({currencies,prices,allTokens}:any) {
+export default function Home({currencies,prices,allTokens}:{prices:Pricer,currencies:any,allTokens:any}) {
+  console.log(currencies,prices,'params')
   return (
     <>
       <Head>

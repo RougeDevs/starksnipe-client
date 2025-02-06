@@ -1,5 +1,5 @@
 import { Box, Button, SimpleGrid, Text } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { FaGasPump } from "react-icons/fa";
@@ -69,6 +69,22 @@ const Navbar = ({ allTokens }: any) => {
       }
     }
   };
+  const dropdownRef=useRef<any>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: PointerEvent) => {
+      if (!dropdownRef.current?.contains(event.target as Node)) {
+        setgaslessdropdownSelected(false);
+        setwalletDropdownSelected(false);
+      }
+    };
+  
+    document.addEventListener("pointerdown", handleClickOutside);
+  
+    return () => {
+      document.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (account) {
@@ -95,6 +111,7 @@ const Navbar = ({ allTokens }: any) => {
       zIndex="100"
       padding={{ base: "0.5rem 1rem", md: "0.5rem 2rem" }}
       alignItems="center"
+      ref={dropdownRef}
     >
       <Box display="flex" alignItems="center" gap="3rem">
         <Box
@@ -179,6 +196,7 @@ const Navbar = ({ allTokens }: any) => {
             cursor="pointer"
             onClick={() => {
               setwalletDropdownSelected(!walletDropdownSelected);
+              setgaslessdropdownSelected(false)
             }}
           >
             <STRKLogo width={16} height={16} />
@@ -438,7 +456,7 @@ const Navbar = ({ allTokens }: any) => {
         >
           <Box mt="1rem">
             <Text fontSize="18px" fontWeight="500">
-              SniQ Paymaster
+              SniQ Gas Station
             </Text>
           </Box>
           <Box mt="1rem">

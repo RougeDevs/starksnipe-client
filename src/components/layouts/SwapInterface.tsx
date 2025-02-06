@@ -42,6 +42,7 @@ import {
 } from "@/functions/helpers";
 import { swapTokens } from "@/constants";
 import { gasLessMode, gasToken } from "@/store/settings.atom";
+import { SwapToken } from "@/interfaces/interface";
 const SwapInterface = ({
   prices,
   currencies,
@@ -1170,7 +1171,7 @@ const SwapInterface = ({
                   </Box>
                 </Box>
                 <Box overflow="auto">
-                  {allTokens.filter((token:any)=>swapTokens.some((swapToken:any)=>processAddress(swapToken?.tokenAddress)===processAddress(token?.l2_token_address)))                   
+                  {allTokens.filter((token:any)=>swapTokens.some((swapToken:SwapToken)=>processAddress(swapToken?.tokenAddress)===processAddress(token?.l2_token_address)))                   
                     .map((token: any, index: number) => (
                       <Box
                         key={index}

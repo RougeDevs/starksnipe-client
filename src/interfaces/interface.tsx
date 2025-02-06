@@ -12,3 +12,16 @@ export type holder={
     amount:number,
     percentage:number,
 }
+
+export type SwapToken={
+    tokenAddress:string,
+    symbol:string,
+    logo_url:string
+}
+
+export type Pricer={
+    decimals:number,
+    priceInETH:string,
+    priceInUSD:number,
+    tokenAddress:string
+}

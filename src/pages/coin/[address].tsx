@@ -2,6 +2,7 @@ import ParticleBackground from '@/components/animatedComponents/Particlebackgrou
 import Footer from '@/components/layouts/Footer'
 import MemeCoinDashboard from '@/components/layouts/MemeCoinDashboard'
 import Navbar from '@/components/layouts/Navbar'
+import { Pricer } from '@/interfaces/interface'
 import { getAllTokens } from '@/utils/swapRouter'
 import { Box } from '@chakra-ui/react'
 import axios from 'axios'
@@ -9,7 +10,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-const Index = ({currencies,prices,allTokens}:any) => {
+const Index = ({currencies,prices,allTokens}:{prices:Pricer,currencies:any,allTokens:any}) => {
     const router=useRouter()
   return (
     <Box minH="100vh">

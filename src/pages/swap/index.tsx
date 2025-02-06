@@ -2,13 +2,14 @@ import ParticleBackground from "@/components/animatedComponents/Particlebackgrou
 import Footer from "@/components/layouts/Footer";
 import Navbar from "@/components/layouts/Navbar";
 import SwapDashboard from "@/components/layouts/SwapDashboard";
+import { Pricer } from "@/interfaces/interface";
 import { getAllTokens } from "@/utils/swapRouter";
 import { Box } from "@chakra-ui/react";
 import axios from "axios";
 import Head from "next/head";
 import React from "react";
 
-const Index = ({ currencies, prices, allTokens }: any) => {
+const Index = ({ currencies, prices, allTokens }: {prices:Pricer,currencies:any,allTokens:any}) => {
   return (
     <Box minH="100vh">
       <Head>
