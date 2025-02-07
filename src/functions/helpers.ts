@@ -51,8 +51,28 @@ export const generateRandomGradient = () => {
 };
 
 export function timeAgo(timestamp: string): string {
+
+  let givenTime: number;
+  if (!timestamp) {
+    console.error("Timestamp is missing");
+    return "Invalid date";
+  }
+
+  // Handle Unix timestamp (in seconds)
+  if (/^\d{10}$/.test(timestamp)) {
+    givenTime = new Date(Number(timestamp) * 1000).getTime(); // Convert to ms
+  } 
+  // Handle standard date formats
+  else {
+    givenTime = new Date(timestamp).getTime();
+  }
+
+  if (isNaN(givenTime)) {
+    console.error("Invalid timestamp:", timestamp);
+    return "Invalid date";
+  }
+
   const now: number = Date.now();
-  const givenTime: number = new Date(timestamp).getTime();
   const difference: number = now - givenTime; // Difference in milliseconds
 
   const seconds: number = Math.floor(difference / 1000);
@@ -69,4 +89,10 @@ export function timeAgo(timestamp: string): string {
   } else {
     return `Just now`;
   }
+}
+
+
+export function epochToDateTime(epoch:number) {
+  const date = new Date(epoch * 1000); // Convert seconds to milliseconds
+  return date.toDateString(); // Returns in ISO format (UTC)
 }

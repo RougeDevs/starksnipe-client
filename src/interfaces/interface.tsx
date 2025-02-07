@@ -7,10 +7,44 @@ export type transaction={
 }
 
 export type holder={
-    rank:number,
-    address:string,
-    amount:number,
-    percentage:number,
+    holder:string,
+    holder_id:string,
+    balance:string,
+    balance_separated:string,
+    decimals:string,
+    percentage:string,
+    last_transfer_time:number
+}
+
+export type currency={
+    id:string,
+    name:string,
+    short_code:string,
+    code:string,
+    precision:number,
+    subunit:number,
+    symbol:string,
+    symbol_first:string,
+    decimal_mark:string,
+    thousands_seperator:string
+}
+
+export type token={
+    coinData:{
+        address:string,
+        name:string,
+        symbol:string,
+        total_supply:string,
+        owner:string,
+        team_allocation:string,
+        launched_at_block:string,
+        current_price:string,
+        market_cap:string,
+        icon_url:string,
+        total_holders:string
+    },
+    holders:holder[]
+
 }
 
 export type SwapToken={
@@ -24,4 +58,13 @@ export type Pricer={
     priceInETH:string,
     priceInUSD:number,
     tokenAddress:string
+}
+
+export type tokenTransaction={
+    tx_hash:string,
+    account_address:string,
+    account_id:string,
+    trade_type:'buy' | 'sell',
+    amount:string,
+    timestamp:number
 }
