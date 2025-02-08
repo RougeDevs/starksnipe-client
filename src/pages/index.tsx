@@ -1,13 +1,5 @@
-import { useEffect, useState } from "react";
 import Head from "next/head";
-import styles from "@/styles/Home.module.css";
-import { SessionAccountInterface } from "@argent/tma-wallet";
-import { useRouter } from "next/router";
-import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layouts/Navbar";
-import { useSetAtom } from "jotai";
-import { argentSetupAtom } from "@/store/address.atom";
-import SwapInterface from "@/components/layouts/SwapInterface";
 import { Box } from "@chakra-ui/react";
 import axios from "axios";
 import { getAllTokens } from "@/utils/swapRouter";
@@ -17,7 +9,6 @@ import ParticleBackground from "@/components/animatedComponents/Particlebackgrou
 import { Pricer } from "@/interfaces/interface";
 
 export default function Home({currencies,prices,allTokens}:{prices:Pricer,currencies:any,allTokens:any}) {
-  console.log(currencies,prices,'params')
   return (
     <>
       <Head>

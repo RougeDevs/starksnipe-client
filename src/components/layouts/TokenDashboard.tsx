@@ -55,10 +55,10 @@ const TokenDashboard = () => {
     <Box display="flex" width="100%" justifyContent="center" pt="6rem">
       <Box
         width={{ sm: "100%", base: "100%", md: "100%" }}
-        padding={{ sm: "1rem 4rem", base: "1rem" }}
+        padding={{ sm: "1rem 3rem", base: "1rem" }}
       >
         <Box
-          width={{ base: "100%", sm: "95%" }}
+          width={{ base: "100%", sm: "100%" }}
           bg="grey"
           borderRadius="8px"
           mb="2rem"
@@ -75,7 +75,7 @@ const TokenDashboard = () => {
         <SimpleGrid
           alignItems="center"
           columns={{ sm: 1, md: 2, xl: 3 }}
-          rowGap="10"
+          gap="10"
         >
           {/* Reduced horizontal spacing with spacingX */}
           {filteredTokens
@@ -86,7 +86,7 @@ const TokenDashboard = () => {
                 cursor="pointer"
                 bg="rgb(16 16 20)"
                 padding="2rem 0rem"
-                width={{ base: "100%", sm: "90%", md: "90%" }}
+                width={{ base: "100%" }}
                 gap="0.5rem"
                 border="1px solid rgb(30 32 37)"
                 borderRadius="8px"
@@ -116,6 +116,10 @@ const TokenDashboard = () => {
                   alignItems="center"
                 >
                   <Box
+                  // bg="transparent"
+                  // border="1px solid #374151"
+                  // borderRadius="8px"
+                  // padding="8px"
                     height={{
                       base: "90px",
                       sm: "90px",
@@ -144,7 +148,7 @@ const TokenDashboard = () => {
                     >
                       {token.symbol}
                     </Box>
-                    <Box color="#61DC9B" whiteSpace="nowrap">
+                    <Box color="#459C6E" whiteSpace="nowrap">
                       Market Cap: $34000
                     </Box>
                     <Box color="grey">{token.symbol}</Box>

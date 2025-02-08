@@ -12,9 +12,9 @@ const DropdownUp = () => {
       <path
         d="M11.2002 6.9001L8.0002 10.1001L4.8002 6.9001"
         stroke="#E6EDF3"
-        stroke-width="1.37"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.37"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

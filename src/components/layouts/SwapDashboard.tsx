@@ -34,6 +34,7 @@ import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
 import { findTokenPrice, getPriceInUSD } from "@/functions/helpers";
 import { gasLessMode, gasToken } from "@/store/settings.atom";
+import numberFormatter from "@/functions/numberFormatter";
 const SwapDashboard = ({
   prices,
   currencies,
@@ -63,12 +64,12 @@ const SwapDashboard = ({
   const [sellTokenPrice, setsellTokenPrice] = useState<number | null>(null);
   const [buyTokenPrice, setbuyTokenPrice] = useState<number | null>(null);
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
-    name: "ETH",
+    name: "STRK",
     l2_token_address:
-      "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
+      "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    logo_url: "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/1b126320-367c-48ed-cf5a-ba7580e49600/logo",
     decimals: 18,
-    symbol: "ETH",
+    symbol: "STRK",
   });
 
   const [minReceived, setminReceived] = useState<any>(0);
@@ -150,15 +151,15 @@ const SwapDashboard = ({
     );
   });
 
-  const gasMode=useAtomValue(gasLessMode)
-  const gasTokenAddress=useAtomValue(gasToken)
-  
+  const gasMode = useAtomValue(gasLessMode);
+  const gasTokenAddress = useAtomValue(gasToken);
+
   const handleTransaction = async () => {
     try {
       if (account) {
         const res = await fetchAccountCompatibility(account.address);
         if (res?.isCompatible) {
-          if(gasMode){
+          if (gasMode) {
             const result = await exampleExecuteCalls(
               "MAINNET",
               account,
@@ -172,7 +173,7 @@ const SwapDashboard = ({
               settransactionSuccessfull(true);
             }
             console.log(result, "result");
-          }else{
+          } else {
             const result = await account.execute(calls);
             if (result) {
               toast.success("Successfully swapped tokens", {
@@ -555,7 +556,7 @@ const SwapDashboard = ({
                 )}
               </Box>
               <Box
-                  bg="#1E2025"
+                bg="#1E2025"
                 cursor="pointer"
                 padding="8px"
                 display="flex"
@@ -694,7 +695,7 @@ const SwapDashboard = ({
                 )}
               </Box>
               <Box
-                  bg="#1E2025"
+                bg="#1E2025"
                 cursor="pointer"
                 padding="8px"
                 display="flex"
@@ -708,7 +709,7 @@ const SwapDashboard = ({
                 }}
               >
                 {currentSelectedBuyToken?.logo_url ? (
-                  <Box height="20px" width='20px'>
+                  <Box height="20px" width="20px">
                     <Image
                       src={currentSelectedBuyToken.logo_url}
                       alt="trial"
@@ -764,9 +765,9 @@ const SwapDashboard = ({
                 >
                   <Text color="#459C6E">
                     1 {currentSelectedSellToken.symbol} ={" "}
-                    {formatNumberEs(exchangeRate as number)}{" "}
+                    {numberFormatter(exchangeRate as number)}{" "}
                     {currentSelectedBuyToken.symbol} ($
-                    {formatNumberEs(sellTokenPrice as number)})
+                    {numberFormatter(sellTokenPrice as number)})
                   </Text>
                   <Box
                     display="flex"
@@ -842,7 +843,7 @@ const SwapDashboard = ({
             padding="1rem"
             color="white"
             background="#26513a"
-            _hover={{bg:'#377554'}}
+            _hover={{ bg: "#377554" }}
             border="1px solid rgb(69 156 110/1)"
             disabled={
               currentBuyAmount === 0 ||
@@ -888,163 +889,74 @@ const SwapDashboard = ({
         </Box>
         {sellDropdownSelected && (
           <Box
-            width={{ base: "70vw", md: "50vw", lg: "30vw" }}
-            // overflow="auto"
-            height="500px"
-            mt="13rem"
-            display="flex"
-            padding="1rem"
-            borderRadius="8px"
-            flexDirection="column"
-            gap="1rem"
             position="fixed"
-            top="25%"
-            left="50%"
-            transform="translate(-50%, -50%)"
-            zIndex="21"
-            bg="#101010"
-            border="1px solid #1d1d1d"
+            top="0"
+            left="0"
+            width="100vw"
+            height="100vh"
+            bg="rgba(133, 133, 133, 0.6)" // Adjust opacity as needed
+            zIndex="200"
+            onClick={() => setsellDropdownSelected(false)} // Close modal on click
           >
             <Box
-              width="100%"
+              width="30rem"
+              // overflow="auto"
+              height="500px"
+              mt="13rem"
               display="flex"
-              justifyContent="space-between"
-              alignItems="center"
+              padding="1rem"
+              borderRadius="8px"
+              flexDirection="column"
+              gap="1rem"
+              position="fixed"
+              top="25%"
+              left="50%"
+              transform="translate(-50%, -50%)"
+              zIndex="21"
+              bg="#101010"
+              border="1px solid #1d1d1d"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Text>Select a token</Text>
               <Box
-                cursor="pointer"
-                onClick={() => {
-                  setsellDropdownSelected(false);
-                  setSearchTerm("");
-                }}
+                width="100%"
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
               >
-                <Image
-                  src={crossIcon}
-                  alt=""
-                  width={12}
-                  height={12}
-                  style={{ filter: "invert(1)" }}
+                <Text>Select a token</Text>
+                <Box
+                  cursor="pointer"
+                  onClick={() => {
+                    setsellDropdownSelected(false);
+                    setSearchTerm("");
+                  }}
+                >
+                  <Image
+                    src={crossIcon}
+                    alt=""
+                    width={12}
+                    height={12}
+                    style={{ filter: "invert(1)" }}
+                  />
+                </Box>
+              </Box>
+              <Box width="100%" bg="grey" borderRadius="8px">
+                <Input
+                  _selected={{ border: "1px solid blue" }}
+                  bg="#101010"
+                  pl="0.4rem"
+                  placeholder="Enter token name"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </Box>
-            </Box>
-            <Box width="100%" bg="grey" borderRadius="8px">
-              <Input
-                _selected={{ border: "1px solid blue" }}
-                bg="#101010"
-                pl="0.4rem"
-                placeholder="Enter token name"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </Box>
-            <Box overflow="auto">
-              {filteredUsertokens && filteredUsertokens?.length > 0 && (
-                <Text mt="0.5rem" mb="1rem">
-                  Your Tokens
-                </Text>
-              )}
-              {filteredUsertokens?.map((token: any, index: number) => (
-                <Box
-                  key={index}
-                  display="flex"
-                  flexDirection="column"
-                  mb="0.5rem"
-                >
-                  <Box
-                    display="flex"
-                    gap="0.8rem"
-                    _hover={{ bg: "gray.800" }}
-                    padding="0.5rem"
-                    borderRadius="8px"
-                    cursor="pointer"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    onClick={() => {
-                      setsellDropdownSelected(false);
-                      setSellToken(token);
-                      setcurrentSelectedSellToken(token);
-                    }}
-                  >
-                    <Box display="flex" gap="0.8rem" alignItems="center">
-                      <Box>
-                        {token.logo_url ? (
-                          <Image
-                            src={token.logo_url}
-                            alt="trial"
-                            height={35}
-                            width={35}
-                          />
-                        ) : (
-                          <Box
-                            borderRadius="full"
-                            boxSize="35px"
-                            bg="gray.600"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              color="white"
-                              fontSize="2xl"
-                              fontWeight="bold"
-                            >
-                              ?
-                            </Text>
-                          </Box>
-                        )}
-                      </Box>
-                      <Box>
-                        <Text fontSize="18px">{token.name}</Text>
-                        <Text fontSize="14px" color="grey">
-                          {token.symbol}
-                        </Text>
-                      </Box>
-                    </Box>
-                    <Box
-                      color="grey"
-                      mr="0.5rem"
-                      display="flex"
-                      flexDirection="column"
-                      justifyContent="flex-end"
-                      alignItems="flex-end"
-                    >
-                      {getPriceInUSD(prices, token.l2_token_address) && (
-                        <Text color="white">
-                          $
-                          {formatNumberEs(
-                            getPriceInUSD(prices, token.l2_token_address)
-                              ? getPriceInUSD(prices, token.l2_token_address) *
-                                  parseAmount(
-                                    String(token.balance),
-                                    token.decimals
-                                  )
-                              : 0
-                          )}
-                        </Text>
-                      )}
-                      <Text>
-                        {formatNumberEs(
-                          parseAmount(String(token.balance), token.decimals)
-                        )}
-                      </Text>
-                    </Box>
-                  </Box>
-                </Box>
-              ))}
-              <Text mt="0.5rem" mb="1rem">
-                Popular Tokens
-              </Text>
-              {filteredTokens
-                .filter(
-                  (token: any) =>
-                    !userTokens?.some(
-                      (userToken: any) =>
-                        userToken?.l2_token_address ===
-                        processAddress(token?.l2_token_address)
-                    )
-                )
-                .map((token: any, index: number) => (
+              <Box overflow="auto" className="custom-scrollbar">
+                {filteredUsertokens && filteredUsertokens?.length > 0 && (
+                  <Text mt="0.5rem" mb="1rem">
+                    Your Tokens
+                  </Text>
+                )}
+                {filteredUsertokens?.map((token: any, index: number) => (
                   <Box
                     key={index}
                     display="flex"
@@ -1059,210 +971,227 @@ const SwapDashboard = ({
                       borderRadius="8px"
                       cursor="pointer"
                       alignItems="center"
+                      justifyContent="space-between"
                       onClick={() => {
                         setsellDropdownSelected(false);
                         setSellToken(token);
                         setcurrentSelectedSellToken(token);
+                        setSearchTerm("");
                       }}
                     >
-                      <Box>
-                        {token.logo_url ? (
-                          <Image
-                            src={token.logo_url}
-                            alt="trial"
-                            height={35}
-                            width={35}
-                          />
-                        ) : (
-                          <Box
-                            borderRadius="full"
-                            boxSize="35px"
-                            bg="gray.600"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              color="white"
-                              fontSize="2xl"
-                              fontWeight="bold"
+                      <Box display="flex" gap="0.8rem" alignItems="center">
+                        <Box>
+                          {token.logo_url ? (
+                            <Image
+                              src={token.logo_url}
+                              alt="trial"
+                              height={35}
+                              width={35}
+                            />
+                          ) : (
+                            <Box
+                              borderRadius="full"
+                              boxSize="35px"
+                              bg="gray.600"
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
                             >
-                              ?
-                            </Text>
-                          </Box>
-                        )}
+                              <Text
+                                color="white"
+                                fontSize="2xl"
+                                fontWeight="bold"
+                              >
+                                ?
+                              </Text>
+                            </Box>
+                          )}
+                        </Box>
+                        <Box>
+                          <Text fontSize="18px">{token.name}</Text>
+                          <Text fontSize="14px" color="grey">
+                            {token.symbol}
+                          </Text>
+                        </Box>
                       </Box>
-                      <Box>
-                        <Text fontSize="18px">{token.name}</Text>
-                        <Text fontSize="14px" color="grey">
-                          {token.symbol}
+                      <Box
+                        color="grey"
+                        mr="0.5rem"
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="flex-end"
+                        alignItems="flex-end"
+                      >
+                        {getPriceInUSD(prices, token.l2_token_address) && (
+                          <Text color="white">
+                            $
+                            {numberFormatter(
+                              getPriceInUSD(prices, token.l2_token_address)
+                                ? getPriceInUSD(
+                                    prices,
+                                    token.l2_token_address
+                                  ) *
+                                    parseAmount(
+                                      String(token.balance),
+                                      token.decimals
+                                    )
+                                : 0
+                            )}
+                          </Text>
+                        )}
+                        <Text>
+                          {numberFormatter(
+                            parseAmount(String(token.balance), token.decimals)
+                          )}
                         </Text>
                       </Box>
                     </Box>
                   </Box>
                 ))}
+                <Text mt="0.5rem" mb="1rem">
+                  Popular Tokens
+                </Text>
+                {filteredTokens
+                  .filter(
+                    (token: any) =>
+                      !userTokens?.some(
+                        (userToken: any) =>
+                          userToken?.l2_token_address ===
+                          processAddress(token?.l2_token_address)
+                      )
+                  )
+                  .map((token: any, index: number) => (
+                    <Box
+                      key={index}
+                      display="flex"
+                      flexDirection="column"
+                      mb="0.5rem"
+                    >
+                      <Box
+                        display="flex"
+                        gap="0.8rem"
+                        _hover={{ bg: "gray.800" }}
+                        padding="0.5rem"
+                        borderRadius="8px"
+                        cursor="pointer"
+                        alignItems="center"
+                        onClick={() => {
+                          setsellDropdownSelected(false);
+                          setSellToken(token);
+                          setcurrentSelectedSellToken(token);
+                          setSearchTerm("")
+                        }}
+                      >
+                        <Box>
+                          {token.logo_url ? (
+                            <Image
+                              src={token.logo_url}
+                              alt="trial"
+                              height={35}
+                              width={35}
+                            />
+                          ) : (
+                            <Box
+                              borderRadius="full"
+                              boxSize="35px"
+                              bg="gray.600"
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              <Text
+                                color="white"
+                                fontSize="2xl"
+                                fontWeight="bold"
+                              >
+                                ?
+                              </Text>
+                            </Box>
+                          )}
+                        </Box>
+                        <Box>
+                          <Text fontSize="18px">{token.name}</Text>
+                          <Text fontSize="14px" color="grey">
+                            {token.symbol}
+                          </Text>
+                        </Box>
+                      </Box>
+                    </Box>
+                  ))}
+              </Box>
             </Box>
           </Box>
         )}
         {buyDropdownSelected && (
           <Box
-            width={{ base: "70vw", md: "50vw", lg: "30vw" }}
-            // overflow="auto"
-            height="500px"
-            mt="13rem"
-            display="flex"
-            padding="1rem"
-            borderRadius="8px"
-            flexDirection="column"
-            gap="1rem"
             position="fixed"
-            top="25%"
-            left="50%"
-            transform="translate(-50%, -50%)"
-            zIndex="21"
-            bg="#101010"
-            border="1px solid #1d1d1d"
+            top="0"
+            left="0"
+            width="100vw"
+            height="100vh"
+            bg="rgba(133, 133, 133, 0.6)" // Adjust opacity as needed
+            zIndex="200"
+            onClick={() => setbuyDropdownSelected(false)} // Close modal on click
           >
             <Box
-              width="100%"
+              width="30rem"
+              // overflow="auto"
+              height="500px"
+              mt="13rem"
               display="flex"
-              justifyContent="space-between"
-              alignItems="center"
+              padding="1rem"
+              borderRadius="8px"
+              flexDirection="column"
+              gap="1rem"
+              position="fixed"
+              top="25%"
+              left="50%"
+              transform="translate(-50%, -50%)"
+              zIndex="21"
+              bg="#101010"
+              border="1px solid #1d1d1d"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Text>Select a token</Text>
               <Box
-                cursor="pointer"
-                onClick={() => {
-                  setbuyDropdownSelected(false);
-                  setSearchTerm("");
-                }}
+                width="100%"
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
               >
-                <Image
-                  src={crossIcon}
-                  alt=""
-                  width={12}
-                  height={12}
-                  style={{ filter: "invert(1)" }}
+                <Text>Select a token</Text>
+                <Box
+                  cursor="pointer"
+                  onClick={() => {
+                    setbuyDropdownSelected(false);
+                    setSearchTerm("");
+                  }}
+                >
+                  <Image
+                    src={crossIcon}
+                    alt=""
+                    width={12}
+                    height={12}
+                    style={{ filter: "invert(1)" }}
+                  />
+                </Box>
+              </Box>
+              <Box width="100%" bg="grey" borderRadius="8px">
+                <Input
+                  _selected={{ border: "1px solid blue" }}
+                  bg="#101010"
+                  pl="0.4rem"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Enter token name"
                 />
               </Box>
-            </Box>
-            <Box width="100%" bg="grey" borderRadius="8px">
-              <Input
-                _selected={{ border: "1px solid blue" }}
-                bg="#101010"
-                pl="0.4rem"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Enter token name"
-              />
-            </Box>
-            <Box overflow="auto">
-              {filteredUsertokens && filteredUsertokens?.length > 0 && (
-                <Text mt="0.5rem" mb="1rem">
-                  Your Tokens
-                </Text>
-              )}
-              {filteredUsertokens?.map((token: any, index: number) => (
-                <Box
-                  key={index}
-                  display="flex"
-                  flexDirection="column"
-                  mb="0.5rem"
-                >
-                  <Box
-                    display="flex"
-                    gap="0.8rem"
-                    _hover={{ bg: "gray.800" }}
-                    padding="0.5rem"
-                    borderRadius="8px"
-                    cursor="pointer"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    onClick={() => {
-                      setbuyDropdownSelected(false);
-                      setBuyToken(token);
-                      setcurrentSelectedBuyToken(token);
-                    }}
-                  >
-                    <Box display="flex" gap="0.8rem" alignItems="center">
-                      <Box>
-                        {token.logo_url ? (
-                          <Image
-                            src={token.logo_url}
-                            alt="trial"
-                            height={35}
-                            width={35}
-                          />
-                        ) : (
-                          <Box
-                            borderRadius="full"
-                            boxSize="35px"
-                            bg="gray.600"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              color="white"
-                              fontSize="2xl"
-                              fontWeight="bold"
-                            >
-                              ?
-                            </Text>
-                          </Box>
-                        )}
-                      </Box>
-                      <Box>
-                        <Text fontSize="18px">{token.name}</Text>
-                        <Text fontSize="14px" color="grey">
-                          {token.symbol}
-                        </Text>
-                      </Box>
-                    </Box>
-                    <Box
-                      color="grey"
-                      mr="0.5rem"
-                      display="flex"
-                      flexDirection="column"
-                      justifyContent="flex-end"
-                      alignItems="flex-end"
-                    >
-                      {getPriceInUSD(prices, token.l2_token_address) && (
-                        <Text color="white">
-                          $
-                          {formatNumberEs(
-                            getPriceInUSD(prices, token.l2_token_address)
-                              ? getPriceInUSD(prices, token.l2_token_address) *
-                                  parseAmount(
-                                    String(token.balance),
-                                    token.decimals
-                                  )
-                              : 0
-                          )}
-                        </Text>
-                      )}
-                      <Text>
-                        {formatNumberEs(
-                          parseAmount(String(token.balance), token.decimals)
-                        )}
-                      </Text>
-                    </Box>
-                  </Box>
-                </Box>
-              ))}
-              <Text mt="0.5rem" mb="1rem">
-                Popular Tokens
-              </Text>
-              {filteredTokens
-                .filter(
-                  (token: any) =>
-                    !userTokens?.some(
-                      (userToken: any) =>
-                        userToken?.l2_token_address ===
-                        processAddress(token?.l2_token_address)
-                    )
-                )
-                .map((token: any, index: number) => (
+              <Box overflow="auto" className="custom-scrollbar">
+                {filteredUsertokens && filteredUsertokens?.length > 0 && (
+                  <Text mt="0.5rem" mb="1rem">
+                    Your Tokens
+                  </Text>
+                )}
+                {filteredUsertokens?.map((token: any, index: number) => (
                   <Box
                     key={index}
                     display="flex"
@@ -1276,48 +1205,154 @@ const SwapDashboard = ({
                       padding="0.5rem"
                       borderRadius="8px"
                       cursor="pointer"
+                      alignItems="center"
+                      justifyContent="space-between"
                       onClick={() => {
                         setbuyDropdownSelected(false);
                         setBuyToken(token);
                         setcurrentSelectedBuyToken(token);
+                        setSearchTerm("");
                       }}
                     >
-                      <Box>
-                        {token.logo_url ? (
-                          <Image
-                            src={token.logo_url}
-                            alt="trial"
-                            height={35}
-                            width={35}
-                          />
-                        ) : (
-                          <Box
-                            borderRadius="full"
-                            boxSize="35px"
-                            bg="gray.600"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              color="white"
-                              fontSize="2xl"
-                              fontWeight="bold"
+                      <Box display="flex" gap="0.8rem" alignItems="center">
+                        <Box>
+                          {token.logo_url ? (
+                            <Image
+                              src={token.logo_url}
+                              alt="trial"
+                              height={35}
+                              width={35}
+                            />
+                          ) : (
+                            <Box
+                              borderRadius="full"
+                              boxSize="35px"
+                              bg="gray.600"
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
                             >
-                              ?
-                            </Text>
-                          </Box>
-                        )}
+                              <Text
+                                color="white"
+                                fontSize="2xl"
+                                fontWeight="bold"
+                              >
+                                ?
+                              </Text>
+                            </Box>
+                          )}
+                        </Box>
+                        <Box>
+                          <Text fontSize="18px">{token.name}</Text>
+                          <Text fontSize="14px" color="grey">
+                            {token.symbol}
+                          </Text>
+                        </Box>
                       </Box>
-                      <Box>
-                        <Text fontSize="18px">{token.name}</Text>
-                        <Text fontSize="14px" color="grey">
-                          {token.symbol}
+                      <Box
+                        color="grey"
+                        mr="0.5rem"
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="flex-end"
+                        alignItems="flex-end"
+                      >
+                        {getPriceInUSD(prices, token.l2_token_address) && (
+                          <Text color="white">
+                            $
+                            {numberFormatter(
+                              getPriceInUSD(prices, token.l2_token_address)
+                                ? getPriceInUSD(
+                                    prices,
+                                    token.l2_token_address
+                                  ) *
+                                    parseAmount(
+                                      String(token.balance),
+                                      token.decimals
+                                    )
+                                : 0
+                            )}
+                          </Text>
+                        )}
+                        <Text>
+                          {numberFormatter(
+                            parseAmount(String(token.balance), token.decimals)
+                          )}
                         </Text>
                       </Box>
                     </Box>
                   </Box>
                 ))}
+                <Text mt="0.5rem" mb="1rem">
+                  Popular Tokens
+                </Text>
+                {filteredTokens
+                  .filter(
+                    (token: any) =>
+                      !userTokens?.some(
+                        (userToken: any) =>
+                          userToken?.l2_token_address ===
+                          processAddress(token?.l2_token_address)
+                      )
+                  )
+                  .map((token: any, index: number) => (
+                    <Box
+                      key={index}
+                      display="flex"
+                      flexDirection="column"
+                      mb="0.5rem"
+                    >
+                      <Box
+                        display="flex"
+                        gap="0.8rem"
+                        _hover={{ bg: "gray.800" }}
+                        padding="0.5rem"
+                        borderRadius="8px"
+                        cursor="pointer"
+                        onClick={() => {
+                          setbuyDropdownSelected(false);
+                          setBuyToken(token);
+                          setcurrentSelectedBuyToken(token);
+                          setSearchTerm("");
+                        }}
+                      >
+                        <Box>
+                          {token.logo_url ? (
+                            <Image
+                              src={token.logo_url}
+                              alt="trial"
+                              height={35}
+                              width={35}
+                            />
+                          ) : (
+                            <Box
+                              borderRadius="full"
+                              boxSize="35px"
+                              bg="gray.600"
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              <Text
+                                color="white"
+                                fontSize="2xl"
+                                fontWeight="bold"
+                              >
+                                ?
+                              </Text>
+                            </Box>
+                          )}
+                        </Box>
+                        <Box>
+                          <Text fontSize="18px">{token.name}</Text>
+                          <Text fontSize="14px" color="grey">
+                            {token.symbol}
+                          </Text>
+                        </Box>
+                      </Box>
+                    </Box>
+                  ))}
+              </Box>
             </Box>
           </Box>
         )}

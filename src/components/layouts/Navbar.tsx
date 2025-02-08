@@ -109,7 +109,7 @@ const Navbar = ({ allTokens }: any) => {
       position="fixed"
       bg="black"
       zIndex="100"
-      padding={{ base: "0.5rem 1rem", md: "0.5rem 2rem" }}
+      padding={{ base: "0.5rem 1rem", md: "0.5rem 3rem" }}
       alignItems="center"
       ref={dropdownRef}
     >
@@ -152,6 +152,7 @@ const Navbar = ({ allTokens }: any) => {
             fontWeight={router.pathname === "/swap" ? 700 : 400}
             fontSize="20px"
             display="flex"
+            
             hideBelow="md"
             alignItems="center"
             cursor="pointer"
@@ -161,6 +162,18 @@ const Navbar = ({ allTokens }: any) => {
           >
             Swap
           </Text>
+          <Button
+            variant="plain"
+            disabled={true}
+            _hover={{ color: "rgb(33, 219, 166)" }}
+            fontWeight={router.pathname === "/swap" ? 700 : 400}
+            fontSize="20px"
+            display="flex"
+            hideBelow="lg"
+            alignItems="center"
+          >
+            Create Coin (Coming Soon)
+          </Button>
         </Box>
       </Box>
       {account ? (
@@ -213,7 +226,7 @@ const Navbar = ({ allTokens }: any) => {
             <DrawerBackdrop />
             <DrawerTrigger asChild>
               <Box
-                hideFrom="lg"
+                hideFrom="md"
                 border="1px solid #374151"
                 padding="12px"
                 borderRadius="8px"
@@ -263,6 +276,21 @@ const Navbar = ({ allTokens }: any) => {
                   >
                     Swap
                   </Box>
+                  <Button
+                    border="1px solid grey"
+                    borderRadius="8px"
+                    padding="8px 16px"
+                    width="100%"
+                    textAlign="center"
+                    onClick={() => {
+                      setOpen(false);
+                    }}
+                    color="white"
+                    disabled={true}
+                    bg="transparent"
+                  >
+                    Create Coin (Coming Soon)
+                  </Button>
                   <Box
                     cursor="pointer"
                     width="100%"
@@ -384,6 +412,21 @@ const Navbar = ({ allTokens }: any) => {
                   >
                     Swap
                   </Box>
+                  <Button
+                    border="1px solid grey"
+                    borderRadius="8px"
+                    padding="8px 16px"
+                    width="100%"
+                    textAlign="center"
+                    onClick={() => {
+                      setOpen(false);
+                    }}
+                    color="white"
+                    disabled={true}
+                    bg="transparent"
+                  >
+                    Create Coin (Coming Soon)
+                  </Button>
                   <Box
                     cursor="pointer"
                     width="100%"
@@ -419,7 +462,7 @@ const Navbar = ({ allTokens }: any) => {
         <Box
           position="fixed"
           top="4rem"
-          right="2%"
+          right="3rem"
           border="1px solid #374151"
           bg="black"
           paddingRight="1.2rem"
@@ -444,7 +487,7 @@ const Navbar = ({ allTokens }: any) => {
         <Box
           position="fixed"
           top="4rem"
-          right="2rem"
+          right="3rem"
           border="1px solid #374151"
           bg="black"
           width="16rem"

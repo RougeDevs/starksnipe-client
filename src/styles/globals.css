@@ -46,6 +46,16 @@ a {
   border-radius: 12px;
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+  display: block !important; /* Override global setting */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 0px;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

@@ -8,28 +8,31 @@ import { epochToDateTime, generateRandomGradient } from "@/functions/helpers";
 import { useRouter } from "next/router";
 import TransactionTable from "./tables/TransactionTable";
 import HoldersTable from "./tables/HoldersTable";
-import ToptradersTable from "./tables/ToptradersTable";
+import { SiTradingview } from "react-icons/si";
 import { holder, token, tokenTransaction, transaction } from "@/interfaces/interface";
 import Link from "next/link";
 import axios from "axios";
-import { useBlock, useBlockNumber } from "@starknet-react/core";
-import { BlockNumber } from "starknet";
+import { BlockNumber, GetBlockResponse } from "starknet";
 import { parseAmount } from "@/Blockchain/utils/utils";
 import { Tooltip } from "../ui/tooltip";
 import numberFormatter from "@/functions/numberFormatter";
+import numberFormatterPercentage from "@/functions/numberFormatterPercentage";
+import { getProvider } from "@/Blockchain/strk-constants";
 const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
   const router = useRouter();
   const [memeCoinData, setmemeCoinData] = useState<token>();
   const [tokenTransactions, settokenTransactions] = useState<tokenTransaction[]>()
-  const block=useBlock({blockIdentifier:memeCoinData?.coinData?.launched_at_block as BlockNumber})
-  //   {
-  //     rank: 1,
-  //     address:
-  //       "0x05970da1011e2f8dc15bc12fc1b0eb8e382300a334de06ad17d1404384b168e4",
-  //     amount: 900,
-  //     percentage: 8,
-  //   },
-  // ];
+  const [createdTimeStamp, setcreatedTimeStamp] = useState<any>()
+  const providerSN=getProvider()
+  useEffect(()=>{
+    if(memeCoinData?.coinData?.launched_at_block){
+      providerSN.getBlock(memeCoinData?.coinData?.launched_at_block as BlockNumber).then((resp: GetBlockResponse) => {
+        if (resp.status !== 'PENDING') {
+          setcreatedTimeStamp(resp?.timestamp)
+        }
+    })
+    }
+  },[memeCoinData?.coinData?.launched_at_block])
 
   useEffect(() => {
     if (router.query.address) {
@@ -138,7 +141,7 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                 )}
                 <Box color="#459C6E" display="flex" gap="0.2rem">
                   <Text color="#98989B">Market Cap:</Text>$
-                  {memeCoinData?.coinData.market_cap}
+                  { memeCoinData?.coinData.market_cap}
                 </Box>
                 {memeCoinData?.coinData?.owner!=='0' &&<Box display="flex" alignItems="center" gap="0.4rem">
                   <Text color="#98989B">Deployed By</Text>
@@ -161,9 +164,9 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                     </Text>
                   )}
                 </Box>}
-                {block?.data?.timestamp &&<Box display="flex" gap="0.2rem">
+                {createdTimeStamp &&<Box display="flex" gap="0.2rem">
                   <Text color="#98989B">Created on</Text>
-                  {epochToDateTime(block?.data?.timestamp)}
+                  {epochToDateTime(createdTimeStamp)}
                 </Box>}
               </Box>
               <Box
@@ -180,12 +183,12 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                 </Box>                
                 <Box display="flex" gap="0.2rem">
                   <Text color="#98989B">Current Price: </Text>$
-                  {memeCoinData?.coinData.current_price}
+                  {numberFormatter(memeCoinData?.coinData.current_price)}
                 </Box>
 
                 <Box display="flex" gap="0.2rem">
                   <Text color="#98989B">Team Allocation: </Text>
-                  {memeCoinData?.coinData.team_allocation}
+                  {numberFormatterPercentage(memeCoinData?.coinData.team_allocation)}%
                 </Box>
               </Box>
             </Box>
@@ -208,6 +211,16 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                 >
                   <LuUser />
                   Holders
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="top-traders"
+                  _selected={{
+                    color: "#61DC9B",
+                  }}
+                  disabled={true}
+                >
+                  <SiTradingview />
+                  Top Traders (Coming Soon)
                 </Tabs.Trigger>
               </Tabs.List>
               <Tabs.Content value="holders">

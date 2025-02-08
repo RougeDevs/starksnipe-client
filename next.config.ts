@@ -3,7 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowSVG: true,
-    domains: ['imagedelivery.net', 'token-icons.s3.amazonaws.com','i.imgur.com'],
+    domains: ['*'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**', // Allow all subdomains and paths
+      },
+    ],
   },
   async headers() {
     return [

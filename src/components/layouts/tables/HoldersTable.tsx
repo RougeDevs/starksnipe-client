@@ -22,7 +22,7 @@ const HoldersTable = ({ holders }: { holders: holder[] }) => {
         p={2}
       >
         {columnItems.map((columnItem:string,index:number)=>(
-          <Text flex={1} textAlign="left">
+          <Text key={index} flex={1} textAlign={index==columnItems.length-2?"center":index===columnItems.length-1?"right":"left"} color="#98989B" mr={index===columnItems.length-1?"1.5rem":"0"}>
             {columnItem}
           </Text>
         ))}
@@ -40,15 +40,15 @@ const HoldersTable = ({ holders }: { holders: holder[] }) => {
               border="1px solid #374151"
               borderTop="0px"
             >
-              {Array(4).fill("").map((index:number)=>(
-                <Text flex={1} key={index} textAlign="left">
+              {Array(4).fill("").map((_,index2:number)=>(
+                <Text flex={1} key={index2} textAlign="left">
                   <Skeleton width="4rem" height=".85rem" borderRadius="6px" />
                 </Text>
               ))}
             </Box>
           ))}
         </Box>}
-        {holders &&<Box width="100%" minW="700px" maxH="300px" overflow="auto">
+        {holders &&<Box width="100%" minW="700px" maxH="330px" overflow="auto" color="#9CA3AF" className="custom-scrollbar">
           {holders.map((holder: holder, index: number) => (
             <Box
               key={index}
@@ -74,10 +74,10 @@ const HoldersTable = ({ holders }: { holders: holder[] }) => {
                   </Text>
                 </Link>
               </Tooltip>
-              <Text flex={1} textAlign="left">
+              <Text flex={1} textAlign="center">
                 {numberFormatter(holder.balance)}
               </Text>
-              <Text flex={1} textAlign="left">
+              <Text flex={1} textAlign="right" mr='1rem'>
                 {holder.percentage}
               </Text>
             </Box>

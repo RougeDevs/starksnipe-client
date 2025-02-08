@@ -43,6 +43,7 @@ import {
 import { swapTokens } from "@/constants";
 import { gasLessMode, gasToken } from "@/store/settings.atom";
 import { SwapToken } from "@/interfaces/interface";
+import numberFormatter from "@/functions/numberFormatter";
 const SwapInterface = ({
   prices,
   currencies,
@@ -83,12 +84,12 @@ const SwapInterface = ({
   const [sellTokenPrice, setsellTokenPrice] = useState<number | null>(null);
   const [buyTokenPrice, setbuyTokenPrice] = useState<number | null>(null);
   const [currentSelectedSellToken, setcurrentSelectedSellToken] = useState({
-    name: "ETH",
+    name: "STRK",
     l2_token_address:
-      "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
+      "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    logo_url: "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/1b126320-367c-48ed-cf5a-ba7580e49600/logo",
     decimals: 18,
-    symbol: "ETH",
+    symbol: "STRK",
   });
   const [selectedSlippage, setSelectedSlippage] = useState({
     level: "Medium",
@@ -145,6 +146,15 @@ const SwapInterface = ({
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredTokens = allTokens.filter((token: any) => {
+    // Exclude the currentSelectedSellToken
+    if (
+      currentSelectedSellToken &&
+      (token.name.toLowerCase() === currentSelectedSellToken.name.toLowerCase() ||
+        token.symbol.toLowerCase() === currentSelectedSellToken.symbol.toLowerCase())
+    ) {
+      return false;
+    }
+  
     // Exclude tokens with `hidden` set to true unless they match the search term
     if (token.hidden) {
       return (
@@ -153,6 +163,7 @@ const SwapInterface = ({
           token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
+  
     // Include tokens that match the search term or show all if searchTerm is empty
     return (
       !token.hidden &&
@@ -161,7 +172,7 @@ const SwapInterface = ({
         token.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   });
-
+  
   const filteredUsertokens = userTokens?.filter((token: any) => {
     // Exclude tokens with `hidden` set to true unless they match the search term
     if (token.hidden) {
@@ -238,7 +249,23 @@ const SwapInterface = ({
         // setrefreshBuyData(true);
         if(tabContent==='Buy'){
           setcurrentSelectedBuyToken(valueToken);
+          setcurrentSelectedSellToken({
+            name: "STRK",
+            l2_token_address:
+              "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            logo_url: "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/1b126320-367c-48ed-cf5a-ba7580e49600/logo",
+            decimals: 18,
+            symbol: "STRK",
+          })
         }else{
+          setcurrentSelectedBuyToken({
+            name: "STRK",
+            l2_token_address:
+              "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            logo_url: "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/1b126320-367c-48ed-cf5a-ba7580e49600/logo",
+            decimals: 18,
+            symbol: "STRK",
+          })
           setcurrentSelectedSellToken(valueToken)
         }
       }
@@ -1011,9 +1038,9 @@ const SwapInterface = ({
                     >
                       <Text color={tabContent==='Buy'? "#459C6E":'#A13C45'} fontSize={{lg:'14px',md:'14px',xl:'16px'}}>
                         1 {currentSelectedSellToken.symbol} ={" "}
-                        {formatNumberEs(exchangeRate ? exchangeRate : 0)}{" "}
+                        {numberFormatter(exchangeRate ? exchangeRate : 0)}{" "}
                         {currentSelectedBuyToken.symbol} ($
-                        {formatNumberEs(sellTokenPrice as number)})
+                        {numberFormatter(sellTokenPrice as number)})
                       </Text>
                       <Box
                         display="flex"
@@ -1130,6 +1157,16 @@ const SwapInterface = ({
             </Box>
             {sellDropdownSelected && (
               <Box
+              position="fixed"
+              top="0"
+              left="0"
+              width="100vw"
+              height="100vh"
+              bg="rgba(133, 133, 133, 0.6)" // Adjust opacity as needed
+              zIndex="200"
+              onClick={() => setsellDropdownSelected(false)} // Close modal on click
+            >
+              <Box
                 width={{ base: "70vw", md: "50vw", lg: "25vw" }}
                 // overflow="auto"
                 height="500px"
@@ -1146,6 +1183,7 @@ const SwapInterface = ({
                 zIndex="21"
                 bg="#101010"
                 border="1px solid #1d1d1d"
+                onClick={(e) => e.stopPropagation()}
               >
                 <Box
                   width="100%"
@@ -1274,8 +1312,19 @@ const SwapInterface = ({
                     ))}
                 </Box>
               </Box>
+            </Box>
             )}
             {currencyDropdownSelected && (
+              <Box
+              position="fixed"
+              top="0"
+              left="0"
+              width="100vw"
+              height="100vh"
+              bg="rgba(133, 133, 133, 0.6)" // Adjust opacity as needed
+              zIndex="200"
+              onClick={() => setcurrencyDropdownSelected(false)} // Close modal on click
+            >
               <Box
                 width={{ base: "70vw", md: "50vw", lg: "25vw" }}
                 // overflow="auto"
@@ -1293,6 +1342,7 @@ const SwapInterface = ({
                 zIndex="21"
                 bg="#101010"
                 border="1px solid #1d1d1d"
+                onClick={(e) => e.stopPropagation()}
               >
                 <Box
                   width="100%"
@@ -1396,120 +1446,133 @@ const SwapInterface = ({
                     ))}
                 </Box>
               </Box>
+            </Box>
             )}
             {buyDropdownSelected && (
-              <Box
-                width={{ base: "70vw", md: "50vw", lg: "25vw" }}
-                // overflow="auto"
-                height="500px"
-                mt="9rem"
-                display="flex"
-                padding="1rem"
-                borderRadius="8px"
-                flexDirection="column"
-                gap="1rem"
-                position="fixed"
-                top="35%"
-                left="82%"
-                transform="translate(-50%, -50%)"
-                zIndex="21"
-                bg="#101010"
-                border="1px solid #1d1d1d"
-              >
-                <Box
-                  width="100%"
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <Text>Select a token</Text>
+                 <Box
+                 position="fixed"
+                 top="0"
+                 left="0"
+                 width="100vw"
+                 height="100vh"
+                 bg="rgba(133, 133, 133, 0.6)" // Adjust opacity as needed
+                 zIndex="200"
+                 onClick={() => setbuyDropdownSelected(false)} // Close modal on click
+               >
                   <Box
-                    cursor="pointer"
-                    onClick={() => {
-                      setbuyDropdownSelected(false);
-                      setSearchTerm("");
-                    }}
-                  >
-                    <Image
-                      src={crossIcon}
-                      alt=""
-                      width={12}
-                      height={12}
-                      style={{ filter: "invert(1)" }}
-                    />
-                  </Box>
-                </Box>
-                <Box width="100%" bg="grey" borderRadius="8px">
-                  <Input
-                    _selected={{ border: "1px solid blue" }}
+                    width={{ base: "70vw", md: "50vw", lg: "25vw" }}
+                    // overflow="auto"
+                    height="500px"
+                    mt="9rem"
+                    display="flex"
+                    padding="1rem"
+                    borderRadius="8px"
+                    flexDirection="column"
+                    gap="1rem"
+                    position="fixed"
+                    top="35%"
+                    left="82%"
+                    transform="translate(-50%, -50%)"
+                    zIndex="21"
                     bg="#101010"
-                    pl="0.4rem"
-                    placeholder="Enter token name"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </Box>
-                <Box overflow="auto">
-                  {filteredTokens.map((token: any, index: number) => (
+                    border="1px solid #1d1d1d"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Box
-                      key={index}
+                      width="100%"
                       display="flex"
-                      flexDirection="column"
-                      mb="0.5rem"
+                      justifyContent="space-between"
+                      alignItems="center"
                     >
+                      <Text>Select a token</Text>
                       <Box
-                        display="flex"
-                        gap="0.8rem"
-                        _hover={{ bg: "gray.800" }}
-                        padding="0.5rem"
-                        borderRadius="8px"
                         cursor="pointer"
-                        alignItems="center"
                         onClick={() => {
                           setbuyDropdownSelected(false);
-                          setBuyToken(token);
                           setSearchTerm("");
-                          setcurrentSelectedBuyToken(token);
                         }}
                       >
-                        <Box>
-                          {token.logo_url ? (
-                            <Image
-                              src={token.logo_url}
-                              alt="trial"
-                              height={35}
-                              width={35}
-                            />
-                          ) : (
-                            <Box
-                              borderRadius="full"
-                              boxSize="35px"
-                              bg="gray.600"
-                              display="flex"
-                              alignItems="center"
-                              justifyContent="center"
-                            >
-                              <Text
-                                color="white"
-                                fontSize="2xl"
-                                fontWeight="bold"
-                              >
-                                ?
-                              </Text>
-                            </Box>
-                          )}
-                        </Box>
-                        <Box>
-                          <Text fontSize="18px">{token.name}</Text>
-                          <Text fontSize="14px" color="grey">
-                            {token.symbol}
-                          </Text>
-                        </Box>
+                        <Image
+                          src={crossIcon}
+                          alt=""
+                          width={12}
+                          height={12}
+                          style={{ filter: "invert(1)" }}
+                        />
                       </Box>
                     </Box>
-                  ))}
-                </Box>
-              </Box>
+                    <Box width="100%" bg="grey" borderRadius="8px">
+                      <Input
+                        _selected={{ border: "1px solid blue" }}
+                        bg="#101010"
+                        pl="0.4rem"
+                        placeholder="Enter token name"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </Box>
+                    <Box overflow="auto" className="custom-scrollbar">
+                      {filteredTokens.map((token: any, index: number) => (
+                        <Box
+                          key={index}
+                          display="flex"
+                          flexDirection="column"
+                          mb="0.5rem"
+                        >
+                          <Box
+                            display="flex"
+                            gap="0.8rem"
+                            _hover={{ bg: "gray.800" }}
+                            padding="0.5rem"
+                            borderRadius="8px"
+                            cursor="pointer"
+                            alignItems="center"
+                            onClick={() => {
+                              setbuyDropdownSelected(false);
+                              setBuyToken(token);
+                              setSearchTerm("");
+                              setcurrentSelectedBuyToken(token);
+                            }}
+                          >
+                            <Box>
+                              {token.logo_url ? (
+                                <Image
+                                  src={token.logo_url}
+                                  alt="trial"
+                                  height={35}
+                                  width={35}
+                                />
+                              ) : (
+                                <Box
+                                  borderRadius="full"
+                                  boxSize="35px"
+                                  bg="gray.600"
+                                  display="flex"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                >
+                                  <Text
+                                    color="white"
+                                    fontSize="2xl"
+                                    fontWeight="bold"
+                                  >
+                                    ?
+                                  </Text>
+                                </Box>
+                              )}
+                            </Box>
+                            <Box>
+                              <Text fontSize="18px">{token.name}</Text>
+                              <Text fontSize="14px" color="grey">
+                                {token.symbol}
+                              </Text>
+                            </Box>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+               </Box>
             )}
           </Tabs.Content>
         </Tabs.Root>
