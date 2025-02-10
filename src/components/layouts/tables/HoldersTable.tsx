@@ -41,9 +41,9 @@ const HoldersTable = ({ holders }: { holders: holder[] }) => {
               borderTop="0px"
             >
               {Array(4).fill("").map((_,index2:number)=>(
-                <Text flex={1} key={index2} textAlign="left">
+                <Box flex={1} key={index2} width="100%" display="flex" justifyContent={index2==0?"flex-start":index2===1?'flex-start':index2===3?'right': 'center'} mr={index2===3?"2rem":""}>
                   <Skeleton width="4rem" height=".85rem" borderRadius="6px" />
-                </Text>
+                </Box>
               ))}
             </Box>
           ))}
@@ -65,13 +65,15 @@ const HoldersTable = ({ holders }: { holders: holder[] }) => {
               </Text>
               <Tooltip closeDelay={300}  contentProps={{ css: { "padding":'8px',bg:'rgb(30 32 37)',color:'white' } }} openDelay={100}  content={holder.holder}>
                 <Link href={`https://starkscan.co/contract/${holder.holder}`} target="_blank" style={{flex:'1',textAlign:'left',textDecoration:'underline'}}>
-                  <Text flex={1} textAlign="left">
+                  {holder.holder_id?<Text flex={1} textAlign="left">
+                    {holder.holder_id}
+                  </Text>:<Text flex={1} textAlign="left">
                     {holder.holder.substring(0, 5)}...
                     {holder.holder.substring(
                       holder.holder.length - 5,
                       holder.holder.length
                     )}
-                  </Text>
+                  </Text>}
                 </Link>
               </Tooltip>
               <Text flex={1} textAlign="center">

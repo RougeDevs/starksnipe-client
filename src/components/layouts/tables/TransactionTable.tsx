@@ -32,9 +32,9 @@ const TransactionTable = ({ transactions }:{transactions:tokenTransaction[]}) =>
               borderTop="0px"
             >
               {Array(5).fill("").map((_,index2:number)=>(
-                <Text flex={1} key={index2} width="100%" display="flex" justifyContent={index2==0?"flex-start":index2===4?'right': 'center'} mr={index2===4?"2rem":""}>
+                <Box flex={1} key={index2} width="100%" display="flex" justifyContent={index2==0?"flex-start":index2===4?'right': 'center'} mr={index2===4?"2rem":""}>
                   <Skeleton width="4rem" height=".85rem" borderRadius="6px" />
-                </Text>
+                </Box>
               ))}
             </Box>
           ))}

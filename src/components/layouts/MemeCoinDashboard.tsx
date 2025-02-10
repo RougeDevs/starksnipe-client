@@ -18,6 +18,7 @@ import { Tooltip } from "../ui/tooltip";
 import numberFormatter from "@/functions/numberFormatter";
 import numberFormatterPercentage from "@/functions/numberFormatterPercentage";
 import { getProvider } from "@/Blockchain/strk-constants";
+import formatNumberEs from "@/functions/esnumberFormatter";
 const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
   const router = useRouter();
   const [memeCoinData, setmemeCoinData] = useState<token>();
@@ -95,9 +96,9 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
           >
             <Box>
               <Box display="flex" gap="0.5rem">
-                {memeCoinData?.coinData.icon_url ? (
+                {memeCoinData?.coinData?.icon_url ? (
                   <Image
-                    src={memeCoinData?.coinData.icon_url}
+                    src={memeCoinData?.coinData?.icon_url}
                     alt=""
                     height={30}
                     width={30}
@@ -116,7 +117,7 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                     </Text>
                   </Box>
                 )}
-                <Text fontSize="24px">{memeCoinData?.coinData.symbol} ({memeCoinData?.coinData.name})</Text>
+                <Text fontSize="24px">{memeCoinData?.coinData?.symbol} ({memeCoinData?.coinData?.name})</Text>
               </Box>
               <Box
                 width="100%"
@@ -141,7 +142,7 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
                 )}
                 <Box color="#459C6E" display="flex" gap="0.2rem">
                   <Text color="#98989B">Market Cap:</Text>$
-                  { memeCoinData?.coinData.market_cap}
+                  { memeCoinData?.coinData?.market_cap}
                 </Box>
                 {memeCoinData?.coinData?.owner!=='0' &&<Box display="flex" alignItems="center" gap="0.4rem">
                   <Text color="#98989B">Deployed By</Text>
@@ -179,16 +180,16 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: any) => {
               >
                 <Box color="#459C6E" display="flex" gap="0.2rem">
                   <Text color="#98989B">Total Supply:</Text>
-                  { parseAmount(memeCoinData?.coinData.total_supply,18)}
+                  {formatNumberEs(memeCoinData?.coinData?.total_supply as any)}
                 </Box>                
                 <Box display="flex" gap="0.2rem">
                   <Text color="#98989B">Current Price: </Text>$
-                  {numberFormatter(memeCoinData?.coinData.current_price)}
+                  {numberFormatter(memeCoinData?.coinData?.current_price)}
                 </Box>
 
                 <Box display="flex" gap="0.2rem">
                   <Text color="#98989B">Team Allocation: </Text>
-                  {numberFormatterPercentage(memeCoinData?.coinData.team_allocation)}%
+                  {numberFormatterPercentage(memeCoinData?.coinData?.team_allocation)}%
                 </Box>
               </Box>
             </Box>

@@ -19,7 +19,7 @@ const Footer = () => {
       <Box></Box>
       <Box display="flex" gap="1rem" alignItems="center">
         <Box cursor="pointer" _hover={{color:'rgb(33, 219, 166)'}} color='grey'>
-          <Link href="http://t.me/STRKsnipeBot" target="_blank" style={{display:'flex',alignItems:'center',gap:'0.2rem'}}>
+          <Link href="http://t.me/SniqFun" target="_blank" style={{display:'flex',alignItems:'center',gap:'0.2rem'}}>
           <BsTelegram color="grey" />
             Telegram
           </Link>

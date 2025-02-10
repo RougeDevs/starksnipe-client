@@ -1,5 +1,7 @@
 import { parseAmount, processAddress } from '@/Blockchain/utils/utils';
 import currenciesLogos from '../../currencies-with-flags.json'
+import { getProvider } from '@/Blockchain/strk-constants';
+import { TransactionExecutionStatus } from 'starknet';
 
 
 export function getFlagByCode(token:string) {
@@ -95,4 +97,46 @@ export function timeAgo(timestamp: string): string {
 export function epochToDateTime(epoch:number) {
   const date = new Date(epoch * 1000); // Convert seconds to milliseconds
   return date.toDateString(); // Returns in ISO format (UTC)
+}
+
+export async function isTxAccepted(txHash: string) {
+  const provider = getProvider();
+
+  let keepChecking = true;
+  const maxRetries = 30;
+  let retry = 0;
+
+  while (keepChecking) {
+    let txInfo: any;
+
+    try {
+      txInfo = await provider.getTransactionStatus(txHash);
+    } catch (error) {
+      console.error("isTxAccepted error", error);
+      retry++;
+      if (retry > maxRetries) {
+        throw new Error("Transaction status unknown");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      continue;
+    }
+
+    console.debug("isTxAccepted", txInfo);
+    if (!txInfo.finality_status || txInfo.finality_status === "RECEIVED") {
+      // do nothing
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      continue;
+    }
+    if (txInfo.finality_status === "ACCEPTED_ON_L2") {
+      if (txInfo.execution_status === TransactionExecutionStatus.SUCCEEDED) {
+        keepChecking = false;
+        return true;
+      }
+      throw new Error("Transaction reverted");
+    } else if (txInfo.finality_status === "REJECTED") {
+      throw new Error("Transaction rejected");
+    } else {
+      throw new Error("Transaction status unknown");
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import ParticleBackground from "@/components/animatedComponents/Particlebackground";
-import Footer from "@/components/layouts/Footer";
-import Navbar from "@/components/layouts/Navbar";
+import Footer from "@/components/layouts/Footer/Footer";
+import Navbar from "@/components/layouts/Navbar/Navbar";
 import SwapDashboard from "@/components/layouts/SwapDashboard";
 import { Pricer } from "@/interfaces/interface";
 import { getAllTokens } from "@/utils/swapRouter";

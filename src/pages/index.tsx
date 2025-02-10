@@ -1,10 +1,10 @@
 import Head from "next/head";
-import Navbar from "@/components/layouts/Navbar";
+import Navbar from "@/components/layouts/Navbar/Navbar";
 import { Box } from "@chakra-ui/react";
 import axios from "axios";
 import { getAllTokens } from "@/utils/swapRouter";
 import TokenDashboard from "@/components/layouts/TokenDashboard";
-import Footer from "@/components/layouts/Footer";
+import Footer from "@/components/layouts/Footer/Footer";
 import ParticleBackground from "@/components/animatedComponents/Particlebackground";
 import { Pricer } from "@/interfaces/interface";
 

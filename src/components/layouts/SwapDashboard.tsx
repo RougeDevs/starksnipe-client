@@ -10,6 +10,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { Router as FibrousRouter } from "fibrous-router-sdk";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
@@ -32,9 +33,10 @@ import formatNumberEs from "@/functions/esnumberFormatter";
 import { toast } from "react-toastify";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
-import { findTokenPrice, getPriceInUSD } from "@/functions/helpers";
+import { findTokenPrice, getPriceInUSD, isTxAccepted } from "@/functions/helpers";
 import { gasLessMode, gasToken } from "@/store/settings.atom";
 import numberFormatter from "@/functions/numberFormatter";
+import { BigNumber } from "@ethersproject/bignumber";
 const SwapDashboard = ({
   prices,
   currencies,
@@ -71,7 +73,7 @@ const SwapDashboard = ({
     decimals: 18,
     symbol: "STRK",
   });
-
+  const fibrous = new FibrousRouter();
   const [minReceived, setminReceived] = useState<any>(0);
   const [refereshData, setrefereshData] = useState<boolean>(false);
   const [refreshBuyData, setrefreshBuyData] = useState<boolean>(false);
@@ -167,28 +169,36 @@ const SwapDashboard = ({
               calls
             );
             if (result) {
-              toast.success("Successfully swapped tokens", {
-                position: "bottom-right",
-              });
-              settransactionSuccessfull(true);
+              const resTx=await isTxAccepted(result.transactionHash)
+              if(resTx){
+                toast.success("Successfully swapped tokens", {
+                  position: "bottom-right",
+                });
+                settransactionSuccessfull(true);
+              }
             }
-            console.log(result, "result");
           } else {
             const result = await account.execute(calls);
             if (result) {
-              toast.success("Successfully swapped tokens", {
-                position: "bottom-right",
-              });
-              settransactionSuccessfull(true);
+              const resTx=await isTxAccepted(result.transaction_hash)
+              if(resTx){
+                toast.success("Successfully swapped tokens", {
+                  position: "bottom-right",
+                });
+                settransactionSuccessfull(true);
+              }
             }
           }
         } else {
           const result = await account.execute(calls);
           if (result) {
-            toast.success("Successfully swapped tokens", {
-              position: "bottom-right",
-            });
-            settransactionSuccessfull(true);
+            const resTx=await isTxAccepted(result.transaction_hash)
+            if(resTx){
+              toast.success("Successfully swapped tokens", {
+                position: "bottom-right",
+              });
+              settransactionSuccessfull(true);
+            }
           }
         }
         settransactionStarted(false);
@@ -256,7 +266,7 @@ const SwapDashboard = ({
         const res = await fetchQuote(
           BigInt(
             etherToWeiBN(
-              currentSellAmount - (protocolFees + 5 * defaultFees),
+              currentSellAmount - (protocolFees + (gasMode?(5 * defaultFees):0)),
               currentSelectedSellToken.decimals
             )
           ),
@@ -274,20 +284,33 @@ const SwapDashboard = ({
           setminReceived(
             parseAmount(String(res2), currentSelectedBuyToken.decimals)
           );
-          const res3 = getSwapCalls(
-            currentSelectedSellToken.l2_token_address,
-            currentSelectedBuyToken.l2_token_address,
-            BigInt(
-              etherToWeiBN(
-                currentSellAmount - (protocolFees + 5 * defaultFees),
-                currentSelectedSellToken.decimals
-              )
-            ),
-            BigInt(1),
-            res
+          if(address){
+            let arr=[]
+            const approveCall= await fibrous.buildApproveStarknet(
+              BigNumber.from((BigInt(
+                etherToWeiBN(
+                  currentSellAmount - (gasMode?(5 * defaultFees):0),
+                  currentSelectedSellToken.decimals
+                )
+              ))),
+              currentSelectedSellToken.l2_token_address,
+          )
+            const swapCall = await fibrous.buildTransaction(
+              BigNumber.from((BigInt(
+                etherToWeiBN(
+                  currentSellAmount - (gasMode?(5 * defaultFees):0),
+                  currentSelectedSellToken.decimals
+                )
+              ))),
+              currentSelectedSellToken.l2_token_address,
+              currentSelectedBuyToken.l2_token_address,
+              1,
+              address,
+              "starknet"
           );
-          if (res3) {
-            const arr: any = res3;
+          if(swapCall){
+            arr.push(approveCall)
+            arr.push(swapCall)
             arr.push(
               {
                 contractAddress: currentSelectedSellToken.l2_token_address,
@@ -314,8 +337,52 @@ const SwapDashboard = ({
                   "0",
                 ]),
               }
-            );
-            setcalls(arr);
+            )
+            setcalls(arr)
+          }
+            // const res3 = getSwapCalls(
+            //   currentSelectedSellToken.l2_token_address,
+            //   currentSelectedBuyToken.l2_token_address,
+            //   BigInt(
+            //     etherToWeiBN(
+            //       currentSellAmount - (protocolFees + 5 * defaultFees),
+            //       currentSelectedSellToken.decimals
+            //     )
+            //   ),
+            //   BigInt(1),
+            //   res
+            // );
+            // if (res3) {
+            //   const arr: any = res3;
+            //   arr.push(
+            //     {
+            //       contractAddress: currentSelectedSellToken.l2_token_address,
+            //       entrypoint: "approve",
+            //       calldata: [
+            //         "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+            //         etherToWeiBN(
+            //           protocolFees,
+            //           currentSelectedSellToken.decimals
+            //         ).toString(),
+            //         "0",
+            //       ],
+            //     },
+            //     {
+            //       contractAddress:
+            //         "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+            //       entrypoint: "collectFees",
+            //       calldata: CallData.compile([
+            //         currentSelectedSellToken.l2_token_address,
+            //         etherToWeiBN(
+            //           currentSellAmount,
+            //           currentSelectedSellToken.decimals
+            //         ).toString(),
+            //         "0",
+            //       ]),
+            //     }
+            //   );
+            //   setcalls(arr);
+            // }
           }
         }
         setrefereshData(false);
@@ -453,11 +520,13 @@ const SwapDashboard = ({
 
   useEffect(() => {
     if (currentSelectedSellToken.symbol !== "Select a token") {
+      console.log('entry')
       const fetchBalance = async () => {
         const res = await getBalance(
           account?.address as any,
           currentSelectedSellToken.l2_token_address
         );
+        console.log(res,'balance sell')
         setsellTokenBalance(res as number);
       };
       if (account && currentSelectedSellToken.l2_token_address) {

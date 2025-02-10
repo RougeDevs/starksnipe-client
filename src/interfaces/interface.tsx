@@ -16,6 +16,8 @@ export type holder={
     last_transfer_time:number
 }
 
+export type tradeType='buy' | 'sell'
+
 export type currency={
     id:string,
     name:string,
@@ -64,7 +66,7 @@ export type tokenTransaction={
     tx_hash:string,
     account_address:string,
     account_id:string,
-    trade_type:'buy' | 'sell',
+    trade_type:tradeType,
     amount:string,
     timestamp:number
 }

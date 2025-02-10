@@ -17,11 +17,12 @@ import {
 } from "@starknet-react/core";
 import { ArgentMobileConnector } from "starknetkit/argentMobile";
 import { InjectedConnector } from "starknetkit/injected";
+import { WebWalletConnector } from "starknetkit/webwallet";
 export const MYCONNECTORS = [
   new InjectedConnector({ options: { id: "braavos", name: "Braavos" } }),
   new InjectedConnector({ options: { id: "argentX", name: "Argent X" } }),
   new ArgentMobileConnector(),
-  // new WebWalletConnector({ url: 'https://web.argent.xyz' }),
+  new WebWalletConnector({ url: "https://web.argent.xyz" }),
 ];
 
 export default function App({ Component, pageProps }: AppProps) {

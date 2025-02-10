@@ -22,6 +22,7 @@
     "crypto-browserify": "^3.12.1",
     "dotenv": "^16.4.7",
     "ethers": "^6.13.5",
+    "fibrous-router-sdk": "^0.4.3",
     "grammy": "^1.33.0",
     "https-browserify": "^1.0.0",
     "jotai": "^2.10.4",

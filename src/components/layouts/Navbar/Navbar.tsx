@@ -1,39 +1,28 @@
 import { Box, Button, SimpleGrid, Text } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { GiHamburgerMenu } from "react-icons/gi";
 import { FaGasPump } from "react-icons/fa";
 import { useAccount, useConnect, useDisconnect } from "@starknet-react/core";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
 import STRKLogo from "@/assets/strkLogo";
-import logo from "../../../public/sniq.png";
-import Link from "next/link";
+import logo from "../../../../public/sniq.png";
 import { useRouter } from "next/router";
 import { gasLessMode, gasToken } from "@/store/settings.atom";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import DropdownUp from "@/assets/DropdownIcon";
-import { Switch } from "../ui/switch";
+import { Switch } from "../../ui/switch";
 import { swapTokens } from "@/constants";
 import { processAddress } from "@/Blockchain/utils/utils";
-import ShinyText from "../animatedComponents/ShinnyText";
-import {
-  DrawerActionTrigger,
-  DrawerBackdrop,
-  DrawerBody,
-  DrawerCloseTrigger,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerRoot,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import StarBorder from "../animatedComponents/StarBorder";
+import ShinyText from "../../animatedComponents/ShinnyText";
+import StarBorder from "../../animatedComponents/StarBorder";
 import { getParsedTokenData } from "@/utils/helper";
 import { EkuboTokenData } from "@/utils/types";
+import NavbarDrawer from "./NavbarDrawer";
+import { Tooltip } from "@/components/ui/tooltip";
+
 const Navbar = ({ allTokens }: any) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const router = useRouter();
   const { starknetkitConnectModal: starknetkitConnectModal1 } =
     useStarknetkitConnectModal({
@@ -69,7 +58,7 @@ const Navbar = ({ allTokens }: any) => {
       }
     }
   };
-  const dropdownRef=useRef<any>(null)
+  const dropdownRef = useRef<any>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
@@ -78,9 +67,9 @@ const Navbar = ({ allTokens }: any) => {
         setwalletDropdownSelected(false);
       }
     };
-  
+
     document.addEventListener("pointerdown", handleClickOutside);
-  
+
     return () => {
       document.removeEventListener("pointerdown", handleClickOutside);
     };
@@ -152,7 +141,6 @@ const Navbar = ({ allTokens }: any) => {
             fontWeight={router.pathname === "/swap" ? 700 : 400}
             fontSize="20px"
             display="flex"
-            
             hideBelow="md"
             alignItems="center"
             cursor="pointer"
@@ -162,18 +150,33 @@ const Navbar = ({ allTokens }: any) => {
           >
             Swap
           </Text>
-          <Button
-            variant="plain"
-            disabled={true}
-            _hover={{ color: "rgb(33, 219, 166)" }}
-            fontWeight={router.pathname === "/swap" ? 700 : 400}
-            fontSize="20px"
-            display="flex"
-            hideBelow="lg"
-            alignItems="center"
+          <Tooltip
+            closeDelay={300}
+            contentProps={{
+              css: {
+                padding: "8px",
+                marginTop: "-0.5rem",
+                bg: "rgb(30 32 37)",
+                color: "white",
+              },
+            }}
+            openDelay={100}
+            content={"Coming Soon"}
           >
-            Create Coin (Coming Soon)
-          </Button>
+            <Button
+              variant="plain"
+              disabled={true}
+              // _hover={{ color: "rgb(33, 219, 166)" }}
+              fontWeight={router.pathname === "/swap" ? 700 : 400}
+              fontSize="20px"
+              display="flex"
+              hideBelow="lg"
+              color="#e8e8e8"
+              alignItems="center"
+            >
+              Launch Coin 🚀
+            </Button>
+          </Tooltip>
         </Box>
       </Box>
       {account ? (
@@ -209,7 +212,7 @@ const Navbar = ({ allTokens }: any) => {
             cursor="pointer"
             onClick={() => {
               setwalletDropdownSelected(!walletDropdownSelected);
-              setgaslessdropdownSelected(false)
+              setgaslessdropdownSelected(false);
             }}
           >
             <STRKLogo width={16} height={16} />
@@ -218,108 +221,13 @@ const Navbar = ({ allTokens }: any) => {
               account.address.length
             )}`}
           </Box>
-          <DrawerRoot
-            size="sm"
+          <NavbarDrawer
             open={open}
-            onOpenChange={(e) => setOpen(e.open)}
-          >
-            <DrawerBackdrop />
-            <DrawerTrigger asChild>
-              <Box
-                hideFrom="md"
-                border="1px solid #374151"
-                padding="12px"
-                borderRadius="8px"
-              >
-                <GiHamburgerMenu />
-              </Box>
-            </DrawerTrigger>
-            <DrawerContent padding="1rem">
-              <DrawerHeader>
-                <DrawerTitle>
-                  <ShinyText text="SniQ" />
-                </DrawerTitle>
-              </DrawerHeader>
-              <DrawerBody
-                display="flex"
-                width="100%"
-                mt="2rem"
-                justifyContent="center"
-                // alignItems="center"
-              >
-                <Box display="flex" flexDir="column" gap="1rem" width="100%">
-                  <Box
-                    border="1px solid grey"
-                    borderRadius="8px"
-                    padding="8px 16px"
-                    width="100%"
-                    cursor="pointer"
-                    textAlign="center"
-                    onClick={() => {
-                      router.push("/");
-                      setOpen(false);
-                    }}
-                  >
-                    Home
-                  </Box>
-                  <Box
-                    border="1px solid grey"
-                    borderRadius="8px"
-                    padding="8px 16px"
-                    cursor="pointer"
-                    width="100%"
-                    textAlign="center"
-                    onClick={() => {
-                      router.push("/swap");
-                      setOpen(false);
-                    }}
-                  >
-                    Swap
-                  </Box>
-                  <Button
-                    border="1px solid grey"
-                    borderRadius="8px"
-                    padding="8px 16px"
-                    width="100%"
-                    textAlign="center"
-                    onClick={() => {
-                      setOpen(false);
-                    }}
-                    color="white"
-                    disabled={true}
-                    bg="transparent"
-                  >
-                    Create Coin (Coming Soon)
-                  </Button>
-                  <Box
-                    cursor="pointer"
-                    width="100%"
-                    textAlign="center"
-                    padding="8px 16px"
-                    display="flex"
-                    justifyContent="center"
-                    border="1px solid grey"
-                    _hover={{ bg: "grey" }}
-                    // bg="grey"
-                    borderRadius="8px"
-                    onClick={() => {
-                      setgaslessdropdownSelected(!gaslessdropdownSelected);
-                      setwalletDropdownSelected(false);
-                      setOpen(false);
-                    }}
-                  >
-                    <FaGasPump />
-                  </Box>
-                </Box>
-              </DrawerBody>
-              <DrawerFooter>
-                <DrawerActionTrigger asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DrawerActionTrigger>
-              </DrawerFooter>
-              <DrawerCloseTrigger />
-            </DrawerContent>
-          </DrawerRoot>
+            setOpen={setOpen}
+            gaslessdropdownSelected={gaslessdropdownSelected}
+            setgaslessdropdownSelected={setgaslessdropdownSelected}
+            setwalletDropdownSelected={setwalletDropdownSelected}
+          />
         </Box>
       ) : (
         <Box display="flex" gap="1rem" alignItems="center">
@@ -354,108 +262,13 @@ const Navbar = ({ allTokens }: any) => {
           >
             Connect Wallet
           </StarBorder>
-          <DrawerRoot
-            size="sm"
+          <NavbarDrawer
             open={open}
-            onOpenChange={(e) => setOpen(e.open)}
-          >
-            <DrawerBackdrop />
-            <DrawerTrigger asChild>
-              <Box
-                hideFrom="lg"
-                border="1px solid #374151"
-                padding="12px"
-                borderRadius="8px"
-              >
-                <GiHamburgerMenu />
-              </Box>
-            </DrawerTrigger>
-            <DrawerContent padding="1rem">
-              <DrawerHeader>
-                <DrawerTitle>
-                  <ShinyText text="SniQ" />
-                </DrawerTitle>
-              </DrawerHeader>
-              <DrawerBody
-                display="flex"
-                width="100%"
-                mt="2rem"
-                justifyContent="center"
-                // alignItems="center"
-              >
-                <Box display="flex" flexDir="column" gap="1rem" width="100%">
-                  <Box
-                    border="1px solid grey"
-                    borderRadius="8px"
-                    padding="8px 16px"
-                    width="100%"
-                    cursor="pointer"
-                    textAlign="center"
-                    onClick={() => {
-                      router.push("/");
-                      setOpen(false);
-                    }}
-                  >
-                    Home
-                  </Box>
-                  <Box
-                    border="1px solid grey"
-                    borderRadius="8px"
-                    padding="8px 16px"
-                    cursor="pointer"
-                    width="100%"
-                    textAlign="center"
-                    onClick={() => {
-                      router.push("/swap");
-                      setOpen(false);
-                    }}
-                  >
-                    Swap
-                  </Box>
-                  <Button
-                    border="1px solid grey"
-                    borderRadius="8px"
-                    padding="8px 16px"
-                    width="100%"
-                    textAlign="center"
-                    onClick={() => {
-                      setOpen(false);
-                    }}
-                    color="white"
-                    disabled={true}
-                    bg="transparent"
-                  >
-                    Create Coin (Coming Soon)
-                  </Button>
-                  <Box
-                    cursor="pointer"
-                    width="100%"
-                    textAlign="center"
-                    padding="8px 16px"
-                    display="flex"
-                    justifyContent="center"
-                    border="1px solid grey"
-                    _hover={{ bg: "grey" }}
-                    // bg="grey"
-                    borderRadius="8px"
-                    onClick={() => {
-                      setgaslessdropdownSelected(!gaslessdropdownSelected);
-                      setwalletDropdownSelected(false);
-                      setOpen(false);
-                    }}
-                  >
-                    <FaGasPump />
-                  </Box>
-                </Box>
-              </DrawerBody>
-              <DrawerFooter>
-                <DrawerActionTrigger asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DrawerActionTrigger>
-              </DrawerFooter>
-              <DrawerCloseTrigger />
-            </DrawerContent>
-          </DrawerRoot>
+            setOpen={setOpen}
+            gaslessdropdownSelected={gaslessdropdownSelected}
+            setgaslessdropdownSelected={setgaslessdropdownSelected}
+            setwalletDropdownSelected={setwalletDropdownSelected}
+          />
         </Box>
       )}
       {walletDropdownSelected && (
@@ -563,7 +376,9 @@ const Navbar = ({ allTokens }: any) => {
                   </Box>
                   <Box>
                     <Text>
-                      {!account?"": matchedToken
+                      {!account
+                        ? ""
+                        : matchedToken
                         ? (
                             parseFloat(matchedToken.balance) /
                             10 ** matchedToken.decimals

@@ -13,7 +13,6 @@ import { useAtomValue, useSetAtom } from "jotai";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import crossIcon from "../../assets/crossIcon.svg";
-import invertIcon from "../../assets/buySellIcon.svg";
 import { AccountInterface, CallData, TransactionType } from "starknet";
 import InfoIcon from "@/assets/InfoIcon";
 import { getBalance } from "@/Blockchain/scripts/swapinteraction";

@@ -116,10 +116,6 @@ const TokenDashboard = () => {
                   alignItems="center"
                 >
                   <Box
-                  // bg="transparent"
-                  // border="1px solid #374151"
-                  // borderRadius="8px"
-                  // padding="8px"
                     height={{
                       base: "90px",
                       sm: "90px",
@@ -138,7 +134,7 @@ const TokenDashboard = () => {
                       alt=""
                       height="100"
                       width="100"
-                      style={{ cursor: "pointer", borderRadius: "40px" }}
+                      objectFit="cover"
                     />
                   </Box>
                   <Box display="flex" flexDir="column">
