@@ -7,6 +7,7 @@ import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
 import STRKLogo from "@/assets/strkLogo";
 import logo from "../../../../public/sniq.png";
+import radarLogo from '../../../assets/sniper-logo.png'
 import { useRouter } from "next/router";
 import { gasLessMode, gasToken } from "@/store/settings.atom";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -20,6 +21,7 @@ import { getParsedTokenData } from "@/utils/helper";
 import { EkuboTokenData } from "@/utils/types";
 import NavbarDrawer from "./NavbarDrawer";
 import { Tooltip } from "@/components/ui/tooltip";
+import Link from "next/link";
 
 const Navbar = ({ allTokens }: any) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -114,7 +116,6 @@ const Navbar = ({ allTokens }: any) => {
             router.push("/");
           }}
         >
-          <Image src={logo} alt="trial" height={60} width={60} />
           <ShinyText text="SniQ" />
         </Box>
         <Box display="flex" alignItems="center" gap="1.5rem">
@@ -150,6 +151,23 @@ const Navbar = ({ allTokens }: any) => {
           >
             Swap
           </Text>
+          <Box
+            color={
+              router.pathname === "/swap" ? "rgb(33, 219, 166)" : "#9CA3AF"
+            }
+            _hover={{ color: "rgb(33, 219, 166)" }}
+            fontWeight={router.pathname === "/swap" ? 700 : 400}
+            fontSize="20px"
+            display="flex"
+            hideBelow="md"
+            alignItems="center"
+            cursor="pointer"
+          >
+            <Link href="http://t.me/STRKsnipeBot" target="_blank" style={{display:'flex',alignItems:'center'}}>
+              SniQ Radar
+              <Image src={radarLogo} alt="" height={36} width={36} />
+            </Link>
+          </Box>
           <Tooltip
             closeDelay={300}
             contentProps={{

@@ -49,9 +49,9 @@ const TransactionTable = ({ transactions }:{transactions:tokenTransaction[]}) =>
                   </Link>
                 </Text>
              </Tooltip>
-            <Text flex={1} textAlign="center" color="#98989B">{timeAgo(String(transaction.timestamp))}</Text>
+            <Text flex={1} textAlign="center" color="#98989B">{timeAgo(String(transaction?.timestamp))}</Text>
             <Text flex={1} textAlign="center" color={transaction.trade_type==='buy'?"#459C6E":'#A13C45'}>{transaction.trade_type}</Text>
-            <Text flex={1} textAlign="center" color="#98989B">{numberFormatter(transaction.amount.replace(/,/g, ""))}</Text>
+            <Text flex={1} textAlign="center" color="#98989B">{numberFormatter(transaction?.amount.replace(/,/g, ""))}</Text>
             <Tooltip closeDelay={300}  contentProps={{ css: { "padding":'8px',bg:'rgb(30 32 37)',color:'white' } }} openDelay={100}  content={transaction.tx_hash}>
               <Text flex={1} textAlign="right" textDecoration="underline" color="#9CA3AF" mr={"0.5rem"}>
                   <Link href={`https://starkscan.co/tx/${transaction.tx_hash}`} target="_blank">

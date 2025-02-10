@@ -1,5 +1,7 @@
 import { Box, Button } from "@chakra-ui/react";
 import React from "react";
+import Image from "next/image";
+import radarLogo from '../../../assets/sniper-logo.png'
 import {
   DrawerActionTrigger,
   DrawerBackdrop,
@@ -16,6 +18,7 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import ShinyText from "@/components/animatedComponents/ShinnyText";
 import { FaGasPump } from "react-icons/fa";
 import { useRouter } from "next/router";
+import Link from "next/link";
 const NavbarDrawer = ({
   open,
   setOpen,
@@ -79,6 +82,21 @@ const NavbarDrawer = ({
                 }}
               >
                 Swap
+              </Box>
+              <Box
+                border="1px solid grey"
+                borderRadius="8px"
+                padding="8px 16px"
+                cursor="pointer"
+                width="100%"
+                textAlign="center"
+                onClick={() => {
+                  setOpen(false);
+                }}
+              >
+              <Link href="http://t.me/STRKsnipeBot" target="_blank" style={{display:'flex',alignItems:'center',border:'0px',justifyContent:'center',padding:'0px'}}>
+              SniQ Radar
+            </Link>
               </Box>
               <Button
                 border="1px solid grey"
