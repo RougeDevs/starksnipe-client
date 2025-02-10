@@ -25,7 +25,7 @@ const Footer = () => {
           </Link>
         </Box>
         <Box>
-          <Link href="" target="_blank" style={{display:'flex',gap:'0.2rem',alignItems:'center'}}>
+          <Link href="https://docs.google.com/document/d/e/2PACX-1vTwWw-GxlCF3-bOEMTg-xed30ePmuZb9PYgy35Lyw60PAYGgtGa_p2wxB-hy_sb_I4OERbKPU01I9ZN/pub?embedded=true" target="_blank" style={{display:'flex',gap:'0.2rem',alignItems:'center'}}>
           <MdOutlinePrivacyTip   color="grey"/>
             <Text _hover={{color:'rgb(33, 219, 166)'}} color='grey'>
               Privacy

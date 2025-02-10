@@ -9,6 +9,7 @@ import React from "react";
 const TransactionTable = ({ transactions }:{transactions:tokenTransaction[]}) => {
   const skeletonValues = Array(12).fill("");
   const columnItems=["Address","Date","Type","Amount","Transaction"]
+  console.log(transactions,'txs')
   return (
     <Box width="100%" mt="1rem" overflowX="auto">
       <Box display="flex" minW="700px" width="100%" bg='rgb(30 32 37)' justifyContent="space-between" fontWeight="bold" border="1px solid #374151"p={2} color="#98989B">
@@ -51,7 +52,7 @@ const TransactionTable = ({ transactions }:{transactions:tokenTransaction[]}) =>
              </Tooltip>
             <Text flex={1} textAlign="center" color="#98989B">{timeAgo(String(transaction?.timestamp))}</Text>
             <Text flex={1} textAlign="center" color={transaction.trade_type==='buy'?"#459C6E":'#A13C45'}>{transaction.trade_type}</Text>
-            <Text flex={1} textAlign="center" color="#98989B">{numberFormatter(transaction?.amount.replace(/,/g, ""))}</Text>
+            <Text flex={1} textAlign="center" color="#98989B">{numberFormatter(transaction.amount)}</Text>
             <Tooltip closeDelay={300}  contentProps={{ css: { "padding":'8px',bg:'rgb(30 32 37)',color:'white' } }} openDelay={100}  content={transaction.tx_hash}>
               <Text flex={1} textAlign="right" textDecoration="underline" color="#9CA3AF" mr={"0.5rem"}>
                   <Link href={`https://starkscan.co/tx/${transaction.tx_hash}`} target="_blank">

@@ -1,6 +1,7 @@
+"use client";
 import { Box, Button, HStack, Input, SimpleGrid, Text } from "@chakra-ui/react";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { generateRandomGradient } from "@/functions/helpers";
 import {
@@ -10,7 +11,8 @@ import {
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination";
-const TokenDashboard = () => {
+import axios from "axios";
+const TokenDashboard = ({ allTokens }: any) => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -18,6 +20,8 @@ const TokenDashboard = () => {
   const startRange = (page - 1) * pageSize;
   const endRange = startRange + pageSize;
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [currentTokens, setcurrentTokens] = useState([]);
+  const [totalTokensLength, settotalTokensLength] = useState(100);
 
   const handleMouseMove = (e: any, index: number) => {
     setHoveredIndex(index);
@@ -34,23 +38,15 @@ const TokenDashboard = () => {
     setHoveredIndex(null);
     setTilt({ x: 0, y: 0 });
   };
-  const tokens = Array(20).fill({
-    name: "ETH",
-    l2_token_address:
-      "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    logo_url: "https://token-icons.s3.amazonaws.com/eth.png",
-    decimals: 18,
-    symbol: "ETH",
-  });
   const [searchTerm, setSearchTerm] = useState("");
-  const filteredTokens = tokens.filter((token: any) => {
+  const filteredTokens = allTokens?.filter((token: any) => {
     return (
       searchTerm === "" ||
       token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
-  const count = filteredTokens.length;
+  const count = allTokens.length;
   return (
     <Box display="flex" width="100%" justifyContent="center" pt="6rem">
       <Box
@@ -80,7 +76,7 @@ const TokenDashboard = () => {
           {/* Reduced horizontal spacing with spacingX */}
           {filteredTokens
             .slice(startRange, endRange)
-            .map((token, index: number) => (
+            .map((token: any, index: number) => (
               <Box
                 key={index}
                 cursor="pointer"
@@ -129,13 +125,28 @@ const TokenDashboard = () => {
                       lg: "100px",
                     }}
                   >
-                    <Image
-                      src={token.logo_url}
-                      alt=""
-                      height="100"
-                      width="100"
-                      objectFit="cover"
-                    />
+                    {token.logo_url ? (
+                      <Image
+                        src={token.logo_url}
+                        alt=""
+                        height="100"
+                        width="100"
+                        objectFit="cover"
+                      />
+                    ) : (
+                      <Box
+                        borderRadius="full"
+                        boxSize="90px"
+                        bg="gray.600"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Text color="white" fontSize="4xl" fontWeight="bold">
+                          ?
+                        </Text>
+                      </Box>
+                    )}
                   </Box>
                   <Box display="flex" flexDir="column">
                     <Box

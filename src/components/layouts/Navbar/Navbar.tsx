@@ -153,7 +153,7 @@ const Navbar = ({ allTokens }: any) => {
           </Text>
           <Box
             color={
-              router.pathname === "/swap" ? "rgb(33, 219, 166)" : "#9CA3AF"
+               "#9CA3AF"
             }
             _hover={{ color: "rgb(33, 219, 166)" }}
             fontWeight={router.pathname === "/swap" ? 700 : 400}

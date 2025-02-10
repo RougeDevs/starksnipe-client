@@ -19,16 +19,12 @@ export type holder={
 export type tradeType='buy' | 'sell'
 
 export type currency={
-    id:string,
-    name:string,
-    short_code:string,
     code:string,
-    precision:number,
-    subunit:number,
-    symbol:string,
-    symbol_first:string,
-    decimal_mark:string,
-    thousands_seperator:string
+    country:string,
+    countryCode:string,
+    flag:string,
+    name:string,
+    usd_price:number
 }
 
 export type token={
@@ -67,6 +63,7 @@ export type tokenTransaction={
     account_address:string,
     account_id:string,
     trade_type:tradeType,
-    amount:string,
+    amount:number,
+    formatted_amount:string,
     timestamp:number
 }

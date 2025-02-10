@@ -21,7 +21,12 @@ import { getBalance } from "@/Blockchain/scripts/swapinteraction";
 import { useAccount, useConnect } from "@starknet-react/core";
 import { fetchQuote, getSwapCalls } from "@/utils/swapRouter";
 import { getMinAmountOut, getParsedTokenData } from "@/utils/helper";
-import { fetchAccountCompatibility } from "@avnu/gasless-sdk";
+import {
+  fetchAccountCompatibility,
+} from "@avnu/gasless-sdk";
+import {
+  fetchBuildExecuteTransaction,
+} from "@avnu/avnu-sdk";
 import {
   etherToWeiBN,
   parseAmount,
@@ -33,17 +38,20 @@ import formatNumberEs from "@/functions/esnumberFormatter";
 import { toast } from "react-toastify";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
-import { findTokenPrice, getPriceInUSD, isTxAccepted } from "@/functions/helpers";
+import {
+  findTokenPrice,
+  getPriceInUSD,
+  isTxAccepted,
+} from "@/functions/helpers";
 import { gasLessMode, gasToken } from "@/store/settings.atom";
 import numberFormatter from "@/functions/numberFormatter";
 import { BigNumber } from "@ethersproject/bignumber";
+import axios from "axios";
 const SwapDashboard = ({
   prices,
-  currencies,
   allTokens,
 }: {
   prices: any;
-  currencies: any;
   allTokens: any;
 }) => {
   const [buyDropdownSelected, setbuyDropdownSelected] =
@@ -69,7 +77,8 @@ const SwapDashboard = ({
     name: "STRK",
     l2_token_address:
       "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-    logo_url: "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/1b126320-367c-48ed-cf5a-ba7580e49600/logo",
+    logo_url:
+      "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/1b126320-367c-48ed-cf5a-ba7580e49600/logo",
     decimals: 18,
     symbol: "STRK",
   });
@@ -169,8 +178,8 @@ const SwapDashboard = ({
               calls
             );
             if (result) {
-              const resTx=await isTxAccepted(result.transactionHash)
-              if(resTx){
+              const resTx = await isTxAccepted(result.transactionHash);
+              if (resTx) {
                 toast.success("Successfully swapped tokens", {
                   position: "bottom-right",
                 });
@@ -180,8 +189,8 @@ const SwapDashboard = ({
           } else {
             const result = await account.execute(calls);
             if (result) {
-              const resTx=await isTxAccepted(result.transaction_hash)
-              if(resTx){
+              const resTx = await isTxAccepted(result.transaction_hash);
+              if (resTx) {
                 toast.success("Successfully swapped tokens", {
                   position: "bottom-right",
                 });
@@ -192,8 +201,8 @@ const SwapDashboard = ({
         } else {
           const result = await account.execute(calls);
           if (result) {
-            const resTx=await isTxAccepted(result.transaction_hash)
-            if(resTx){
+            const resTx = await isTxAccepted(result.transaction_hash);
+            if (resTx) {
               toast.success("Successfully swapped tokens", {
                 position: "bottom-right",
               });
@@ -263,126 +272,134 @@ const SwapDashboard = ({
     const fetchValue = async () => {
       try {
         const protocolFees = currentSellAmount / 1000;
-        const res = await fetchQuote(
-          BigInt(
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_API}/get-quotes?sell_token=${
+            currentSelectedSellToken.l2_token_address
+          }&buy_token=${
+            currentSelectedBuyToken.l2_token_address
+          }&sell_amount=${BigInt(
             etherToWeiBN(
-              currentSellAmount - (protocolFees + (gasMode?(5 * defaultFees):0)),
+              currentSellAmount -
+                (protocolFees + (gasMode ? 5 * defaultFees : 0)),
               currentSelectedSellToken.decimals
             )
-          ),
-          currentSelectedSellToken.l2_token_address,
-          currentSelectedBuyToken.l2_token_address
+          )}`
         );
         if (res) {
           setcurrentBuyAmount(
-            parseAmount(res?.total_calculated, currentSelectedBuyToken.decimals)
+            parseAmount(
+              res?.data?.data.buy_amount,
+              currentSelectedBuyToken.decimals
+            )
           );
           const res2 = getMinAmountOut(
-            BigInt(res?.total_calculated),
+            BigInt(res?.data?.data.buy_amount),
             BigInt(1)
           );
           setminReceived(
             parseAmount(String(res2), currentSelectedBuyToken.decimals)
           );
-          if(address){
-            let arr=[]
-            const approveCall= await fibrous.buildApproveStarknet(
-              BigNumber.from((BigInt(
-                etherToWeiBN(
-                  currentSellAmount - (gasMode?(5 * defaultFees):0),
-                  currentSelectedSellToken.decimals
-                )
-              ))),
-              currentSelectedSellToken.l2_token_address,
-          )
-            const swapCall = await fibrous.buildTransaction(
-              BigNumber.from((BigInt(
-                etherToWeiBN(
-                  currentSellAmount - (gasMode?(5 * defaultFees):0),
-                  currentSelectedSellToken.decimals
-                )
-              ))),
-              currentSelectedSellToken.l2_token_address,
-              currentSelectedBuyToken.l2_token_address,
-              1,
-              address,
-              "starknet"
-          );
-          if(swapCall){
-            arr.push(approveCall)
-            arr.push(swapCall)
-            arr.push(
-              {
-                contractAddress: currentSelectedSellToken.l2_token_address,
-                entrypoint: "approve",
-                calldata: [
-                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-                  etherToWeiBN(
-                    protocolFees,
-                    currentSelectedSellToken.decimals
-                  ).toString(),
-                  "0",
-                ],
-              },
-              {
-                contractAddress:
-                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-                entrypoint: "collectFees",
-                calldata: CallData.compile([
-                  currentSelectedSellToken.l2_token_address,
-                  etherToWeiBN(
-                    currentSellAmount,
-                    currentSelectedSellToken.decimals
-                  ).toString(),
-                  "0",
-                ]),
+          if (address) {
+            if (res?.data?.data.aggregator == 0) {
+              let arr = [];
+              const approveCall = await fibrous.buildApproveStarknet(
+                BigNumber.from(
+                  BigInt(
+                    etherToWeiBN(
+                      currentSellAmount - (gasMode ? 5 * defaultFees : 0),
+                      currentSelectedSellToken.decimals
+                    )
+                  )
+                ),
+                currentSelectedSellToken.l2_token_address
+              );
+              const swapCall = await fibrous.buildTransaction(
+                BigNumber.from(
+                  BigInt(
+                    etherToWeiBN(
+                      currentSellAmount - (gasMode ? 5 * defaultFees : 0),
+                      currentSelectedSellToken.decimals
+                    )
+                  )
+                ),
+                currentSelectedSellToken.l2_token_address,
+                currentSelectedBuyToken.l2_token_address,
+                1,
+                address,
+                "starknet"
+              );
+              if (swapCall) {
+                arr.push(approveCall);
+                arr.push(swapCall);
+                arr.push(
+                  {
+                    contractAddress: currentSelectedSellToken.l2_token_address,
+                    entrypoint: "approve",
+                    calldata: [
+                      "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                      etherToWeiBN(
+                        protocolFees,
+                        currentSelectedSellToken.decimals
+                      ).toString(),
+                      "0",
+                    ],
+                  },
+                  {
+                    contractAddress:
+                      "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                    entrypoint: "collectFees",
+                    calldata: CallData.compile([
+                      currentSelectedSellToken.l2_token_address,
+                      etherToWeiBN(
+                        currentSellAmount,
+                        currentSelectedSellToken.decimals
+                      ).toString(),
+                      "0",
+                    ]),
+                  }
+                );
+                setcalls(arr);
               }
-            )
-            setcalls(arr)
-          }
-            // const res3 = getSwapCalls(
-            //   currentSelectedSellToken.l2_token_address,
-            //   currentSelectedBuyToken.l2_token_address,
-            //   BigInt(
-            //     etherToWeiBN(
-            //       currentSellAmount - (protocolFees + 5 * defaultFees),
-            //       currentSelectedSellToken.decimals
-            //     )
-            //   ),
-            //   BigInt(1),
-            //   res
-            // );
-            // if (res3) {
-            //   const arr: any = res3;
-            //   arr.push(
-            //     {
-            //       contractAddress: currentSelectedSellToken.l2_token_address,
-            //       entrypoint: "approve",
-            //       calldata: [
-            //         "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-            //         etherToWeiBN(
-            //           protocolFees,
-            //           currentSelectedSellToken.decimals
-            //         ).toString(),
-            //         "0",
-            //       ],
-            //     },
-            //     {
-            //       contractAddress:
-            //         "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-            //       entrypoint: "collectFees",
-            //       calldata: CallData.compile([
-            //         currentSelectedSellToken.l2_token_address,
-            //         etherToWeiBN(
-            //           currentSellAmount,
-            //           currentSelectedSellToken.decimals
-            //         ).toString(),
-            //         "0",
-            //       ]),
-            //     }
-            //   );
-            //   setcalls(arr);
-            // }
+            } else {
+              const res3 = await fetchBuildExecuteTransaction(
+                res?.data?.data.quote_id,
+                address,
+                1,
+                true
+              );
+              console.log(res3,'res3')
+              if (res3) {
+                const arr: any = res3?.calls;
+                arr.push(
+                  {
+                    contractAddress: currentSelectedSellToken.l2_token_address,
+                    entrypoint: "approve",
+                    calldata: [
+                      "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                      etherToWeiBN(
+                        protocolFees,
+                        currentSelectedSellToken.decimals
+                      ).toString(),
+                      "0",
+                    ],
+                  },
+                  {
+                    contractAddress:
+                      "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                    entrypoint: "collectFees",
+                    calldata: CallData.compile([
+                      currentSelectedSellToken.l2_token_address,
+                      etherToWeiBN(
+                        currentSellAmount,
+                        currentSelectedSellToken.decimals
+                      ).toString(),
+                      "0",
+                    ]),
+                  }
+                );
+                setcalls(arr);
+              }
+            }
           }
         }
         setrefereshData(false);
@@ -403,7 +420,7 @@ const SwapDashboard = ({
         setcurrentBuyAmount(0);
       }
     }
-  }, [currentSelectedBuyToken, currentSelectedSellToken, currentSellAmount]);
+  }, [currentSelectedBuyToken, currentSelectedSellToken, currentSellAmount,address]);
 
   useEffect(() => {
     try {
@@ -520,13 +537,11 @@ const SwapDashboard = ({
 
   useEffect(() => {
     if (currentSelectedSellToken.symbol !== "Select a token") {
-      console.log('entry')
       const fetchBalance = async () => {
         const res = await getBalance(
           account?.address as any,
           currentSelectedSellToken.l2_token_address
         );
-        console.log(res,'balance sell')
         setsellTokenBalance(res as number);
       };
       if (account && currentSelectedSellToken.l2_token_address) {
@@ -1148,7 +1163,7 @@ const SwapDashboard = ({
                           setsellDropdownSelected(false);
                           setSellToken(token);
                           setcurrentSelectedSellToken(token);
-                          setSearchTerm("")
+                          setSearchTerm("");
                         }}
                       >
                         <Box>

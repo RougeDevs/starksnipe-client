@@ -80,7 +80,7 @@ const HoldersTable = ({ holders }: { holders: holder[] }) => {
                 {numberFormatter(holder.balance)}
               </Text>
               <Text flex={1} textAlign="right" mr='1rem'>
-                {holder.percentage}
+                {holder.percentage}%
               </Text>
             </Box>
           ))}

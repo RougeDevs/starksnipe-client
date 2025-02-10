@@ -41,8 +41,12 @@ import {
 } from "@/functions/helpers";
 import { swapTokens } from "@/constants";
 import { gasLessMode, gasToken } from "@/store/settings.atom";
-import { SwapToken } from "@/interfaces/interface";
+import { currency, SwapToken } from "@/interfaces/interface";
 import numberFormatter from "@/functions/numberFormatter";
+import { BigNumber } from "@ethersproject/bignumber";
+import { Router as FibrousRouter } from "fibrous-router-sdk";
+import axios from "axios";
+import { fetchBuildExecuteTransaction } from "@avnu/avnu-sdk";
 const SwapInterface = ({
   prices,
   currencies,
@@ -110,7 +114,7 @@ const SwapInterface = ({
   const [defaultFees, setdefaultFees] = useState<number>(0);
   const [transactionSuccessfull, settransactionSuccessfull] =
     useState<boolean>(false);
-
+  const fibrous = new FibrousRouter();
   const { starknetkitConnectModal: starknetkitConnectModal1 } =
     useStarknetkitConnectModal({
       modalMode: "canAsk",
@@ -334,69 +338,133 @@ const SwapInterface = ({
     const fetchValue = async () => {
       try {
         const protocolFees = currentSellAmount / 1000;
-        const res = await fetchQuote(
-          BigInt(
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_API}/get-quotes?sell_token=${
+            currentSelectedSellToken.l2_token_address
+          }&buy_token=${
+            currentSelectedBuyToken.l2_token_address
+          }&sell_amount=${BigInt(
             etherToWeiBN(
-              currentSellAmount - (protocolFees + 5 * defaultFees),
+              currentSellAmount -
+                (protocolFees + (gasMode ? 5 * defaultFees : 0)),
               currentSelectedSellToken.decimals
             )
-          ),
-          currentSelectedSellToken.l2_token_address,
-          currentSelectedBuyToken.l2_token_address
+          )}`
         );
         if (res) {
           setcurrentBuyAmount(
-            parseAmount(res?.total_calculated, currentSelectedBuyToken.decimals)
+            parseAmount(
+              res?.data?.data.buy_amount,
+              currentSelectedBuyToken.decimals
+            )
           );
           const res2 = getMinAmountOut(
-            BigInt(res?.total_calculated),
+            BigInt(res?.data?.data.buy_amount),
             BigInt(1)
           );
           setminReceived(
             parseAmount(String(res2), currentSelectedBuyToken.decimals)
           );
-          const res3 = getSwapCalls(
-            currentSelectedSellToken.l2_token_address,
-            currentSelectedBuyToken.l2_token_address,
-            BigInt(
-              etherToWeiBN(
-                currentSellAmount - (protocolFees + 5 * defaultFees),
-                currentSelectedSellToken.decimals
-              )
-            ),
-            BigInt(1),
-            res
-          );
-          if (res3) {
-            const arr: any = res3;
-            arr.push(
-              {
-                contractAddress: currentSelectedSellToken.l2_token_address,
-                entrypoint: "approve",
-                calldata: [
-                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-                  etherToWeiBN(
-                    protocolFees,
-                    currentSelectedSellToken.decimals
-                  ).toString(),
-                  "0",
-                ],
-              },
-              {
-                contractAddress:
-                  "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
-                entrypoint: "collectFees",
-                calldata: CallData.compile([
-                  currentSelectedSellToken.l2_token_address,
-                  etherToWeiBN(
-                    currentSellAmount,
-                    currentSelectedSellToken.decimals
-                  ).toString(),
-                  "0",
-                ]),
+          if (address) {
+            if (res?.data?.data.aggregator == 0) {
+              let arr = [];
+              const approveCall = await fibrous.buildApproveStarknet(
+                BigNumber.from(
+                  BigInt(
+                    etherToWeiBN(
+                      currentSellAmount - (gasMode ? 5 * defaultFees : 0),
+                      currentSelectedSellToken.decimals
+                    )
+                  )
+                ),
+                currentSelectedSellToken.l2_token_address
+              );
+              const swapCall = await fibrous.buildTransaction(
+                BigNumber.from(
+                  BigInt(
+                    etherToWeiBN(
+                      currentSellAmount - (gasMode ? 5 * defaultFees : 0),
+                      currentSelectedSellToken.decimals
+                    )
+                  )
+                ),
+                currentSelectedSellToken.l2_token_address,
+                currentSelectedBuyToken.l2_token_address,
+                1,
+                address,
+                "starknet"
+              );
+              if (swapCall) {
+                arr.push(approveCall);
+                arr.push(swapCall);
+                arr.push(
+                  {
+                    contractAddress: currentSelectedSellToken.l2_token_address,
+                    entrypoint: "approve",
+                    calldata: [
+                      "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                      etherToWeiBN(
+                        protocolFees,
+                        currentSelectedSellToken.decimals
+                      ).toString(),
+                      "0",
+                    ],
+                  },
+                  {
+                    contractAddress:
+                      "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                    entrypoint: "collectFees",
+                    calldata: CallData.compile([
+                      currentSelectedSellToken.l2_token_address,
+                      etherToWeiBN(
+                        currentSellAmount,
+                        currentSelectedSellToken.decimals
+                      ).toString(),
+                      "0",
+                    ]),
+                  }
+                );
+                setcalls(arr);
               }
-            );
-            setcalls(arr);
+            } else {
+              const res3 = await fetchBuildExecuteTransaction(
+                res?.data?.data.quote_id,
+                address,
+                1,
+                true
+              );
+              if (res3) {
+                const arr: any = res3?.calls;
+                arr.push(
+                  {
+                    contractAddress: currentSelectedSellToken.l2_token_address,
+                    entrypoint: "approve",
+                    calldata: [
+                      "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                      etherToWeiBN(
+                        protocolFees,
+                        currentSelectedSellToken.decimals
+                      ).toString(),
+                      "0",
+                    ],
+                  },
+                  {
+                    contractAddress:
+                      "0x2174be7f62d51900677f6da9058b753cd05e79df40ee287ae1cb3ca6eb6012d",
+                    entrypoint: "collectFees",
+                    calldata: CallData.compile([
+                      currentSelectedSellToken.l2_token_address,
+                      etherToWeiBN(
+                        currentSellAmount,
+                        currentSelectedSellToken.decimals
+                      ).toString(),
+                      "0",
+                    ]),
+                  }
+                );
+                setcalls(arr);
+              }
+            }
           }
         }
         setrefereshData(false);
@@ -1166,7 +1234,7 @@ const SwapInterface = ({
               onClick={() => setsellDropdownSelected(false)} // Close modal on click
             >
               <Box
-                width={{ base: "70vw", md: "50vw", lg: "25vw" }}
+                 width={{ base: "90%", lg: "30%" }}
                 // overflow="auto"
                 height="500px"
                 mt="9rem"
@@ -1177,7 +1245,7 @@ const SwapInterface = ({
                 gap="1rem"
                 position="fixed"
                 top="35%"
-                left="82%"
+                left={{base:'50%',lg:'82%'}}
                 transform="translate(-50%, -50%)"
                 zIndex="21"
                 bg="#101010"
@@ -1325,7 +1393,7 @@ const SwapInterface = ({
               onClick={() => setcurrencyDropdownSelected(false)} // Close modal on click
             >
               <Box
-                width={{ base: "70vw", md: "50vw", lg: "25vw" }}
+                width={{ base: "90%", lg: "30%" }}
                 // overflow="auto"
                 height="500px"
                 mt="9rem"
@@ -1336,7 +1404,7 @@ const SwapInterface = ({
                 gap="1rem"
                 position="fixed"
                 top="35%"
-                left="82%"
+                left={{base:'50%',lg:'82%'}}
                 transform="translate(-50%, -50%)"
                 zIndex="21"
                 bg="#101010"
@@ -1371,17 +1439,17 @@ const SwapInterface = ({
                     _selected={{ border: "1px solid blue" }}
                     bg="#101010"
                     pl="0.4rem"
-                    placeholder="Enter currency symbol"
+                    placeholder="Enter currency symbol or name"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </Box>
                 <Box overflow="auto">
-                  {Object.keys(currencies)
-                    .filter((token: any) =>
-                      token.toLowerCase().includes(searchTerm.toLowerCase())
+                  {currencies
+                    .filter((token: currency) =>
+                      (token.code.toLowerCase().includes(searchTerm.toLowerCase()) ||token.name.toLowerCase().includes(searchTerm.toLowerCase()))
                     )
-                    .map((token: any, index: number) => (
+                    .map((currency: currency, index: number) => (
                       <Box
                         key={index}
                         display="flex"
@@ -1398,10 +1466,10 @@ const SwapInterface = ({
                           alignItems="center"
                           justifyContent="space-between"
                           onClick={() => {
-                            setcurrentCurrencySelected(token);
+                            setcurrentCurrencySelected(currency.code);
                             setcurrencyDropdownSelected(false);
                             setSearchTerm("");
-                            setcurrentSelectedCurrencyAmount(currencies[token]);
+                            setcurrentSelectedCurrencyAmount(currency.usd_price);
                           }}
                         >
                           <Box display="flex" alignItems="center" gap="0.8rem">
@@ -1411,16 +1479,23 @@ const SwapInterface = ({
                               // bg={generateRandomGradient()}
                               borderRadius="200px"
                             >
-                              <Image
-                                src={
-                                  getFlagByCode(
-                                    String(token).toUpperCase()
-                                  ) as string
-                                }
+                              {currency.flag?<Image
+                                src={currency.flag}
                                 alt="Country Flag"
                                 height={100}
                                 width={100}
-                              />
+                              />:<Box
+                              borderRadius="full"
+                              boxSize="35px"
+                              bg="gray.600"
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              <Text color="white" fontSize="2xl" fontWeight="bold">
+                                ?
+                              </Text>
+                            </Box>}
                             </Box>
                             <Box>
                               <Text
@@ -1428,7 +1503,7 @@ const SwapInterface = ({
                                 fontSize="14px"
                                 color="white"
                               >
-                                {token}
+                                {currency.code}
                               </Text>
                             </Box>
                           </Box>
@@ -1438,7 +1513,7 @@ const SwapInterface = ({
                             mr="0.5rem"
                             textTransform="uppercase"
                           >
-                            $1 = {formatNumberEs(currencies[token])} {token}
+                            $1 = {numberFormatter(currency.usd_price)} {currency.code}
                           </Text>
                         </Box>
                       </Box>
@@ -1459,7 +1534,7 @@ const SwapInterface = ({
                  onClick={() => setbuyDropdownSelected(false)} // Close modal on click
                >
                   <Box
-                    width={{ base: "70vw", md: "50vw", lg: "25vw" }}
+                    width={{ base: "90%", lg: "30%" }}
                     // overflow="auto"
                     height="500px"
                     mt="9rem"
@@ -1470,7 +1545,7 @@ const SwapInterface = ({
                     gap="1rem"
                     position="fixed"
                     top="35%"
-                    left="82%"
+                    left={{base:'50%',lg:'82%'}}
                     transform="translate(-50%, -50%)"
                     zIndex="21"
                     bg="#101010"
