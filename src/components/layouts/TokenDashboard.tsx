@@ -4,6 +4,8 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { generateRandomGradient } from "@/functions/helpers";
+import { RiTwitterXLine } from "react-icons/ri";
+import { TbWorld } from "react-icons/tb";
 import {
   PaginationItems,
   PaginationNextTrigger,
@@ -11,12 +13,14 @@ import {
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination";
-import axios from "axios";
+import { FaTelegramPlane } from "react-icons/fa";
+import STRKLogo from "@/assets/strkLogo";
+import { Tooltip } from "../ui/tooltip";
 const TokenDashboard = ({ allTokens }: any) => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const pageSize = 6;
+  const pageSize = 12;
   const startRange = (page - 1) * pageSize;
   const endRange = startRange + pageSize;
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -70,8 +74,9 @@ const TokenDashboard = ({ allTokens }: any) => {
         </Box>
         <SimpleGrid
           alignItems="center"
-          columns={{ sm: 1, md: 2, xl: 3 }}
-          gap="10"
+          columns={{ sm: 1, md: 2, xl: 3,'2xl':4 }}
+          columnGap="8"
+          rowGap="10"
         >
           {/* Reduced horizontal spacing with spacingX */}
           {filteredTokens
@@ -81,7 +86,7 @@ const TokenDashboard = ({ allTokens }: any) => {
                 key={index}
                 cursor="pointer"
                 bg="rgb(16 16 20)"
-                padding="2rem 0rem"
+                padding="1.5rem 0rem"
                 width={{ base: "100%" }}
                 gap="0.5rem"
                 border="1px solid rgb(30 32 37)"
@@ -103,49 +108,51 @@ const TokenDashboard = ({ allTokens }: any) => {
                 }}
                 onMouseLeave={handleMouseLeave}
                 onClick={() => {
-                  router.push(`/coin/${token.l2_token_address}`);
+                  router.push(`/coin/${token.address}`);
                 }}
               >
                 <Box
                   display="flex"
-                  gap={{ base: "1rem", lg: "1.5rem" }}
+                  gap={{ base: "1rem"}}
                   alignItems="center"
                 >
-                  <Box
-                    height={{
-                      base: "90px",
-                      sm: "90px",
-                      mdToLg: "90px",
-                      lg: "100px",
-                    }}
-                    width={{
-                      base: "90px",
-                      sm: "90px",
-                      mdToLg: "90px",
-                      lg: "100px",
-                    }}
-                  >
-                    {token.logo_url ? (
-                      <Image
-                        src={token.logo_url}
-                        alt=""
-                        height="100"
-                        width="100"
-                      />
-                    ) : (
-                      <Box
-                        borderRadius="full"
-                        boxSize="90px"
-                        bg="gray.600"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <Text color="white" fontSize="4xl" fontWeight="bold">
-                          ?
-                        </Text>
-                      </Box>
-                    )}
+                  <Box>
+                    <Box
+                      height={{
+                        base: "90px",
+                        sm: "90px",
+                        mdToLg: "90px",
+                        lg: "90px",
+                      }}
+                      width={{
+                        base: "90px",
+                        sm: "90px",
+                        mdToLg: "90px",
+                        lg: "90px",
+                      }}
+                    >
+                      {token.icon_url ? (
+                        <Image
+                          src={token.icon_url}
+                          alt=""
+                          height="100"
+                          width="100"
+                        />
+                      ) : (
+                        <Box
+                          borderRadius="full"
+                          boxSize="90px"
+                          bg="gray.600"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <Text color="white" fontSize="4xl" fontWeight="bold">
+                            ?
+                          </Text>
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
                   <Box display="flex" flexDir="column">
                     <Box
@@ -155,28 +162,47 @@ const TokenDashboard = ({ allTokens }: any) => {
                       {token.symbol}
                     </Box>
                     <Box color="#459C6E" whiteSpace="nowrap">
-                      Market Cap: $34000
+                      Market Cap: ${token.market_cap}
                     </Box>
                     <Box color="grey">{token.symbol}</Box>
-                    <Box
-                      mt="0.4rem"
-                      display="flex"
-                      alignItems="center"
-                      gap="0.4rem"
-                      color="#C9D3EE"
-                    >
-                      <Text whiteSpace="nowrap">Deployed by</Text>
+                    <Tooltip closeDelay={300}  contentProps={{ css: { "padding":'8px',bg:'rgb(30 32 37)',color:'white',zIndex:200 } }} openDelay={100}  content={token?.address}>
                       <Box
-                        height="16px"
-                        width="16px"
-                        cursor="pointer"
-                        bg={generateRandomGradient()}
-                        borderRadius="200px"
-                      ></Box>
-                      <Text>Address</Text>
-                    </Box>
+                        mt="0.4rem"
+                        display="flex"
+                        alignItems="center"
+                        gap="0.4rem"
+                        color="#C9D3EE"
+                      >
+                        <Text>Address: </Text>
+                        <Box
+                          height="16px"
+                          width="16px"
+                          cursor="pointer"
+                          bg={generateRandomGradient()}
+                          borderRadius="200px"
+                        ></Box>
+                          <Text>{token?.address.substring(0,5)}...{token?.address.substring(token?.address.length-5,token?.address.length)} </Text>
+                      </Box>
+                    </Tooltip>
                   </Box>
                 </Box>
+                {/* <Box display='flex' justifyContent="center" mt="1rem" width='100%' paddingLeft="2rem" paddingRight="2rem">
+                  <Box display='flex'   width='100%'  gap="1rem" alignItems="center">
+                    <Text>
+                      <RiTwitterXLine height="20px" width="20px" />
+                    </Text>
+                    <Text>
+                    <TbWorld  height="20px" width="20px" />
+                    </Text>
+                    <Text>
+                    <FaTelegramPlane  height="20px" width="20px" />
+                    </Text>
+                  </Box>
+                  <Box whiteSpace="nowrap" display="flex" alignItems="center" gap="0.3rem">
+                    Deployed on
+                    <STRKLogo width={20} height={20} />
+                  </Box>
+                </Box> */}
               </Box>
             ))}
         </SimpleGrid>

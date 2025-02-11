@@ -24,12 +24,12 @@ export default function Home({allTokens}:{allTokens:any}) {
   );
 }
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   try {
-        const res3 = await getAllTokens();
+        const res3 = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API}/tokens?all=true`);
       return {
         props: {
-          allTokens:res3
+          allTokens:res3?.data.data.tokens
         },
       };
   } catch (error) {

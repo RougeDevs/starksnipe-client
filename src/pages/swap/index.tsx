@@ -25,7 +25,7 @@ const Index = ({ prices, allTokens }: { prices: Pricer[]; allTokens: any }) => {
 
 export default Index;
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   try {
     const res2 = await axios.get(
       "https://starknet.api.avnu.fi/paymaster/v1/gas-token-prices"
