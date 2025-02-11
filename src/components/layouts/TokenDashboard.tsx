@@ -131,7 +131,6 @@ const TokenDashboard = ({ allTokens }: any) => {
                         alt=""
                         height="100"
                         width="100"
-                        objectFit="cover"
                       />
                     ) : (
                       <Box
