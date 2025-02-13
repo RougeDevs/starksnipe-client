@@ -51,10 +51,12 @@ const SwapInterface = ({
   prices,
   currencies,
   allTokens,
+  allMemeTokens
 }: {
   prices: any;
   currencies: any;
   allTokens: any;
+  allMemeTokens:any
 }) => {
   const [buyDropdownSelected, setbuyDropdownSelected] =
     useState<boolean>(false);
@@ -242,16 +244,26 @@ const SwapInterface = ({
     }
   };
 
+  console.log(allMemeTokens,'memes')
+
   useEffect(() => {
-    if (allTokens && router.query.address) {
+    if (allMemeTokens && router.query.address) {
       const valueToken = findTokenByAddress(
         processAddress(router.query.address as string),
-        allTokens
+        allMemeTokens
       );
       if (valueToken) {
-        // setrefreshBuyData(true);
+        // setrefreshBuyData(true);'
+        const tokenDetails={
+          name: valueToken.name,
+          l2_token_address:
+           valueToken.address,
+          logo_url: valueToken.icon_url,
+          decimals: 18,
+          symbol: valueToken.symbol,
+        }
         if(tabContent==='Buy'){
-          setcurrentSelectedBuyToken(valueToken);
+          setcurrentSelectedBuyToken(tokenDetails);
           setcurrentSelectedSellToken({
             name: "STRK",
             l2_token_address:
@@ -269,7 +281,7 @@ const SwapInterface = ({
             decimals: 18,
             symbol: "STRK",
           })
-          setcurrentSelectedSellToken(valueToken)
+          setcurrentSelectedSellToken(tokenDetails)
         }
       }
     }

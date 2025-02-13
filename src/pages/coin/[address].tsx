@@ -10,7 +10,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-const Index = ({currencies,prices,allTokens}:{prices:Pricer[],currencies:currency[],allTokens:any}) => {
+const Index = ({currencies,prices,allTokens,allMemeTokens}:{prices:Pricer[],currencies:currency[],allTokens:any,allMemeTokens:any}) => {
     const router=useRouter()
   return (
     <Box minH="100vh">
@@ -21,7 +21,9 @@ const Index = ({currencies,prices,allTokens}:{prices:Pricer[],currencies:currenc
         <ParticleBackground/>
         <MemeCoinDashboard  allTokens={allTokens}
         currencies={currencies}
-        prices={prices}/>
+        prices={prices}
+        allMemeTokens={allMemeTokens}
+        />
         <Footer/>
     </Box>
   )
@@ -42,12 +44,14 @@ export async function getServerSideProps() {
       );
 
       const res3 = await getAllTokens();
+      const res4= await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API}/tokens?all=true`);
 
       return {
         props: {
           currencies: res?.data?.data,
           prices: res2?.data,
           allTokens: res3,
+          allMemeTokens:res4?.data.data.tokens
         },
       };
     }

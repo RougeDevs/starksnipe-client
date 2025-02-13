@@ -36,7 +36,7 @@ export function findTokenByAddress(currentToken: string, tokens: any) {
     let matchedToken = null;
 
     for (let token of tokens) {
-      if (processAddress(token.l2_token_address) === currentToken) {
+      if (processAddress(token.address) === currentToken) {
         matchedToken = token;
         break;
       }

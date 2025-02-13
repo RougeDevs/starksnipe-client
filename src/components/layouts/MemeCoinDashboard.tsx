@@ -26,7 +26,7 @@ import numberFormatter from "@/functions/numberFormatter";
 import numberFormatterPercentage from "@/functions/numberFormatterPercentage";
 import { getProvider } from "@/Blockchain/strk-constants";
 import formatNumberEs from "@/functions/esnumberFormatter";
-const MemeCoinDashboard = ({ allTokens, currencies, prices }: {allTokens:any,currencies:currency[],prices:Pricer[]}) => {
+const MemeCoinDashboard = ({ allTokens, currencies, prices,allMemeTokens }: {allTokens:any,currencies:currency[],prices:Pricer[],allMemeTokens:any}) => {
   const router = useRouter();
   const [memeCoinData, setmemeCoinData] = useState<token>();
   const [tokenTransactions, settokenTransactions] =
@@ -292,6 +292,7 @@ const MemeCoinDashboard = ({ allTokens, currencies, prices }: {allTokens:any,cur
               allTokens={allTokens}
               currencies={currencies}
               prices={prices}
+              allMemeTokens={allMemeTokens}
             />
           </Box>
         </Box>

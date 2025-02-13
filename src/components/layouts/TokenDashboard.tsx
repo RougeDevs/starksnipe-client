@@ -51,6 +51,7 @@ const TokenDashboard = ({ allTokens }: any) => {
     );
   });
   const count = allTokens.length;
+
   return (
     <Box display="flex" width="100%" justifyContent="center" pt="6rem">
       <Box
@@ -79,14 +80,14 @@ const TokenDashboard = ({ allTokens }: any) => {
           rowGap="10"
         >
           {/* Reduced horizontal spacing with spacingX */}
-          {filteredTokens
+          {filteredTokens.sort((a:any, b:any) => Number(b.launched_at_block) - Number(a.launched_at_block))
             .slice(startRange, endRange)
             .map((token: any, index: number) => (
               <Box
                 key={index}
                 cursor="pointer"
                 bg="rgb(16 16 20)"
-                padding="1.5rem 0rem"
+                padding="1rem"
                 width={{ base: "100%" }}
                 gap="0.5rem"
                 border="1px solid rgb(30 32 37)"
@@ -130,6 +131,7 @@ const TokenDashboard = ({ allTokens }: any) => {
                         mdToLg: "90px",
                         lg: "90px",
                       }}
+                      objectFit="contain"
                     >
                       {token.icon_url ? (
                         <Image
@@ -140,15 +142,15 @@ const TokenDashboard = ({ allTokens }: any) => {
                         />
                       ) : (
                         <Box
-                          borderRadius="full"
+                          // borderRadius="full"
                           boxSize="90px"
-                          bg="gray.600"
+                          bg="rgb(2, 133, 96)"
                           display="flex"
                           alignItems="center"
                           justifyContent="center"
                         >
                           <Text color="white" fontSize="4xl" fontWeight="bold">
-                            ?
+                            S
                           </Text>
                         </Box>
                       )}
@@ -186,7 +188,7 @@ const TokenDashboard = ({ allTokens }: any) => {
                     </Tooltip>
                   </Box>
                 </Box>
-                {/* <Box display='flex' justifyContent="center" mt="1rem" width='100%' paddingLeft="2rem" paddingRight="2rem">
+                <Box display='flex' justifyContent="center" alignItems="center" mt="1rem" gap="6rem">
                   <Box display='flex'   width='100%'  gap="1rem" alignItems="center">
                     <Text>
                       <RiTwitterXLine height="20px" width="20px" />
@@ -202,7 +204,7 @@ const TokenDashboard = ({ allTokens }: any) => {
                     Deployed on
                     <STRKLogo width={20} height={20} />
                   </Box>
-                </Box> */}
+                </Box>
               </Box>
             ))}
         </SimpleGrid>
