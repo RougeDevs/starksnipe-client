@@ -1,13 +1,6 @@
 import { parseAmount, processAddress } from '@/Blockchain/utils/utils';
-import currenciesLogos from '../../currencies-with-flags.json'
 import { getProvider } from '@/Blockchain/strk-constants';
 import { TransactionExecutionStatus } from 'starknet';
-
-
-export function getFlagByCode(token:string) {
-    const currency = currenciesLogos.find(item => item.code === token);
-    return currency ? currency.flag : null; // Return null if the code is not found
-}
 
 export function getPriceInUSD(tokens: [], l2TokenAddress: string) {
     const matchedToken: any = tokens.find(
@@ -98,6 +91,33 @@ export function epochToDateTime(epoch:number) {
   const date = new Date(epoch * 1000); // Convert seconds to milliseconds
   return date.toDateString(); // Returns in ISO format (UTC)
 }
+
+const errorMessages = {
+  ElectionInactive: "Election is Not Active",
+  "Signature failed":'Transaction Declined',
+  OwnerPermissioned: "Must be Owner of Election",
+  AlreadyVoted: "Vote Already Casted",
+  GetVotes: "Error in Getting Voted",
+  ElectionIncomplete: "Election is still Active",
+  OnlyOwner: "Must be Owner of Election",
+  NotEnoughBalance: "Link Tokens exhausted",
+  VoteInputLength: "Incorrect Length of Vote ",
+  IncorrectCredits: " Incorrect Credits Given",
+  NoCandidates: "No Candidates to Vote",
+  ChainMismatchError: "Switch to Mainnet!",
+  NothingToClaim:
+    "You have currently claimed the full amount. Please wait for the cliff period to end before claiming any additional funds.",
+};
+
+export const ErrorMessage = (error: any) => {
+  console.log("Error : ", error.message);
+  for (const [key, message] of Object.entries(errorMessages)) {
+    if (error.message.includes(key)) {
+      return message;
+    }
+  }
+  return "Something went wrong. Please try again.";
+};
 
 export async function isTxAccepted(txHash: string) {
   const provider = getProvider();

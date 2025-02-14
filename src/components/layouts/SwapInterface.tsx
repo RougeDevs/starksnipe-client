@@ -36,7 +36,6 @@ import {
   findTokenByAddress,
   findTokenPrice,
   getBalanceUserToken,
-  getFlagByCode,
   getPriceInUSD,
 } from "@/functions/helpers";
 import { swapTokens } from "@/constants";
@@ -46,7 +45,7 @@ import numberFormatter from "@/functions/numberFormatter";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Router as FibrousRouter } from "fibrous-router-sdk";
 import axios from "axios";
-import { fetchBuildExecuteTransaction } from "@avnu/avnu-sdk";
+import { fetchBuildExecuteTransaction,executeSwap} from "@avnu/avnu-sdk";
 const SwapInterface = ({
   prices,
   currencies,
@@ -113,6 +112,7 @@ const SwapInterface = ({
   const [exchangeRate, setexchangeRate] = useState<number | null>(null);
   // const [currencies, setcurrencies] = useState<any>();
   const [currentCurrencySelected, setcurrentCurrencySelected] = useState("usd");
+  const [currencyUrl, setcurrencyUrl] = useState("")
   const [defaultFees, setdefaultFees] = useState<number>(0);
   const [transactionSuccessfull, settransactionSuccessfull] =
     useState<boolean>(false);
@@ -244,8 +244,6 @@ const SwapInterface = ({
     }
   };
 
-  console.log(allMemeTokens,'memes')
-
   useEffect(() => {
     if (allMemeTokens && router.query.address) {
       const valueToken = findTokenByAddress(
@@ -358,8 +356,7 @@ const SwapInterface = ({
             currentSelectedBuyToken.l2_token_address
           }&sell_amount=${BigInt(
             etherToWeiBN(
-              currentSellAmount -
-                (protocolFees + (gasMode ? 5 * defaultFees : 0)),
+              currentSellAmount,
               currentSelectedSellToken.decimals
             )
           )}`,
@@ -625,27 +622,43 @@ const SwapInterface = ({
   ]);
 
   useEffect(() => {
+    const controller = new AbortController();
     if (
       currentSelectedBuyToken.symbol !== "Select a token" &&
       currentSelectedSellToken.symbol !== "Select a token"
     ) {
       const fetchExchangeRate = async () => {
-        const res = await fetchQuote(
-          BigInt(etherToWeiBN(1, currentSelectedSellToken.decimals)),
-          currentSelectedSellToken.l2_token_address,
-          currentSelectedBuyToken.l2_token_address
-        );
-        if (res) {
-          setexchangeRate(
-            parseAmount(
-              String(res?.total_calculated),
-              currentSelectedBuyToken.decimals
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_API}/get-quotes?sell_token=${
+            currentSelectedSellToken.l2_token_address
+          }&buy_token=${
+            currentSelectedBuyToken.l2_token_address
+          }&sell_amount=${BigInt(
+            etherToWeiBN(
+              1,
+              currentSelectedSellToken.decimals
             )
-          );
+          )}`,
+          {
+            signal: controller.signal // Pass the abort signal to axios
+          }
+        );
+        if (!controller.signal.aborted) {
+          if (res) {
+            setexchangeRate(
+              parseAmount(
+                String(res?.data?.data.buy_amount),
+                currentSelectedBuyToken.decimals
+              )
+            );
+          }
         }
       };
       fetchExchangeRate();
     }
+    return () => {
+      controller.abort();
+    };
   }, [currentSelectedBuyToken, currentSelectedSellToken]);
 
   useEffect(() => {
@@ -860,13 +873,6 @@ const SwapInterface = ({
                           setcurrentSellAmount(Number(e.target.value));
                         }}
                         type="number"
-                        css={{
-                          "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
-                            {
-                              "-webkit-appearance": "none",
-                              margin: 0,
-                            },
-                        }}
                       />
                     )}
                   </Box>
@@ -970,13 +976,6 @@ const SwapInterface = ({
                           setcurrentConvertedSellAmount(Number(e.target.value));
                         }}
                         type="number"
-                        css={{
-                          "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
-                            {
-                              "-webkit-appearance": "none",
-                              margin: 0,
-                            },
-                        }}
                       />
                     )}
                   </Box>
@@ -1003,9 +1002,7 @@ const SwapInterface = ({
                     >
                       <Image
                         src={
-                          getFlagByCode(
-                            String(currentCurrencySelected).toUpperCase()
-                          ) as string
+                          currencyUrl
                         }
                         alt="Country Flag"
                         height={100}
@@ -1074,13 +1071,6 @@ const SwapInterface = ({
                         }}
                         placeholder={`0 ${currentSelectedBuyToken.symbol}`}
                         type="number"
-                        css={{
-                          "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
-                            {
-                              "-webkit-appearance": "none",
-                              margin: 0,
-                            },
-                        }}
                       />
                     )}
                   </Box>
@@ -1515,6 +1505,7 @@ const SwapInterface = ({
                           justifyContent="space-between"
                           onClick={() => {
                             setcurrentCurrencySelected(currency.code);
+                            setcurrencyUrl(currency?.flag)
                             setcurrencyDropdownSelected(false);
                             setSearchTerm("");
                             setcurrentSelectedCurrencyAmount(currency.usd_price);

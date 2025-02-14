@@ -9,7 +9,7 @@ import React from "react";
 const TransactionTable = ({ transactions }:{transactions:tokenTransaction[]}) => {
   const skeletonValues = Array(12).fill("");
   const columnItems=["Address","Date","Type","Amount","Transaction"]
-  console.log(transactions,'txs')
+
   return (
     <Box width="100%" mt="1rem" overflowX="auto">
       <Box display="flex" minW="700px" width="100%" bg='rgb(30 32 37)' justifyContent="space-between" fontWeight="bold" border="1px solid #374151"p={2} color="#98989B">

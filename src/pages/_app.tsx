@@ -1,6 +1,5 @@
 import { Provider } from "@/components/ui/provider";
 import "@/styles/globals.css";
-import { ChakraProvider } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
 import { Provider as JotaiProvider } from "jotai";
 import { mainnet, sepolia } from "@starknet-react/chains";
@@ -9,7 +8,6 @@ import Layout from "@/toasts";
 import {
   argent,
   braavos,
-  infuraProvider,
   publicProvider,
   StarknetConfig,
   useInjectedConnectors,

@@ -26,6 +26,7 @@ const TokenDashboard = ({ allTokens }: any) => {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [currentTokens, setcurrentTokens] = useState([]);
   const [totalTokensLength, settotalTokensLength] = useState(100);
+  const [gradients, setGradients] = useState<string[]>([]);
 
   const handleMouseMove = (e: any, index: number) => {
     setHoveredIndex(index);
@@ -51,6 +52,18 @@ const TokenDashboard = ({ allTokens }: any) => {
     );
   });
   const count = allTokens.length;
+
+  useEffect(() => {
+    if (allTokens.length > 0) {
+      setGradients(allTokens.map(() => generateRandomGradient()));
+    }
+  }, [allTokens]);
+
+  useEffect(()=>{
+    if(searchTerm!==""){
+      setPage(1)
+    }
+  },[searchTerm])
 
   return (
     <Box display="flex" width="100%" justifyContent="center" pt="6rem">
@@ -161,7 +174,7 @@ const TokenDashboard = ({ allTokens }: any) => {
                       fontSize={{ base: "16px", md: "18px" }}
                       color="#C9D3EE"
                     >
-                      {token.symbol}
+                      {token.name}
                     </Box>
                     <Box color="#459C6E" whiteSpace="nowrap">
                       Market Cap: ${token.market_cap}
@@ -180,7 +193,7 @@ const TokenDashboard = ({ allTokens }: any) => {
                           height="16px"
                           width="16px"
                           cursor="pointer"
-                          bg={generateRandomGradient()}
+                          bg={gradients[index]}
                           borderRadius="200px"
                         ></Box>
                           <Text>{token?.address.substring(0,5)}...{token?.address.substring(token?.address.length-5,token?.address.length)} </Text>

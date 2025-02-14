@@ -2,12 +2,9 @@ import Head from "next/head";
 import Navbar from "@/components/layouts/Navbar/Navbar";
 import { Box } from "@chakra-ui/react";
 import axios from "axios";
-import { getAllTokens } from "@/utils/swapRouter";
 import TokenDashboard from "@/components/layouts/TokenDashboard";
 import Footer from "@/components/layouts/Footer/Footer";
 import ParticleBackground from "@/components/animatedComponents/Particlebackground";
-import { Pricer } from "@/interfaces/interface";
-
 export default function Home({allTokens}:{allTokens:any}) {
   return (
     <>
@@ -24,7 +21,7 @@ export default function Home({allTokens}:{allTokens:any}) {
   );
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
   try {
         const res3 = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API}/tokens?all=true`);
       return {

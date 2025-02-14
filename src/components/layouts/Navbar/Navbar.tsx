@@ -165,7 +165,7 @@ const Navbar = ({ allTokens }: any) => {
           >
             <Link href="http://t.me/STRKsnipeBot" target="_blank" style={{display:'flex',alignItems:'center'}}>
               SniQ Radar
-              <Image src={radarLogo} alt="" height={36} width={36} />
+              <Image src={radarLogo} alt="" height={36} width={36} style={{ height: 36, width: 36 }}  />
             </Link>
           </Box>
           <Tooltip

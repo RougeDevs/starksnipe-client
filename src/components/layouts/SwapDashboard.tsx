@@ -40,6 +40,7 @@ import { toast } from "react-toastify";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { MYCONNECTORS } from "@/pages/_app";
 import {
+  ErrorMessage,
   findTokenPrice,
   getPriceInUSD,
   isTxAccepted,
@@ -215,11 +216,10 @@ const SwapDashboard = ({
         // alert(result);
       }
     } catch (error) {
-      toast.error("Something went wrong", {
+      toast.error(ErrorMessage(error), {
         position: "bottom-right",
       });
       settransactionStarted(false);
-      console.log(error, "err in call");
     }
   };
 
@@ -291,7 +291,6 @@ const SwapDashboard = ({
             signal: controller.signal // Pass the abort signal to axios
           }
         );
-        console.log(res,'response quote')
   
         // Only process the response if the request wasn't aborted
         if (!controller.signal.aborted) {
@@ -550,27 +549,43 @@ const SwapDashboard = ({
   ]);
 
   useEffect(() => {
+    const controller = new AbortController();
     if (
       currentSelectedBuyToken.symbol !== "Select a token" &&
       currentSelectedSellToken.symbol !== "Select a token"
     ) {
       const fetchExchangeRate = async () => {
-        const res = await fetchQuote(
-          BigInt(etherToWeiBN(1, currentSelectedSellToken.decimals)),
-          currentSelectedSellToken.l2_token_address,
-          currentSelectedBuyToken.l2_token_address
-        );
-        if (res) {
-          setexchangeRate(
-            parseAmount(
-              String(res?.total_calculated),
-              currentSelectedBuyToken.decimals
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_API}/get-quotes?sell_token=${
+            currentSelectedSellToken.l2_token_address
+          }&buy_token=${
+            currentSelectedBuyToken.l2_token_address
+          }&sell_amount=${BigInt(
+            etherToWeiBN(
+              1,
+              currentSelectedSellToken.decimals
             )
-          );
+          )}`,
+          {
+            signal: controller.signal // Pass the abort signal to axios
+          }
+        );
+        if (!controller.signal.aborted) {
+          if (res) {
+            setexchangeRate(
+              parseAmount(
+                String(res?.data?.data.buy_amount),
+                currentSelectedBuyToken.decimals
+              )
+            );
+          }
         }
       };
       fetchExchangeRate();
     }
+    return () => {
+      controller.abort();
+    };
   }, [currentSelectedBuyToken, currentSelectedSellToken]);
 
   useEffect(() => {
@@ -667,13 +682,6 @@ const SwapDashboard = ({
                       setcurrentSellAmount(Number(e.target.value));
                     }}
                     type="number"
-                    css={{
-                      "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
-                        {
-                          "-webkit-appearance": "none",
-                          margin: 0,
-                        },
-                    }}
                   />
                 )}
               </Box>
@@ -806,13 +814,6 @@ const SwapDashboard = ({
                     }}
                     placeholder="0"
                     type="number"
-                    css={{
-                      "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button":
-                        {
-                          "-webkit-appearance": "none",
-                          margin: 0,
-                        },
-                    }}
                   />
                 )}
               </Box>
